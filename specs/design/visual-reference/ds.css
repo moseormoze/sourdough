@@ -1,0 +1,186 @@
+/* Kikar Design System — showcase layout (uses soft.css for actual component styles) */
+
+/* Spec card */
+.ds-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid #ECE9E1;
+}
+.ds-card h3 { margin: 0; font: 700 18px 'Rubik'; letter-spacing: -0.015em; color: #1F1A14; }
+.ds-card .ds-blurb { margin: 4px 0 18px; font: 500 13px 'Rubik'; color: #6E6457; line-height: 1.55; max-width: 540px; }
+
+.ds-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 24px; }
+.ds-cell { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.ds-cell .ds-label { font: 500 10px 'JetBrains Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; color: #8A7B69; }
+.ds-cell .ds-sub { font: 500 11px 'Rubik'; color: #A6997F; margin-block-start: -4px; }
+
+.ds-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.ds-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.ds-grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+
+/* Annotation: small text describing a token */
+.ds-annot {
+  font: 500 11px 'JetBrains Mono', monospace;
+  color: #8A7B69;
+  letter-spacing: -0.005em;
+}
+
+/* Color swatch */
+.ds-swatch {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+.ds-swatch .chip { height: 80px; }
+.ds-swatch .meta { padding: 10px 12px; background: #fff; }
+.ds-swatch .name { font: 600 12px 'Rubik'; color: #1F1A14; }
+.ds-swatch .hex { font: 500 11px 'JetBrains Mono', monospace; color: #8A7B69; margin-block-start: 2px; }
+.ds-swatch .var { font: 500 10px 'JetBrains Mono', monospace; color: #B16A39; margin-block-start: 1px; }
+.ds-swatch .use { font: 400 10px 'Rubik'; color: #8A7B69; margin-block-start: 4px; line-height: 1.4; }
+
+/* Spacing scale */
+.ds-spacing { display:flex; align-items:flex-end; gap:12px; }
+.ds-spacing .item { display: flex; flex-direction: column; align-items:center; gap: 6px; }
+.ds-spacing .bar { background: #E66B3D; width: 10px; border-radius: 4px; }
+.ds-spacing .l { font: 600 11px 'JetBrains Mono', monospace; color: #1F1A14; }
+.ds-spacing .v { font: 500 10px 'JetBrains Mono', monospace; color: #A6997F; }
+
+/* Radius scale */
+.ds-radius .demo { background: #FCE7D4; height: 64px; width: 64px; display: grid; place-items:center; }
+
+/* Shadow scale */
+.ds-shadow .demo { background: #fff; width: 130px; height: 78px; border-radius: 14px; }
+
+/* Type spec table */
+.ds-type-row { display: flex; align-items: baseline; gap: 24px; padding: 14px 0; border-block-end: 1px solid #ECE9E1; direction: ltr; }
+.ds-type-row:last-child { border-block-end: none; }
+.ds-type-row .ds-label-col { flex: 0 0 100px; }
+.ds-type-row .ds-spec { flex: 0 0 240px; font: 500 11px 'JetBrains Mono', monospace; color: #8A7B69; line-height: 1.5; }
+.ds-type-row .ds-sample { flex: 1; }
+
+/* Motion sample */
+.ds-motion-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #ECE9E1;
+  padding: 14px 16px;
+  display: flex; align-items:center; gap: 12px;
+}
+.ds-motion-card .swatch {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #E66B3D, #F2BC8E);
+}
+.ds-motion-card .name { font: 600 13px 'Rubik'; color: #1F1A14; }
+.ds-motion-card .val { font: 500 11px 'JetBrains Mono', monospace; color: #6E6457; }
+
+/* State badge */
+.ds-state {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 8px; border-radius: 6px;
+  font: 600 10px 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  background: #F4F2EC; color: #6E6457;
+}
+.ds-state.is-default  { background: #F4F2EC; color: #6E6457; }
+.ds-state.is-hover    { background: #FCE7D4; color: #8A4F25; }
+.ds-state.is-pressed  { background: #1F1A14; color: #fff; }
+.ds-state.is-focus    { background: #EAEBF7; color: #3949AB; }
+.ds-state.is-disabled { background: #F4F2EC; color: #A6997F; }
+.ds-state.is-loading  { background: #F4F2EC; color: #6E6457; }
+.ds-state.is-checked  { background: #ECEFDC; color: #5C6E36; }
+.ds-state.is-error    { background: #F8D8CE; color: #A14525; }
+
+/* State decorators applied to component instances */
+.dsi-hover .btn-accent { background: #D5582A; box-shadow: 0 1px 0 rgba(0,0,0,.06), 0 12px 28px rgba(230,107,61,.38) !important; }
+.dsi-hover .btn-soft   { background: #FBF7EE; }
+.dsi-hover .btn-ghost  { background: rgba(31,26,20,.04); }
+.dsi-hover .btn:not(.btn-accent):not(.btn-soft):not(.btn-ghost):not(.btn-warn) { background: #0F0B07; }
+.dsi-pressed { transform: scale(0.965); }
+.dsi-focus .btn { box-shadow: 0 0 0 3px #B5BEEC, 0 1px 0 rgba(0,0,0,.05), 0 8px 20px rgba(31,26,20,.16); outline: none; }
+.dsi-focus .btn-accent { box-shadow: 0 0 0 3px #FBD0B5, 0 1px 0 rgba(0,0,0,.06), 0 10px 24px rgba(230,107,61,.32); }
+.dsi-focus .input { border-color: #1F1A14; box-shadow: 0 0 0 3px rgba(31,26,20,.12); }
+
+/* Mini "phone" used to show molecules in context */
+.ds-mini {
+  width: 340px;
+  background: #F8F5EE;
+  border-radius: 20px;
+  padding: 16px;
+  direction: rtl;
+  border: 1px solid #ECE9E1;
+}
+
+/* Code line */
+.ds-code {
+  display: block;
+  background: #1F1A14; color: #F2EAD8;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font: 500 12px 'JetBrains Mono', monospace;
+  line-height: 1.55;
+  letter-spacing: 0;
+  direction: ltr;
+  margin-block-start: 14px;
+  overflow-x: auto;
+}
+.ds-code .tag { color: #F2BC8E; }
+.ds-code .attr { color: #BFC7A0; }
+.ds-code .str { color: #FBEFD0; }
+.ds-code .com { color: #8A7B69; }
+
+/* Spec note */
+.ds-note {
+  background: #FBF7EE;
+  border: 1px solid #EDE5D2;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: 500 12px 'Rubik';
+  color: #6E6457;
+  line-height: 1.5;
+  margin-block-start: 12px;
+}
+.ds-note strong { color: #1F1A14; font-weight: 700; }
+
+/* For organisms — phone preview frame */
+.ds-phone-preview {
+  background: #F8F5EE;
+  border-radius: 24px;
+  border: 1px solid #ECE9E1;
+  overflow: hidden;
+  width: 360px;
+}
+
+/* Icon grid */
+.ds-icons {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px;
+}
+.ds-icons .icn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 6px; border-radius: 10px;
+  border: 1px solid #ECE9E1; background: #FBF7EE;
+}
+.ds-icons .icn .name { font: 500 9px 'JetBrains Mono', monospace; color: #8A7B69; }
+
+/* Pinned bottom-sheet preview (mini) */
+.ds-sheet-mini {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  background: rgba(31,26,20,0.35);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.ds-sheet-mini .sheet {
+  position: absolute; inset-inline: 0; inset-block-end: 0;
+  background: #fff;
+  border-radius: 22px 22px 0 0;
+}
+
+/* Header label group above each artboard inside a section */
+.ds-h {
+  padding: 16px 0 8px;
+}
+.ds-h .eyebrow { font: 600 10px 'JetBrains Mono', monospace; letter-spacing: 0.12em; text-transform: uppercase; color: #8A7B69; }
+.ds-h h2 { margin: 4px 0 4px; font: 700 22px 'Rubik'; letter-spacing: -0.02em; color: #1F1A14; }
+.ds-h p { margin: 0; font: 500 13px 'Rubik'; color: #6E6457; line-height: 1.5; }

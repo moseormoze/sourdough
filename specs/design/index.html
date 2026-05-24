@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Kikar · Engineering Handoff</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #F8F5EE; --paper: #fff; --ink: #1F1A14; --ink-2: #6E6457; --ink-3: #A6997F;
+      --line: #EDE5D2; --accent: #E66B3D; --accent-bg: #FCE7D4; --sage: #ECEFDC; --sage-2: #8C9963;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Rubik', system-ui, sans-serif; color: var(--ink);
+           background: radial-gradient(120% 60% at 80% -10%, #FBE6CF 0%, transparent 55%),
+                       radial-gradient(80% 40% at 0% 100%, #F0E6D0 0%, transparent 55%),
+                       var(--bg); min-height: 100vh; line-height: 1.5; }
+    .container { max-width: 980px; margin: 0 auto; padding: 64px 24px 96px; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    code { font: 500 13px 'JetBrains Mono', monospace; color: #B16A39; background: rgba(177,106,57,.08); padding: 1px 6px; border-radius: 4px; }
+    h1 { font-size: 44px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; margin: 0; }
+    h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 8px; }
+    .eyebrow { font: 600 11px 'JetBrains Mono', monospace; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+    .lede { font-size: 17px; color: var(--ink-2); margin-block: 14px 0; max-width: 640px; line-height: 1.55; }
+    .mark {
+      display: inline-grid; place-items: center;
+      width: 56px; height: 56px; border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent) 0%, #F2BC8E 100%);
+      color: #fff; font: 700 28px 'Rubik'; letter-spacing: -0.04em;
+      box-shadow: 0 8px 24px rgba(230,107,61,.32);
+      margin-block-end: 24px;
+    }
+
+    section { margin-block-start: 56px; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 24px; padding: 24px; box-shadow: 0 1px 0 rgba(31,26,20,.04), 0 6px 24px rgba(31,26,20,.06); }
+
+    .file-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-block-start: 16px; }
+    .file {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px;
+      background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+      color: var(--ink); text-decoration: none;
+      transition: transform 120ms cubic-bezier(0.22,1,0.36,1), background 120ms, border-color 120ms;
+    }
+    .file:hover { background: #FBF7EE; border-color: #DCD0B4; }
+    .file:active { transform: scale(0.99); }
+    .file .ico { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-bg); color: var(--accent); display: grid; place-items: center; font: 700 13px 'JetBrains Mono', monospace; flex: 0 0 40px; }
+    .file .ico.json { background: #E6DEEE; color: #5B3F8C; }
+    .file .ico.css  { background: #DDEAF7; color: #2B5B8C; }
+    .file .ico.tw   { background: #DCEEDC; color: #2C6D2C; }
+    .file .ico.md   { background: #F4F2EC; color: #1F1A14; }
+    .file .ico.html { background: #FCE7D4; color: #8A4F25; }
+    .file .name { font: 600 14px 'Rubik'; }
+    .file .desc { font: 500 12px 'Rubik'; color: var(--ink-3); margin-block-start: 2px; }
+    .file .ext { margin-inline-start: auto; font: 600 11px 'JetBrains Mono', monospace; color: var(--ink-3); }
+
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font: 600 11px 'Rubik'; letter-spacing: -0.005em; }
+    .pill.sage { background: var(--sage); color: var(--sage-2); }
+    .pill.ink  { background: var(--ink); color: #FFFCF4; }
+
+    ol.steps { padding-inline-start: 0; list-style: none; counter-reset: s; margin: 0; }
+    ol.steps li { counter-increment: s; padding: 14px 16px 14px 48px; position: relative; border-block-end: 1px solid var(--line); }
+    ol.steps li:last-child { border-block-end: 0; }
+    ol.steps li::before { content: counter(s); position: absolute; inset-inline-start: 16px; inset-block-start: 14px; width: 24px; height: 24px; border-radius: 6px; background: var(--ink); color: #fff; font: 700 12px 'JetBrains Mono', monospace; display: grid; place-items: center; }
+    ol.steps li b { display: block; font: 600 14px 'Rubik'; margin-block-end: 2px; }
+    ol.steps li span { font: 500 13px 'Rubik'; color: var(--ink-2); }
+
+    .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 16px; }
+
+    .ascii {
+      font: 500 12px/1.55 'JetBrains Mono', monospace; color: var(--ink-2); white-space: pre; overflow-x: auto;
+      background: #FBF7EE; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+    }
+    .ascii .h { color: var(--ink); font-weight: 700; }
+    .ascii .c { color: var(--ink-3); }
+
+    .cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 22px; border-radius: 22px;
+      background: var(--ink); color: #FFFCF4;
+      text-decoration: none; font: 600 15px 'Rubik';
+      box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 8px 20px rgba(31,26,20,.16);
+      transition: transform 120ms cubic-bezier(0.22,1,0.36,1), background 120ms;
+    }
+    .cta:hover { background: #100A04; }
+    .cta:active { transform: scale(0.965); }
+    .cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-block-start: 16px; }
+
+    .quote { padding: 14px 18px; background: var(--sage); border-radius: 14px; font: 500 13px 'Rubik'; color: #4A5523; line-height: 1.55; max-width: 560px; }
+    footer { margin-block-start: 80px; padding-block-start: 24px; border-block-start: 1px solid var(--line); display:flex; justify-content: space-between; font: 500 12px 'JetBrains Mono', monospace; color: var(--ink-3); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="mark">כ</div>
+    <div class="eyebrow">Engineering Handoff · v0.1.0</div>
+    <h1>Kikar · Design Handoff</h1>
+    <p class="lede">Everything Claude Code needs to build the app. Start with <code>HANDOFF.md</code>. Tokens are provided in three formats — pick one. Two visual references show every screen and every component state.</p>
+
+    <div class="meta-row">
+      <span class="pill ink">Mobile-only · 375px</span>
+      <span class="pill">Hebrew · RTL</span>
+      <span class="pill sage">React + Tailwind</span>
+      <span class="pill">v1 · client-side only</span>
+    </div>
+
+    <section>
+      <div class="eyebrow">Step 1</div>
+      <h2>Read this first</h2>
+      <p class="lede" style="margin-block-end: 12px;">One markdown doc — stack assumptions, project structure, non-negotiables, suggested PR sequence, open product decisions.</p>
+      <a class="file" href="HANDOFF.md">
+        <div class="ico md">.md</div>
+        <div>
+          <div class="name">HANDOFF.md</div>
+          <div class="desc">Stack, structure, rules, file map, suggested first PRs</div>
+        </div>
+        <div class="ext">→</div>
+      </a>
+    </section>
+
+    <section>
+      <div class="eyebrow">Step 2</div>
+      <h2>Tokens — pick one format</h2>
+      <p class="lede" style="margin-block-end: 4px;">All three encode the same values. Pick the one that fits your build. Do not mix.</p>
+      <div class="file-grid">
+        <a class="file" href="tokens.json">
+          <div class="ico json">{ }</div>
+          <div>
+            <div class="name">tokens.json</div>
+            <div class="desc">Canonical source. Pipe through Style Dictionary or import directly.</div>
+          </div>
+          <div class="ext">JSON</div>
+        </a>
+        <a class="file" href="tokens.css">
+          <div class="ico css">CSS</div>
+          <div>
+            <div class="name">tokens.css</div>
+            <div class="desc">CSS custom properties. Drop into your global stylesheet.</div>
+          </div>
+          <div class="ext">CSS</div>
+        </a>
+        <a class="file" href="tailwind.config.js" style="grid-column: 1 / -1;">
+          <div class="ico tw">TW</div>
+          <div>
+            <div class="name">tailwind.config.js</div>
+            <div class="desc">Merge the <code>theme.extend</code> block into your existing Tailwind config.</div>
+          </div>
+          <div class="ext">JS</div>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <div class="eyebrow">Step 3</div>
+      <h2>Component API</h2>
+      <p class="lede" style="margin-block-end: 12px;">Props, variants, states, code examples for every component. Plus the canonical stage-screen composition.</p>
+      <a class="file" href="components.md">
+        <div class="ico md">.md</div>
+        <div>
+          <div class="name">components.md</div>
+          <div class="desc">Atoms · Molecules · Organisms · Stage screen composition · Data shapes</div>
+        </div>
+        <div class="ext">→</div>
+      </a>
+    </section>
+
+    <section>
+      <div class="eyebrow">Step 4</div>
+      <h2>Visual reference</h2>
+      <p class="lede" style="margin-block-end: 12px;">Open these to see the actual screens & component states. <strong>The flagship Stage 4 (תסיסה ראשונית) screen in Kikar Soft is the truth</strong> — match it 1:1.</p>
+      <div class="file-grid">
+        <a class="file" href="visual-reference/Kikar Soft.html">
+          <div class="ico html">UI</div>
+          <div>
+            <div class="name">Kikar Soft.html</div>
+            <div class="desc">All screens, every state. Real Hebrew copy, real interactions.</div>
+          </div>
+          <div class="ext">HTML</div>
+        </a>
+        <a class="file" href="visual-reference/Kikar Design System.html">
+          <div class="ico html">DS</div>
+          <div>
+            <div class="name">Kikar Design System.html</div>
+            <div class="desc">Every component, every state, side by side. Spec annotations.</div>
+          </div>
+          <div class="ext">HTML</div>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <div class="eyebrow">Folder tree</div>
+      <h2>What's in this bundle</h2>
+      <div class="ascii"><span class="h">handoff/</span>
+├── HANDOFF.md                  <span class="c"># read first</span>
+├── components.md               <span class="c"># component API reference</span>
+├── tokens.json                 <span class="c"># canonical token source</span>
+├── tokens.css                  <span class="c"># CSS custom properties</span>
+├── tailwind.config.js          <span class="c"># Tailwind theme.extend</span>
+├── index.html                  <span class="c"># this page</span>
+└── visual-reference/
+    ├── Kikar Soft.html         <span class="c"># all screens (flagship)</span>
+    ├── Kikar Design System.html<span class="c"># every component & state</span>
+    └── … supporting JSX/CSS    <span class="c"># keep adjacent</span></div>
+    </section>
+
+    <section>
+      <div class="eyebrow">Suggested order</div>
+      <h2>First PRs</h2>
+      <div class="card" style="padding: 4px 0;">
+        <ol class="steps">
+          <li><b>Foundation</b><span>Fonts, <code>tokens.css</code>, Tailwind config, <code>&lt;html dir="rtl"&gt;</code> shell. Empty Home renders the wordmark.</span></li>
+          <li><b>Primitives</b><span>Button, Pill, Term, CheckTile, Input. Match design system 1:1. Test in Storybook.</span></li>
+          <li><b>Stage shell</b><span>TopBar + ProgressStrip + StageHeader. Hard-code stage 4 data. Visual parity check.</span></li>
+          <li><b>Education layer</b><span>Briefing, Expand, Questions, BottomSheet.</span></li>
+          <li><b>Media layer</b><span>Photo, RefGallery, VideoCard.</span></li>
+          <li><b>Active bake store + persistence</b><span>Zustand or Context store, persist to <code>localStorage</code> on every mutation.</span></li>
+          <li><b>Remaining 11 stages</b><span>Data-driven once template is solid.</span></li>
+          <li><b>Recipe form + presets · Completion · Cheat sheet</b><span>Mostly form work + read-only views.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <div class="eyebrow">Reminder</div>
+      <h2>The non-negotiables</h2>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-block-start: 12px;">
+        <div class="quote">Hebrew only. RTL throughout. <code>&lt;html dir="rtl"&gt;</code>.</div>
+        <div class="quote">Logical properties only: <code>ms-/me-/ps-/pe-</code>. Never <code>ml-/mr-/left-/right-</code>.</div>
+        <div class="quote">Touch targets ≥ 44×44. Always.</div>
+        <div class="quote">Numbers stay LTR inside Hebrew: <code>&lt;span dir="ltr"&gt;75%&lt;/span&gt;</code></div>
+        <div class="quote">No animation libraries. CSS + plain JS. Respect <code>prefers-reduced-motion</code>.</div>
+      </div>
+    </section>
+
+    <footer>
+      <span>kikar / handoff / v0.1.0</span>
+      <span>generated 2026-05-24</span>
+    </footer>
+  </div>
+</body>
+</html>

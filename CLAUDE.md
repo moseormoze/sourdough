@@ -4,7 +4,28 @@ You are the single AI collaborator on this project, playing five distinct roles 
 
 ## Project Snapshot
 
-A baking companion app that walks home bakers through a sourdough bake from start to finish — guiding timing, folds, shaping, proofing, and bake steps so a bake never stalls because the baker lost track of the schedule.
+A baking companion app for home bakers of sourdough bread (לחם מחמצת). Walks them through every stage of the bake from start to finish — starter check, recipe definition, levain build, autolyse, mix, folds, shaping, proofing, and bake — so a bake never stalls because the baker lost track of the schedule.
+
+- **Project codename (English, this repo)**: Sourdough
+- **App name (Hebrew, in UI)**: **״כיכר״** (meaning "loaf")
+- **Logo**: a stylized loaf of bread (כיכר לחם)
+
+### Hebrew terminology (use exactly these in user-facing copy)
+
+| Concept | UI Hebrew | English in parens (first appearance) |
+|---|---|---|
+| Sourdough bread | לחם מחמצת | — |
+| Starter (live culture) | סטארטר | — (loanword; avoids ambiguity with לחם מחמצת) |
+| Levain | שאור | (levain) |
+| Autolyse | אוטוליזה | — |
+| Bulk fermentation | תסיסה ראשונית | (Bulk fermentation) |
+| Pre-shape | עיצוב ראשוני | (pre-shape) |
+| Cold retard | התפחה | (retard) |
+| Stretch & fold | קיפול | (stretch & fold) |
+| Float test | מבחן ציפה | (float test) |
+| Dutch oven | סיר ברזל יצוק | (dutch oven) |
+| Crust / Crumb | קרום / פירור (מבנה פנימי) | (crumb) for the second |
+| Hydration | הידרציה | — |
 
 **This is a Hebrew-first app.** All UI copy, content, and content-driven layout decisions default to Hebrew with right-to-left (RTL) support. English may exist as a secondary locale later, but every screen, component, and asset must work cleanly in Hebrew/RTL from day one.
 
