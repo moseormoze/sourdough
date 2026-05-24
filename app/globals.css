@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens from specs/design/tokens.css — copied here so Next.js can serve
+ * them as part of globals.css. Keep in sync with specs/design/tokens.css.
+ */
+
+:root {
+  --bg: #F8F5EE;
+  --bg-2: #F2EAD8;
+  --paper: #FFFFFF;
+  --line: #EDE5D2;
+  --line-2: #DCD0B4;
+
+  --ink: #1F1A14;
+  --ink-2: #6E6457;
+  --ink-3: #A6997F;
+
+  --accent: #E66B3D;
+  --accent-2: #F2BC8E;
+  --accent-3: #FCE7D4;
+  --accent-bg: #FCE7D4;
+
+  --sage: #BFC7A0;
+  --sage-2: #8C9963;
+  --sage-bg: #ECEFDC;
+
+  --warn: #D38D1B;
+  --warn-bg: #FBEFD0;
+  --danger: #A14525;
+  --danger-bg: #F8D8CE;
+
+  --shadow-sm: 0 1px 0 rgba(31, 26, 20, .04), 0 4px 12px rgba(31, 26, 20, .04);
+  --shadow: 0 1px 0 rgba(31, 26, 20, .04), 0 6px 24px rgba(31, 26, 20, .06);
+  --shadow-lg: 0 1px 0 rgba(31, 26, 20, .04), 0 16px 40px rgba(31, 26, 20, .10);
+  --shadow-cta: 0 1px 0 rgba(0, 0, 0, .06), 0 10px 24px rgba(230, 107, 61, .32);
+  --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, .18);
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-2xl: 24px;
+  --radius-3xl: 28px;
+  --radius-full: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  --font-ui: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Rubik", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+
+  --duration-instant: 0ms;
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-delib: 450ms;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --z-base: 0;
+  --z-raised: 1;
+  --z-sticky: 10;
+  --z-sheet: 50;
+  --z-toast: 100;
+  --z-overlay: 200;
+
+  --touch-min: 44px;
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pressable,
+  button,
+  [role="button"] {
+    transition: transform var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .pressable:active,
+  button:active,
+  [role="button"]:active {
+    transform: scale(0.965);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.num,
+[dir="ltr"].num,
+bdi.num {
+  unicode-bidi: isolate;
+  direction: ltr;
+  display: inline-block;
+  font-feature-settings: "tnum";
+  font-family: var(--font-mono);
+}
