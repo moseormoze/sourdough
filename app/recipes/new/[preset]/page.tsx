@@ -1,17 +1,31 @@
+import { notFound } from "next/navigation";
+import { RecipeFormScreen } from "@/components/recipes/recipe-form-screen";
+import { getPreset } from "@/lib/presets";
+import { emptyRecipeFormValues, type RecipeFormValues } from "@/lib/validate-recipe";
+
 interface PageProps {
   params: Promise<{ preset: string }>;
 }
 
 export default async function Page({ params }: PageProps) {
   const { preset } = await params;
-  return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-10">
-      <p className="text-ink-2 mt-12 text-center">
-        טופס מתכון — נכנס ב-T7 ·{" "}
-        <span dir="ltr" className="num">
-          {preset}
-        </span>
-      </p>
-    </main>
-  );
+
+  let initialValues: RecipeFormValues;
+
+  if (preset === "scratch") {
+    initialValues = emptyRecipeFormValues();
+  } else {
+    const found = getPreset(preset);
+    if (!found) notFound();
+    initialValues = {
+      name: found.name,
+      flour: { ...found.data.flour },
+      hydration: found.data.hydration,
+      salt: found.data.salt,
+      levain: found.data.levain,
+      kitchenTemp: found.data.kitchenTemp,
+    };
+  }
+
+  return <RecipeFormScreen initialValues={initialValues} />;
 }
