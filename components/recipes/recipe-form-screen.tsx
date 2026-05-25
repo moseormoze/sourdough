@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { FormSection } from "@/components/ui/form-section";
 import { FlourBreakdownInput } from "./flour-breakdown-input";
-import { PercentInput } from "./percent-input";
+import { PercentInputWithHint } from "./percent-input-with-hint";
 import { TempInput } from "./temp-input";
+import { hintFor } from "@/lib/recommendations";
 import { strings } from "@/lib/strings";
 import {
   emptyRecipeFormValues,
@@ -95,7 +96,7 @@ export function RecipeFormScreen({
         />
 
         <FormSection>
-          <PercentInput
+          <PercentInputWithHint
             label={strings.form.hydration}
             min={50}
             max={100}
@@ -103,8 +104,9 @@ export function RecipeFormScreen({
             onChange={(v) => setValues({ ...values, hydration: v })}
             onBlur={() => touch("hydration")}
             error={showError("hydration")}
+            recommended={hintFor("hydration", values.hydration, values.flour)}
           />
-          <PercentInput
+          <PercentInputWithHint
             label={strings.form.salt}
             min={0}
             max={5}
@@ -113,8 +115,9 @@ export function RecipeFormScreen({
             onChange={(v) => setValues({ ...values, salt: v })}
             onBlur={() => touch("salt")}
             error={showError("salt")}
+            recommended={hintFor("salt", values.salt, values.flour)}
           />
-          <PercentInput
+          <PercentInputWithHint
             label={strings.form.levain}
             min={0}
             max={40}
@@ -122,6 +125,7 @@ export function RecipeFormScreen({
             onChange={(v) => setValues({ ...values, levain: v })}
             onBlur={() => touch("levain")}
             error={showError("levain")}
+            recommended={hintFor("levain", values.levain, values.flour)}
           />
           <TempInput
             label={strings.form.kitchenTemp}
