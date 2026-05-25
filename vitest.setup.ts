@@ -34,10 +34,16 @@ const routerMock = {
   prefetch: vi.fn(),
 };
 
+const paramsMock: Record<string, string> = {};
+
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
   usePathname: () => "/",
   useSearchParams: () => new URLSearchParams(),
+  useParams: () => paramsMock,
+  notFound: () => {
+    throw new Error("NEXT_NOT_FOUND");
+  },
 }));
 
-export { routerMock };
+export { routerMock, paramsMock };
