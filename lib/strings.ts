@@ -33,6 +33,24 @@ export const strings = {
     title: "מצב אפייה — בקרוב",
     description: "הזרימה הזאת תיכנס בקרוב. בינתיים, תכין את המתכונים שלך.",
   },
+  bake: {
+    chooserTitle: "במה אופים?",
+    myBadge: "שלי",
+    resumeHeading: "ממשיכים את הבייק שלך",
+    resumeStageMeta: (stageNumber: number, stageName: string) =>
+      `שלב ${stageNumber} · ${stageName}`,
+    resumeStageMetaUnknown: (stageNumber: number) => `שלב ${stageNumber}`,
+    resumeContinue: "המשך לבייק",
+    resumeAbandon: "ביטול בייק",
+    abandonTitle: "לוותר על הבייק הנוכחי?",
+    abandonDescription: (recipeName: string) =>
+      `תאבד את ההתקדמות של ״${recipeName}״.`,
+    abandonConfirm: "כן, ויתור",
+    abandonCancel: "ביטול",
+    stagePlaceholderTitle: (stageNumber: number) => `שלב ${stageNumber} — בקרוב`,
+    stagePlaceholderBackToHome: "חזרה למסך הבית",
+    doneTitle: "הבייק הסתיים — בקרוב",
+  },
   form: {
     nameLabel: "שם המתכון",
     namePlaceholder: "לחם של שישי",
