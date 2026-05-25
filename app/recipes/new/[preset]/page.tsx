@@ -24,6 +24,7 @@ export default async function Page({ params }: PageProps) {
       salt: found.data.salt,
       levain: found.data.levain,
       kitchenTemp: found.data.kitchenTemp,
+      inclusions: found.data.inclusions.map((i) => ({ ...i })),
     };
   }
 

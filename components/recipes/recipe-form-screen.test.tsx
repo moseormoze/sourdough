@@ -11,6 +11,7 @@ const validValues: RecipeFormValues = {
   salt: 2,
   levain: 20,
   kitchenTemp: 25,
+  inclusions: [],
 };
 
 describe("RecipeFormScreen", () => {

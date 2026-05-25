@@ -9,6 +9,7 @@ import { FormSection } from "@/components/ui/form-section";
 import { FlourBreakdownInput } from "./flour-breakdown-input";
 import { PercentInputWithHint } from "./percent-input-with-hint";
 import { TempInput } from "./temp-input";
+import { InclusionsSection } from "./inclusions-section";
 import { hintFor } from "@/lib/recommendations";
 import { strings } from "@/lib/strings";
 import {
@@ -49,17 +50,44 @@ export function RecipeFormScreen({
     });
   }
 
-  function showError(key: keyof typeof errors): string | null {
+  type SingleErrorKey =
+    | "name"
+    | "flour"
+    | "hydration"
+    | "salt"
+    | "levain"
+    | "kitchenTemp";
+
+  function showError(key: SingleErrorKey): string | null {
     return touched.has(key) ? errors[key] : null;
   }
 
   function handleSubmit() {
-    setTouched(
-      new Set(["name", "flour", "hydration", "salt", "levain", "kitchenTemp"])
-    );
+    const allTouched = new Set([
+      "name",
+      "flour",
+      "hydration",
+      "salt",
+      "levain",
+      "kitchenTemp",
+    ]);
+    values.inclusions.forEach((_, i) => {
+      allTouched.add(`inclusion-${i}-name`);
+      allTouched.add(`inclusion-${i}-amountGrams`);
+    });
+    setTouched(allTouched);
     if (invalid) return;
     onSubmit?.(values, recipeId);
   }
+
+  function handleTouchInclusion(rowIndex: number, field: "name" | "amountGrams") {
+    touch(`inclusion-${rowIndex}-${field}`);
+  }
+
+  const inclusionShowErrors = values.inclusions.map(
+    (_, i) =>
+      touched.has(`inclusion-${i}-name`) || touched.has(`inclusion-${i}-amountGrams`)
+  );
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
@@ -136,7 +164,13 @@ export function RecipeFormScreen({
           />
         </FormSection>
 
-        {/* Inclusions section is added in T9 */}
+        <InclusionsSection
+          value={values.inclusions}
+          onChange={(inclusions) => setValues({ ...values, inclusions })}
+          errors={errors.inclusions}
+          showErrors={inclusionShowErrors}
+          onTouchField={handleTouchInclusion}
+        />
       </div>
 
       <div className="mt-10 flex gap-3">

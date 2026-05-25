@@ -27,6 +27,7 @@ export default function Page() {
       salt: recipe.salt,
       levain: recipe.levain,
       kitchenTemp: recipe.kitchenTemp,
+      inclusions: recipe.inclusions.map((i) => ({ ...i })),
     });
   }, [params.id]);
 

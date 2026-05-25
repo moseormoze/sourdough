@@ -1,5 +1,15 @@
 import { strings } from "@/lib/strings";
 
+export interface InclusionInput {
+  name: string;
+  amountGrams: number | "";
+}
+
+export interface InclusionError {
+  name: string | null;
+  amountGrams: string | null;
+}
+
 export interface RecipeFormValues {
   name: string;
   flour: {
@@ -12,6 +22,7 @@ export interface RecipeFormValues {
   salt: number | "";
   levain: number | "";
   kitchenTemp: number | "";
+  inclusions: InclusionInput[];
 }
 
 export interface RecipeFormErrors {
@@ -21,6 +32,7 @@ export interface RecipeFormErrors {
   salt: string | null;
   levain: string | null;
   kitchenTemp: string | null;
+  inclusions: InclusionError[];
 }
 
 export function emptyRecipeFormValues(): RecipeFormValues {
@@ -31,6 +43,7 @@ export function emptyRecipeFormValues(): RecipeFormValues {
     salt: "",
     levain: "",
     kitchenTemp: 25,
+    inclusions: [],
   };
 }
 
@@ -50,6 +63,15 @@ function checkRange(
   return null;
 }
 
+function validateInclusion(inc: InclusionInput): InclusionError {
+  const v = strings.validationCopy;
+  return {
+    name: inc.name.trim() === "" ? v.inclusionNameRequired : null,
+    amountGrams:
+      inc.amountGrams === "" || inc.amountGrams <= 0 ? v.inclusionAmountPositive : null,
+  };
+}
+
 export function validateRecipe(values: RecipeFormValues): RecipeFormErrors {
   const v = strings.validationCopy;
 
@@ -60,6 +82,7 @@ export function validateRecipe(values: RecipeFormValues): RecipeFormErrors {
     salt: null,
     levain: null,
     kitchenTemp: null,
+    inclusions: values.inclusions.map(validateInclusion),
   };
 
   if (values.name.trim() === "") errors.name = v.nameRequired;
@@ -78,5 +101,14 @@ export function validateRecipe(values: RecipeFormValues): RecipeFormErrors {
 }
 
 export function hasAnyError(errors: RecipeFormErrors): boolean {
-  return Object.values(errors).some((e) => e !== null);
+  const fieldErrors = [
+    errors.name,
+    errors.flour,
+    errors.hydration,
+    errors.salt,
+    errors.levain,
+    errors.kitchenTemp,
+  ];
+  if (fieldErrors.some((e) => e !== null)) return true;
+  return errors.inclusions.some((i) => i.name !== null || i.amountGrams !== null);
 }
