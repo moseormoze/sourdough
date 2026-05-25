@@ -38,11 +38,13 @@ describe("/bake/stage/[n] page", () => {
     for (const k of Object.keys(paramsMock)) delete paramsMock[k];
   });
 
-  it("renders the placeholder when active bake is on the requested stage", async () => {
+  it("renders the StageScreen when the active bake is on the requested stage", async () => {
     seedActive(4);
     paramsMock.n = "4";
     render(<StagePage />);
-    expect(await screen.findByText("שלב 4 — בקרוב")).toBeInTheDocument();
+    // Stage 4 specifics from lib/data/stages.ts
+    expect(await screen.findByText("תסיסה ראשונית")).toBeInTheDocument();
+    expect(screen.getByText("4/12")).toBeInTheDocument();
   });
 
   it("redirects to / when there is no active bake", async () => {

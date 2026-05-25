@@ -2,13 +2,15 @@
 
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { BakeStageStubScreen } from "@/components/bake/bake-stage-stub-screen";
+import { StageScreen } from "@/components/bake/stage-screen";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
+import { getStage } from "@/lib/data/stages";
 
 export default function Page() {
   const router = useRouter();
   const params = useParams<{ n: string }>();
-  const { activeBake, loading } = useActiveBake();
+  const { activeBake, loading, advanceTo, advanceSubStep, startTimer, stopTimer } =
+    useActiveBake();
 
   const requestedRaw = params.n;
   const requested = Number(requestedRaw);
@@ -33,5 +35,14 @@ export default function Page() {
     return null;
   }
 
-  return <BakeStageStubScreen stageNumber={requested} />;
+  const stage = getStage(requested);
+  if (!stage) return null;
+
+  return (
+    <StageScreen
+      stage={stage}
+      activeBake={activeBake}
+      api={{ advanceTo, advanceSubStep, startTimer, stopTimer }}
+    />
+  );
 }

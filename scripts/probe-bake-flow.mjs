@@ -45,14 +45,94 @@ if (chooserCount < 6) fail(`chooser: expected ≥6 preset cards, got ${chooserCo
 console.log("→ Step 3: tap first preset → starts bake → /bake/stage/1");
 await page.getByRole("button", { name: /כפרי קלאסי/ }).click();
 await page.waitForURL(/\/bake\/stage\/1/, { timeout: 4000 });
-await page.waitForSelector("text=שלב 1 — בקרוב", { timeout: 4000 });
+await page.waitForSelector("text=בניית שאור", { timeout: 4000 });
 const stage1 = await page.evaluate(() => ({
-  hasTitle: !!document.body.textContent?.includes("שלב 1 — בקרוב"),
+  hasStageName: !!document.body.textContent?.includes("בניית שאור"),
+  hasBriefing: !!document.body.textContent?.includes("השאור"),
+  hasNextButton: !!Array.from(document.querySelectorAll("button")).find((b) =>
+    b.textContent?.includes("הבא — אוטוליזה")
+  ),
   hasBackLink: !!document.querySelector('a[href="/"]'),
 }));
 console.log(" ", JSON.stringify(stage1));
-if (!stage1.hasTitle) fail("stage 1: placeholder title missing");
+if (!stage1.hasStageName) fail("stage 1: stage name missing");
+if (!stage1.hasBriefing) fail("stage 1: briefing missing");
+if (!stage1.hasNextButton) fail("stage 1: 'הבא — אוטוליזה' button missing");
 if (!stage1.hasBackLink) fail("stage 1: back link missing");
+
+console.log("→ Step 3a: tap 'הבא — אוטוליזה' → /bake/stage/2");
+await page.getByRole("button", { name: /הבא — אוטוליזה/ }).click();
+await page.waitForURL(/\/bake\/stage\/2/, { timeout: 4000 });
+await page.waitForSelector("text=אוטוליזה", { timeout: 4000 });
+
+console.log("→ Step 3b: advance to bulk stage (stage 4)");
+await page.getByRole("button", { name: /הבא — לישה והוספת שאור/ }).click();
+await page.waitForURL(/\/bake\/stage\/3/, { timeout: 4000 });
+await page.getByRole("button", { name: /הבא — תסיסה ראשונית/ }).click();
+await page.waitForURL(/\/bake\/stage\/4/, { timeout: 4000 });
+await page.waitForSelector("text=תסיסה ראשונית", { timeout: 4000 });
+
+const stage4Initial = await page.evaluate(() => ({
+  primaryText: Array.from(document.querySelectorAll("button"))
+    .map((b) => b.textContent?.trim())
+    .find((t) => t === "סיימתי קיפול" || (t && t.startsWith("הבא"))),
+  hasFoldsSection: !!document.body.textContent?.includes("קיפולים בוצעו"),
+}));
+console.log(" ", JSON.stringify(stage4Initial));
+if (stage4Initial.primaryText !== "סיימתי קיפול")
+  fail(`stage 4 initial: primary should be 'סיימתי קיפול', got '${stage4Initial.primaryText}'`);
+if (!stage4Initial.hasFoldsSection) fail("stage 4: folds section missing");
+
+console.log("→ Step 3c: complete 4 folds in stage 4");
+for (let i = 0; i < 4; i++) {
+  await page.getByRole("button", { name: "סיימתי קיפול" }).click();
+  await page.waitForTimeout(150);
+}
+const stage4Done = await page.evaluate(() => ({
+  primaryText: Array.from(document.querySelectorAll("button"))
+    .map((b) => b.textContent?.trim())
+    .find((t) => t && t.startsWith("הבא")),
+}));
+if (!stage4Done.primaryText?.startsWith("הבא — עיצוב ראשוני"))
+  fail(`stage 4 after folds: primary should be 'הבא — עיצוב ראשוני', got '${stage4Done.primaryText}'`);
+
+console.log("→ Step 3d: skip ahead — directly advance stages 5..11");
+for (const next of [
+  /הבא — עיצוב ראשוני/,
+  /הבא — עיצוב סופי/,
+  /הבא — התפחה במקרר/,
+  /הבא — חימום תנור/,
+  /הבא — אפייה — מכוסה/,
+  /הבא — אפייה — לא מכוסה/,
+  /הבא — קירור/,
+  /הבא — הלחם מוכן/,
+]) {
+  await page.getByRole("button", { name: next }).click();
+  await page.waitForTimeout(150);
+}
+
+await page.waitForURL(/\/bake\/stage\/12/, { timeout: 4000 });
+console.log("   landed at stage 12: " + page.url());
+
+console.log("→ Step 3e: stage 12 → tap 'סיימתי' → /bake/done");
+await page.getByRole("button", { name: "סיימתי" }).click();
+await page.waitForURL(/\/bake\/done/, { timeout: 4000 });
+console.log("   landed at " + page.url());
+
+console.log("→ Step 3f: navigate back to home for the next steps");
+await page.click('a[href="/"]');
+await page.waitForURL(BASE + "/", { timeout: 4000 });
+await page.waitForSelector("aside[aria-label='ממשיכים']", { timeout: 4000 });
+// Stop the bake to clean state before step 4
+await page.getByRole("button", { name: "סיים בייק" }).click();
+await page.getByRole("button", { name: "כן, להפסיק" }).click();
+await page.waitForTimeout(300);
+
+// re-create a fresh bake so the rest of the original probe (steps 4-6) works
+await page.getByRole("button", { name: /התחל אפייה/ }).first().click();
+await page.waitForURL(/\/bake\/new/, { timeout: 4000 });
+await page.getByRole("button", { name: /כפרי קלאסי/ }).click();
+await page.waitForURL(/\/bake\/stage\/1/, { timeout: 4000 });
 
 console.log("→ Step 4: back to home → ResumeBanner appears, CTAs still visible");
 await page.click('a[href="/"]');
