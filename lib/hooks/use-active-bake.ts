@@ -15,6 +15,9 @@ export interface UseActiveBakeApi {
   start: (recipe: Recipe) => ActiveBake;
   abandon: () => void;
   advanceTo: (stage: number) => void;
+  advanceSubStep: () => void;
+  startTimer: () => void;
+  stopTimer: () => void;
 }
 
 export function useActiveBake(): UseActiveBakeApi {
@@ -35,6 +38,8 @@ export function useActiveBake(): UseActiveBakeApi {
       currentStage: 1,
       stageStartedAt: now,
       observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
     };
     saveActiveBake(next);
     setActiveBake(next);
@@ -53,11 +58,58 @@ export function useActiveBake(): UseActiveBakeApi {
         ...current,
         currentStage: stage,
         stageStartedAt: Date.now(),
+        subStep: 0,
+        timerStartedAt: null,
       };
       saveActiveBake(next);
       return next;
     });
   }, []);
 
-  return { activeBake, loading, start, abandon, advanceTo };
+  const advanceSubStep = useCallback(() => {
+    setActiveBake((current) => {
+      if (!current) return current;
+      const next: ActiveBake = {
+        ...current,
+        subStep: current.subStep + 1,
+      };
+      saveActiveBake(next);
+      return next;
+    });
+  }, []);
+
+  const startTimer = useCallback(() => {
+    setActiveBake((current) => {
+      if (!current) return current;
+      const next: ActiveBake = {
+        ...current,
+        timerStartedAt: Date.now(),
+      };
+      saveActiveBake(next);
+      return next;
+    });
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    setActiveBake((current) => {
+      if (!current) return current;
+      const next: ActiveBake = {
+        ...current,
+        timerStartedAt: null,
+      };
+      saveActiveBake(next);
+      return next;
+    });
+  }, []);
+
+  return {
+    activeBake,
+    loading,
+    start,
+    abandon,
+    advanceTo,
+    advanceSubStep,
+    startTimer,
+    stopTimer,
+  };
 }

@@ -23,6 +23,8 @@ function seedActive(recipe: Recipe) {
     currentStage: 4,
     stageStartedAt: 2,
     observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
   });
 }
 

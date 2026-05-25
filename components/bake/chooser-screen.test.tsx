@@ -86,6 +86,8 @@ describe("ChooserScreen", () => {
       currentStage: 1,
       stageStartedAt: 1,
       observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
     });
 
     render(<ChooserScreen />);
@@ -115,6 +117,8 @@ describe("ChooserScreen", () => {
       currentStage: 5,
       stageStartedAt: 1,
       observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
     });
 
     render(<ChooserScreen />);
@@ -148,6 +152,8 @@ describe("ChooserScreen", () => {
       currentStage: 5,
       stageStartedAt: 1,
       observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
     });
 
     render(<ChooserScreen />);

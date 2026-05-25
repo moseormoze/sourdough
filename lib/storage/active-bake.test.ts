@@ -35,6 +35,8 @@ describe("lib/storage/active-bake", () => {
       currentStage: 1 as const,
       stageStartedAt: 1000,
       observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
     };
     saveActiveBake(bake);
     expect(loadActiveBake()).toEqual(bake);
@@ -78,9 +80,34 @@ describe("lib/storage/active-bake", () => {
       currentStage: 1,
       stageStartedAt: 1,
       observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
     });
     expect(loadActiveBake()).not.toBeNull();
     clearActiveBake();
     expect(loadActiveBake()).toBeNull();
+  });
+});
+
+describe("migration: ActiveBake from before 03 (no subStep / no timerStartedAt)", () => {
+  it("loads an old-shaped bake by filling Zod defaults", () => {
+    const recipe = saveRecipe(sampleRecipeInput);
+    // Simulate an entry written before T1 of feature 03
+    localStorage.setItem(
+      ACTIVE_BAKE_STORAGE_KEY,
+      JSON.stringify({
+        id: "old-bake",
+        recipe,
+        startedAt: 1000,
+        currentStage: 4,
+        stageStartedAt: 2000,
+        observationChecks: {},
+      })
+    );
+    const loaded = loadActiveBake();
+    expect(loaded).not.toBeNull();
+    expect(loaded?.id).toBe("old-bake");
+    expect(loaded?.subStep).toBe(0);
+    expect(loaded?.timerStartedAt).toBeNull();
   });
 });

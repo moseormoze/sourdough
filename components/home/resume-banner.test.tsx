@@ -22,6 +22,8 @@ const activeBake: ActiveBake = {
   currentStage: 4,
   stageStartedAt: 200,
   observationChecks: {},
+  subStep: 0,
+  timerStartedAt: null,
 };
 
 describe("ResumeBanner", () => {

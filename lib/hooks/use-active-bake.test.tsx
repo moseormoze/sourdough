@@ -104,3 +104,51 @@ describe("useActiveBake", () => {
     expect(result.current.activeBake).toBeNull();
   });
 });
+
+describe("useActiveBake — 03 extensions", () => {
+  it("advanceSubStep() increments subStep", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    expect(result.current.activeBake?.subStep).toBe(0);
+    act(() => { result.current.advanceSubStep(); });
+    expect(result.current.activeBake?.subStep).toBe(1);
+    act(() => { result.current.advanceSubStep(); });
+    expect(result.current.activeBake?.subStep).toBe(2);
+  });
+
+  it("advanceTo() resets subStep back to 0", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    act(() => { result.current.advanceSubStep(); });
+    act(() => { result.current.advanceSubStep(); });
+    act(() => { result.current.advanceTo(5); });
+    expect(result.current.activeBake?.subStep).toBe(0);
+    expect(result.current.activeBake?.currentStage).toBe(5);
+  });
+
+  it("startTimer() sets timerStartedAt, stopTimer() clears it", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    expect(result.current.activeBake?.timerStartedAt).toBeNull();
+    act(() => { result.current.startTimer(); });
+    expect(result.current.activeBake?.timerStartedAt).toBeTruthy();
+    act(() => { result.current.stopTimer(); });
+    expect(result.current.activeBake?.timerStartedAt).toBeNull();
+  });
+
+  it("advanceTo() also clears timerStartedAt", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    act(() => { result.current.startTimer(); });
+    act(() => { result.current.advanceTo(3); });
+    expect(result.current.activeBake?.timerStartedAt).toBeNull();
+  });
+});

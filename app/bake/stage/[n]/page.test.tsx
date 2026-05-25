@@ -24,6 +24,8 @@ function seedActive(currentStage: number) {
     currentStage,
     stageStartedAt: 2,
     observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
   });
 }
 
