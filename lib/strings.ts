@@ -56,6 +56,16 @@ export const strings = {
     stagePlaceholderTitle: (stageNumber: number) => `שלב ${stageNumber} — בקרוב`,
     stagePlaceholderBackToHome: "חזרה למסך הבית",
     doneTitle: "הבייק הסתיים — בקרוב",
+    // Stage screen
+    stageCounter: (current: number, total: number) => `${current}/${total}`,
+    stageNext: (nextName: string) => `הבא — ${nextName}`,
+    stagePrev: "חזרה לשלב הקודם",
+    stageFinishFold: "סיימתי קיפול",
+    stageDone: "סיימתי",
+    // Optional timer
+    timerStart: "התחל טיימר",
+    timerStop: "עצור",
+    timerFinished: "הסתיים",
   },
   form: {
     nameLabel: "שם המתכון",
