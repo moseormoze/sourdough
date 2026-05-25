@@ -1,5 +1,5 @@
-import { BakeStubScreen } from "@/components/bake/bake-stub-screen";
+import { ChooserScreen } from "@/components/bake/chooser-screen";
 
 export default function Page() {
-  return <BakeStubScreen />;
+  return <ChooserScreen />;
 }
