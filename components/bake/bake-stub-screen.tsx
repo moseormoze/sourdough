@@ -13,7 +13,7 @@ export function BakeStubScreen() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.back()}
+          onClick={() => router.push("/")}
           iconStart={<ChevronRight size={20} aria-hidden />}
         >
           חזרה

@@ -5,7 +5,7 @@ import { routerMock } from "../../vitest.setup";
 
 describe("BakeStubScreen", () => {
   beforeEach(() => {
-    routerMock.back.mockClear();
+    routerMock.push.mockClear();
   });
 
   it("shows the coming-soon title", () => {
@@ -20,9 +20,9 @@ describe("BakeStubScreen", () => {
     ).toBeInTheDocument();
   });
 
-  it("back button calls router.back()", () => {
+  it("back button navigates to /", () => {
     render(<BakeStubScreen />);
     fireEvent.click(screen.getByRole("button", { name: /חזרה/ }));
-    expect(routerMock.back).toHaveBeenCalled();
+    expect(routerMock.push).toHaveBeenCalledWith("/");
   });
 });

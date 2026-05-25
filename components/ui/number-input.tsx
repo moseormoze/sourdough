@@ -14,10 +14,12 @@ export interface NumberInputProps
   step?: number;
   min?: number;
   max?: number;
+  /** Hide the −/+ steppers (input + unit only). For tight columns. */
+  compact?: boolean;
 }
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(function NumberInput(
-  { label, unit, error, value, onChange, step = 1, min, max, disabled, className, id, ...rest },
+  { label, unit, error, value, onChange, step = 1, min, max, disabled, className, id, compact = false, ...rest },
   ref
 ) {
   const reactId = useId();
@@ -67,15 +69,17 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
           disabled && "opacity-40 pointer-events-none"
         )}
       >
-        <button
-          type="button"
-          aria-label={strings.common.decrement}
-          onClick={() => adjust(-step)}
-          disabled={!canDecrement}
-          className="min-h-touch min-w-touch flex items-center justify-center text-ink-2 hover:text-ink disabled:opacity-40"
-        >
-          <Minus size={18} />
-        </button>
+        {!compact && (
+          <button
+            type="button"
+            aria-label={strings.common.decrement}
+            onClick={() => adjust(-step)}
+            disabled={!canDecrement}
+            className="min-h-touch min-w-touch flex items-center justify-center text-ink-2 hover:text-ink disabled:opacity-40"
+          >
+            <Minus size={18} />
+          </button>
+        )}
         <input
           ref={ref}
           id={inputId}
@@ -103,15 +107,17 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
             {unit}
           </span>
         )}
-        <button
-          type="button"
-          aria-label={strings.common.increment}
-          onClick={() => adjust(step)}
-          disabled={!canIncrement}
-          className="min-h-touch min-w-touch flex items-center justify-center text-ink-2 hover:text-ink disabled:opacity-40"
-        >
-          <Plus size={18} />
-        </button>
+        {!compact && (
+          <button
+            type="button"
+            aria-label={strings.common.increment}
+            onClick={() => adjust(step)}
+            disabled={!canIncrement}
+            className="min-h-touch min-w-touch flex items-center justify-center text-ink-2 hover:text-ink disabled:opacity-40"
+          >
+            <Plus size={18} />
+          </button>
+        )}
       </div>
       <ValidationMessage id={errorId} message={error} />
     </div>

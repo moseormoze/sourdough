@@ -32,10 +32,10 @@ export const InclusionRow = forwardRef<HTMLInputElement, InclusionRowProps>(func
           error={errors?.name ?? null}
         />
       </div>
-      <div className="w-32">
+      <div className="w-28">
         <NumberInput
-          label={strings.form.inclusionAmount}
-          unit={strings.form.unitGrams}
+          label={`${strings.form.inclusionAmount} (${strings.form.unitGrams})`}
+          compact
           step={5}
           min={0}
           value={value.amountGrams}
