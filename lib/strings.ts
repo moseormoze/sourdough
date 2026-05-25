@@ -36,17 +36,23 @@ export const strings = {
   bake: {
     chooserTitle: "במה אופים?",
     myBadge: "שלי",
-    resumeHeading: "ממשיכים את הבייק שלך",
-    resumeStageMeta: (stageNumber: number, stageName: string) =>
-      `שלב ${stageNumber} · ${stageName}`,
-    resumeStageMetaUnknown: (stageNumber: number) => `שלב ${stageNumber}`,
-    resumeContinue: "המשך לבייק",
-    resumeAbandon: "ביטול בייק",
-    abandonTitle: "לוותר על הבייק הנוכחי?",
-    abandonDescription: (recipeName: string) =>
-      `תאבד את ההתקדמות של ״${recipeName}״.`,
-    abandonConfirm: "כן, ויתור",
-    abandonCancel: "ביטול",
+    // Banner (compact, on top of HomeScreen when there's an active bake)
+    resumeBannerLabel: "ממשיכים",
+    resumeBannerStage: (stageNumber: number) => `שלב ${stageNumber}`,
+    resumeBannerContinue: "המשך",
+    resumeBannerStop: "סיים בייק",
+    // Dialog: stopping the current bake (from the banner)
+    stopTitle: "להפסיק את הבייק?",
+    stopDescription: (recipeName: string) =>
+      `ההתקדמות של ״${recipeName}״ תאבד.`,
+    stopConfirm: "כן, להפסיק",
+    stopCancel: "לא, להמשיך",
+    // Dialog: starting a new bake while one is active (from the chooser)
+    replaceTitle: "להחליף בייק?",
+    replaceDescription: (recipeName: string) =>
+      `הבייק הנוכחי של ״${recipeName}״ יסתיים.`,
+    replaceConfirm: "כן, להחליף",
+    replaceCancel: "ביטול",
     stagePlaceholderTitle: (stageNumber: number) => `שלב ${stageNumber} — בקרוב`,
     stagePlaceholderBackToHome: "חזרה למסך הבית",
     doneTitle: "הבייק הסתיים — בקרוב",

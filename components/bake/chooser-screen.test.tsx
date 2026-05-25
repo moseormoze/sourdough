@@ -100,7 +100,7 @@ describe("ChooserScreen", () => {
     fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
 
     expect(routerMock.push).not.toHaveBeenCalled();
-    expect(await screen.findByText("לוותר על הבייק הנוכחי?")).toBeInTheDocument();
+    expect(await screen.findByText("להחליף בייק?")).toBeInTheDocument();
     // The dialog body includes the existing recipe name; assert via the dialog body element specifically.
     const dialog = document.querySelector("dialog");
     expect(dialog?.textContent).toContain("שיפון מותאם");
@@ -131,7 +131,7 @@ describe("ChooserScreen", () => {
       clientX: 0,
       clientY: 0,
     });
-    fireEvent.click(await screen.findByRole("button", { name: "כן, ויתור" }));
+    fireEvent.click(await screen.findByRole("button", { name: "כן, להחליף" }));
 
     await waitFor(() => {
       expect(loadActiveBake()?.recipe.name).toBe(country.name);

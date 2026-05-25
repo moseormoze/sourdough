@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChooserCard } from "./chooser-card";
-import { AbandonBakeDialog } from "./abandon-bake-dialog";
+import { ReplaceBakeDialog } from "./replace-bake-dialog";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
 import { PRESETS, type Preset } from "@/lib/presets";
 import { listRecipes } from "@/lib/storage/recipes";
@@ -114,7 +114,7 @@ export function ChooserScreen() {
           ))}
       </div>
 
-      <AbandonBakeDialog
+      <ReplaceBakeDialog
         open={pendingRecipe !== null}
         recipeName={activeBake?.recipe.name ?? ""}
         onConfirm={handleConfirmAbandon}

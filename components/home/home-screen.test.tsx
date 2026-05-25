@@ -49,7 +49,7 @@ describe("HomeScreen", () => {
     expect(screen.getByText("מה אופים היום?")).toBeInTheDocument();
   });
 
-  it("renders the fresh CTAs when no active bake", async () => {
+  it("renders the CTAs in fresh state", async () => {
     render(<HomeScreen />);
     expect(await screen.findByText("התחל אפייה")).toBeInTheDocument();
     expect(screen.getByText("המתכונים שלי")).toBeInTheDocument();
@@ -68,37 +68,42 @@ describe("HomeScreen", () => {
     expect(screen.queryByText("0")).not.toBeInTheDocument();
   });
 
-  it("renders ResumeCard instead of the CTAs when an active bake exists", async () => {
+  it("ALSO shows the resume banner when an active bake exists (CTAs remain visible underneath)", async () => {
     const recipe = saveRecipe(sample);
     seedActive(recipe);
     render(<HomeScreen />);
-    expect(await screen.findByText("ממשיכים את הבייק שלך")).toBeInTheDocument();
-    expect(screen.queryByText("התחל אפייה")).not.toBeInTheDocument();
-    expect(screen.queryByText("המתכונים שלי")).not.toBeInTheDocument();
+    expect(await screen.findByText("ממשיכים")).toBeInTheDocument();
+    expect(screen.getByText("כפרי")).toBeInTheDocument();
+    // The dashboard CTAs are still accessible
+    expect(screen.getByText("התחל אפייה")).toBeInTheDocument();
+    expect(screen.getByText("המתכונים שלי")).toBeInTheDocument();
   });
 
-  it("ResumeCard 'ביטול בייק' opens abandon dialog; confirm clears the active bake", async () => {
+  it("banner 'סיים בייק' opens the StopBakeDialog; confirm clears the active bake", async () => {
     const recipe = saveRecipe(sample);
     seedActive(recipe);
     render(<HomeScreen />);
-    await screen.findByText("ממשיכים את הבייק שלך");
+    await screen.findByText("ממשיכים");
 
-    fireEvent.click(screen.getByRole("button", { name: "ביטול בייק" }));
-    expect(await screen.findByText("לוותר על הבייק הנוכחי?")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "סיים בייק" }));
+    expect(await screen.findByText("להפסיק את הבייק?")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "כן, ויתור" }));
+    fireEvent.click(screen.getByRole("button", { name: "כן, להפסיק" }));
     await waitFor(() => expect(loadActiveBake()).toBeNull());
-    expect(await screen.findByText("התחל אפייה")).toBeInTheDocument();
+    // Banner is gone
+    await waitFor(() => {
+      expect(screen.queryByText("ממשיכים")).not.toBeInTheDocument();
+    });
   });
 
-  it("ResumeCard 'ביטול בייק' cancel keeps the active bake", async () => {
+  it("banner 'סיים בייק' cancel keeps the active bake", async () => {
     const recipe = saveRecipe(sample);
     seedActive(recipe);
     render(<HomeScreen />);
-    await screen.findByText("ממשיכים את הבייק שלך");
+    await screen.findByText("ממשיכים");
 
-    fireEvent.click(screen.getByRole("button", { name: "ביטול בייק" }));
-    fireEvent.click(await screen.findByRole("button", { name: "ביטול" }));
+    fireEvent.click(screen.getByRole("button", { name: "סיים בייק" }));
+    fireEvent.click(await screen.findByRole("button", { name: "לא, להמשיך" }));
     expect(loadActiveBake()?.id).toBe("ab-1");
   });
 });
