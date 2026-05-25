@@ -75,6 +75,9 @@ const config: Config = {
         touch: "44px",
         cta: "56px",
       },
+      minWidth: {
+        touch: "44px",
+      },
     },
   },
   plugins: [],

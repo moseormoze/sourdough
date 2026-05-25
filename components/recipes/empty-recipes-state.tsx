@@ -7,7 +7,7 @@ import { strings } from "@/lib/strings";
 export function EmptyRecipesState() {
   const router = useRouter();
   return (
-    <div className="flex flex-1 flex-col items-center justify-center text-center -mt-12">
+    <div className="flex flex-1 flex-col items-center justify-center text-center">
       <div
         className="text-[64px] leading-none mb-6"
         aria-hidden

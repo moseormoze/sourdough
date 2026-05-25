@@ -167,7 +167,7 @@ export function RecipeFormScreen({
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
-      <header className="flex items-center mb-2">
+      <header className="relative z-10 flex items-center mb-2">
         <Button
           variant="ghost"
           size="sm"

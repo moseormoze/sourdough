@@ -1,13 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
 import { BakeStubScreen } from "./bake-stub-screen";
-import { routerMock } from "../../vitest.setup";
 
 describe("BakeStubScreen", () => {
-  beforeEach(() => {
-    routerMock.push.mockClear();
-  });
-
   it("shows the coming-soon title", () => {
     render(<BakeStubScreen />);
     expect(screen.getByText("מצב אפייה — בקרוב")).toBeInTheDocument();
@@ -20,9 +15,9 @@ describe("BakeStubScreen", () => {
     ).toBeInTheDocument();
   });
 
-  it("back button navigates to /", () => {
+  it("back link points to /", () => {
     render(<BakeStubScreen />);
-    fireEvent.click(screen.getByRole("button", { name: /חזרה/ }));
-    expect(routerMock.push).toHaveBeenCalledWith("/");
+    const link = screen.getByRole("link", { name: /חזרה/ });
+    expect(link).toHaveAttribute("href", "/");
   });
 });

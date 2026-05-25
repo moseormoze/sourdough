@@ -98,7 +98,7 @@ export function RecipeListScreen() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
-      <header className="flex items-center gap-2 mb-6">
+      <header className="relative z-10 flex items-center gap-2 mb-6">
         <Button
           variant="ghost"
           size="sm"
