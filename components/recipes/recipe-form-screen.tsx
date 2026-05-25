@@ -2,16 +2,21 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { FormSection } from "@/components/ui/form-section";
+import { useToast } from "@/components/ui/toast";
 import { FlourBreakdownInput } from "./flour-breakdown-input";
 import { PercentInputWithHint } from "./percent-input-with-hint";
 import { TempInput } from "./temp-input";
 import { InclusionsSection } from "./inclusions-section";
+import { DeleteConfirmDialog } from "./delete-confirm-dialog";
+import { DiscardChangesDialog } from "./discard-changes-dialog";
 import { hintFor } from "@/lib/recommendations";
 import { strings } from "@/lib/strings";
+import { saveRecipe, deleteRecipe } from "@/lib/storage/recipes";
+import type { RecipeInput } from "@/lib/types/recipe";
 import {
   emptyRecipeFormValues,
   hasAnyError,
@@ -22,10 +27,32 @@ import {
 export interface RecipeFormScreenProps {
   initialValues?: RecipeFormValues;
   recipeId?: string;
+  /** When provided, replaces the built-in save (used in tests / future integrations). */
   onSubmit?: (values: RecipeFormValues, recipeId: string | undefined) => void;
 }
 
 type TouchedSet = Set<string>;
+
+function formValuesToInput(values: RecipeFormValues, recipeId?: string): RecipeInput {
+  return {
+    id: recipeId,
+    name: values.name.trim(),
+    flour: {
+      white: values.flour.white === "" ? 0 : values.flour.white,
+      wholeWheat: values.flour.wholeWheat === "" ? 0 : values.flour.wholeWheat,
+      rye: values.flour.rye === "" ? 0 : values.flour.rye,
+      other: values.flour.other === "" ? 0 : values.flour.other,
+    },
+    hydration: values.hydration === "" ? 0 : values.hydration,
+    salt: values.salt === "" ? 0 : values.salt,
+    levain: values.levain === "" ? 0 : values.levain,
+    kitchenTemp: values.kitchenTemp === "" ? 25 : values.kitchenTemp,
+    inclusions: values.inclusions.map((i) => ({
+      name: i.name.trim(),
+      amountGrams: typeof i.amountGrams === "number" ? i.amountGrams : 0,
+    })),
+  };
+}
 
 export function RecipeFormScreen({
   initialValues,
@@ -33,13 +60,24 @@ export function RecipeFormScreen({
   onSubmit,
 }: RecipeFormScreenProps) {
   const router = useRouter();
-  const [values, setValues] = useState<RecipeFormValues>(
-    () => initialValues ?? emptyRecipeFormValues()
+  const toast = useToast();
+
+  const initial = useMemo(
+    () => initialValues ?? emptyRecipeFormValues(),
+    [initialValues]
   );
+  const [values, setValues] = useState<RecipeFormValues>(initial);
   const [touched, setTouched] = useState<TouchedSet>(new Set());
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
 
   const errors = useMemo(() => validateRecipe(values), [values]);
   const invalid = hasAnyError(errors);
+  const dirty = useMemo(
+    () => JSON.stringify(values) !== JSON.stringify(initial),
+    [values, initial]
+  );
+  const isEdit = recipeId !== undefined;
 
   function touch(key: string) {
     setTouched((prev) => {
@@ -77,7 +115,45 @@ export function RecipeFormScreen({
     });
     setTouched(allTouched);
     if (invalid) return;
-    onSubmit?.(values, recipeId);
+
+    if (onSubmit) {
+      onSubmit(values, recipeId);
+      return;
+    }
+
+    try {
+      saveRecipe(formValuesToInput(values, recipeId));
+      toast.show("המתכון נשמר");
+      router.push("/recipes");
+    } catch {
+      toast.show("לא הצלחנו לשמור — נסה שוב", { variant: "danger" });
+    }
+  }
+
+  function handleCancel() {
+    if (dirty) {
+      setDiscardOpen(true);
+    } else {
+      router.back();
+    }
+  }
+
+  function handleConfirmDiscard() {
+    setDiscardOpen(false);
+    router.back();
+  }
+
+  function handleDelete() {
+    if (!recipeId) return;
+    try {
+      deleteRecipe(recipeId);
+      setDeleteOpen(false);
+      toast.show(`"${values.name}" נמחק`);
+      router.push("/recipes");
+    } catch {
+      setDeleteOpen(false);
+      toast.show("לא הצלחנו למחוק — נסה שוב", { variant: "danger" });
+    }
   }
 
   function handleTouchInclusion(rowIndex: number, field: "name" | "amountGrams") {
@@ -95,7 +171,7 @@ export function RecipeFormScreen({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.back()}
+          onClick={handleCancel}
           iconStart={<ChevronRight size={20} aria-hidden />}
         >
           {strings.recipes.backToHome}
@@ -103,7 +179,7 @@ export function RecipeFormScreen({
       </header>
 
       <h1 className="text-display-md text-ink mb-6">
-        {recipeId ? values.name || strings.form.nameLabel : strings.form.nameLabel}
+        {isEdit ? values.name || strings.form.nameLabel : strings.form.nameLabel}
       </h1>
 
       <div className="flex flex-col gap-6">
@@ -173,14 +249,46 @@ export function RecipeFormScreen({
         />
       </div>
 
-      <div className="mt-10 flex gap-3">
-        <Button variant="accent" onClick={handleSubmit} disabled={touched.size > 0 && invalid}>
-          {strings.form.saveButton}
-        </Button>
-        <Button variant="ghost" onClick={() => router.back()}>
-          {strings.form.cancelButton}
-        </Button>
+      <div className="mt-10 flex flex-col gap-3">
+        <div className="flex gap-3">
+          <Button
+            variant="accent"
+            onClick={handleSubmit}
+            disabled={touched.size > 0 && invalid}
+          >
+            {strings.form.saveButton}
+          </Button>
+          <Button variant="ghost" onClick={handleCancel}>
+            {strings.form.cancelButton}
+          </Button>
+        </div>
+        {isEdit && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setDeleteOpen(true)}
+            iconStart={<Trash2 size={16} aria-hidden />}
+            className="self-start text-danger hover:bg-danger-bg"
+          >
+            מחק מתכון
+          </Button>
+        )}
       </div>
+
+      {isEdit && (
+        <DeleteConfirmDialog
+          open={deleteOpen}
+          recipeName={values.name}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteOpen(false)}
+        />
+      )}
+
+      <DiscardChangesDialog
+        open={discardOpen}
+        onConfirm={handleConfirmDiscard}
+        onCancel={() => setDiscardOpen(false)}
+      />
     </main>
   );
 }

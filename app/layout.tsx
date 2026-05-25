@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Rubik, JetBrains_Mono } from "next/font/google";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -36,7 +37,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="he" dir="rtl" className={`${rubik.variable} ${jetbrainsMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
