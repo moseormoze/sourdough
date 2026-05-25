@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyRecipesState } from "./empty-recipes-state";
+import { RecipeListItem } from "./recipe-list-item";
 import { listRecipes } from "@/lib/storage/recipes";
 import type { Recipe } from "@/lib/types/recipe";
 import { strings } from "@/lib/strings";
@@ -58,12 +59,8 @@ export function RecipeListScreen() {
           className="flex flex-col gap-3"
         >
           {state.recipes.map((r) => (
-            <li
-              key={r.id}
-              className="rounded-2xl bg-paper shadow-sm p-4 text-ink"
-              data-recipe-id={r.id}
-            >
-              {r.name}
+            <li key={r.id}>
+              <RecipeListItem recipe={r} />
             </li>
           ))}
         </ul>
