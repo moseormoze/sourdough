@@ -73,4 +73,52 @@ describe("STAGES data", () => {
       }
     }
   });
+
+  const SUPPORTED_TOKENS = new Set([
+    "starterGrams",
+    "levainWaterGrams",
+    "levainFlourGrams",
+    "totalFlourGrams",
+    "autolyseWaterGrams",
+    "levainTotalGrams",
+    "saltGrams",
+    "saltReserveWaterGrams",
+  ]);
+
+  function tokensIn(text: string): string[] {
+    const matches: string[] = [];
+    const regex = /\{(\w+)\}/g;
+    let m;
+    while ((m = regex.exec(text)) !== null) {
+      if (m[1]) matches.push(m[1]);
+    }
+    return matches;
+  }
+
+  it("stages 1, 2, 3 contain placeholder tokens in their todo steps", () => {
+    for (const n of [1, 2, 3]) {
+      const stage = getStage(n)!;
+      const allText = stage.todo!.steps.join(" ");
+      expect(tokensIn(allText).length, `stage ${n} should have tokens`).toBeGreaterThan(0);
+    }
+  });
+
+  it("stages 4-12 contain no placeholder tokens (procedural only)", () => {
+    for (const s of STAGES) {
+      if (s.n >= 4 && s.todo) {
+        const allText = [...s.todo.steps, s.todo.tip ?? ""].join(" ");
+        expect(tokensIn(allText), `stage ${s.n} must have no tokens`).toEqual([]);
+      }
+    }
+  });
+
+  it("every token used in stage data is in the supported set", () => {
+    for (const s of STAGES) {
+      if (!s.todo) continue;
+      const allText = [...s.todo.steps, s.todo.tip ?? ""].join(" ");
+      for (const token of tokensIn(allText)) {
+        expect(SUPPORTED_TOKENS.has(token), `stage ${s.n} uses unknown token {${token}}`).toBe(true);
+      }
+    }
+  });
 });
