@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChooserCard } from "./chooser-card";
+import { BakingMethodSelector } from "./baking-method-selector";
 import { ReplaceBakeDialog } from "./replace-bake-dialog";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
 import { PRESETS, type Preset } from "@/lib/presets";
 import { listRecipes } from "@/lib/storage/recipes";
 import type { Recipe } from "@/lib/types/recipe";
+import { DEFAULT_BAKING_METHOD, type BakingMethod } from "@/lib/types/baking-method";
 import { strings } from "@/lib/strings";
 
 function presetToRecipe(preset: Preset): Recipe {
@@ -48,6 +50,7 @@ export function ChooserScreen() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipesLoaded, setRecipesLoaded] = useState(false);
   const [pendingRecipe, setPendingRecipe] = useState<Recipe | null>(null);
+  const [bakingMethod, setBakingMethod] = useState<BakingMethod>(DEFAULT_BAKING_METHOD);
 
   useEffect(() => {
     setRecipes(listRecipes());
@@ -55,7 +58,7 @@ export function ChooserScreen() {
   }, []);
 
   function beginBake(recipe: Recipe) {
-    start(recipe);
+    start(recipe, bakingMethod);
     router.push("/bake/stage/1");
   }
 
@@ -92,6 +95,10 @@ export function ChooserScreen() {
       </header>
 
       <h1 className="text-display-md text-ink mb-6">{strings.bake.chooserTitle}</h1>
+
+      <div className="mb-6">
+        <BakingMethodSelector value={bakingMethod} onChange={setBakingMethod} />
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         {PRESETS.map((preset) => (
