@@ -37,7 +37,7 @@ describe("lib/storage/active-bake", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
-      bakingMethod: "dutch-oven" as const,
+      bakingMethod: "closed-vessel" as const,
     };
     saveActiveBake(bake);
     expect(loadActiveBake()).toEqual(bake);
@@ -83,7 +83,7 @@ describe("lib/storage/active-bake", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
-      bakingMethod: "dutch-oven" as const,
+      bakingMethod: "closed-vessel" as const,
     });
     expect(loadActiveBake()).not.toBeNull();
     clearActiveBake();

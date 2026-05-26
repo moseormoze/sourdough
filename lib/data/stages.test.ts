@@ -124,12 +124,12 @@ describe("STAGES data", () => {
     }
   });
 
-  it("stages 8, 9, 10 define byMethod with stone-with-steam + tray-with-bowl variants", () => {
+  it("stages 8, 9, 10 define byMethod with open-with-steam + other variants", () => {
     for (const n of [8, 9, 10]) {
       const stage = getStage(n)!;
       expect(stage.byMethod, `stage ${n} should have byMethod`).toBeDefined();
-      expect(stage.byMethod?.["stone-with-steam"]).toBeDefined();
-      expect(stage.byMethod?.["tray-with-bowl"]).toBeDefined();
+      expect(stage.byMethod?.["open-with-steam"]).toBeDefined();
+      expect(stage.byMethod?.["other"]).toBeDefined();
     }
   });
 
@@ -140,8 +140,8 @@ describe("STAGES data", () => {
     }
   });
 
-  it("tray-with-bowl variant at stage 8 includes a safety warning", () => {
+  it("other variant at stage 8 includes a safety warning", () => {
     const stage = getStage(8)!;
-    expect(stage.byMethod?.["tray-with-bowl"]?.warning).toMatch(/250°C/);
+    expect(stage.byMethod?.["other"]?.warning).toMatch(/250°C/);
   });
 });

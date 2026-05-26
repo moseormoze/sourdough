@@ -154,21 +154,21 @@ describe("useActiveBake — 03 extensions", () => {
 });
 
 describe("useActiveBake — 05 baking method", () => {
-  it("start() without method defaults to 'dutch-oven'", async () => {
+  it("start() without method defaults to 'closed-vessel'", async () => {
     const recipe = saveRecipe(sample);
     const { result } = renderHook(() => useActiveBake());
     await waitFor(() => expect(result.current.loading).toBe(false));
     act(() => { result.current.start(recipe); });
-    expect(result.current.activeBake?.bakingMethod).toBe("dutch-oven");
+    expect(result.current.activeBake?.bakingMethod).toBe("closed-vessel");
   });
 
   it("start() with explicit method preserves it on the active bake", async () => {
     const recipe = saveRecipe(sample);
     const { result } = renderHook(() => useActiveBake());
     await waitFor(() => expect(result.current.loading).toBe(false));
-    act(() => { result.current.start(recipe, "stone-with-steam"); });
-    expect(result.current.activeBake?.bakingMethod).toBe("stone-with-steam");
-    expect(loadActiveBake()?.bakingMethod).toBe("stone-with-steam");
+    act(() => { result.current.start(recipe, "open-with-steam"); });
+    expect(result.current.activeBake?.bakingMethod).toBe("open-with-steam");
+    expect(loadActiveBake()?.bakingMethod).toBe("open-with-steam");
   });
 
   it("legacy active bake without bakingMethod loads with default", async () => {
@@ -185,6 +185,6 @@ describe("useActiveBake — 05 baking method", () => {
 
     const { result } = renderHook(() => useActiveBake());
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.activeBake?.bakingMethod).toBe("dutch-oven");
+    expect(result.current.activeBake?.bakingMethod).toBe("closed-vessel");
   });
 });

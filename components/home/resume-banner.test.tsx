@@ -25,7 +25,7 @@ const activeBake: ActiveBake = {
   observationChecks: {},
   subStep: 0,
   timerStartedAt: null,
-  bakingMethod: "dutch-oven",
+  bakingMethod: "closed-vessel",
 };
 
 describe("ResumeBanner", () => {

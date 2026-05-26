@@ -26,7 +26,7 @@ function seedActive(currentStage: number) {
     observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
-      bakingMethod: "dutch-oven",
+      bakingMethod: "closed-vessel",
   });
 }
 

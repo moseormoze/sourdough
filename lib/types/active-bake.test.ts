@@ -22,19 +22,19 @@ const baseBake = {
 };
 
 describe("ActiveBakeSchema — bakingMethod", () => {
-  it("defaults to 'dutch-oven' when missing (legacy active bake)", () => {
+  it("defaults to 'closed-vessel' when missing (legacy active bake)", () => {
     const parsed = ActiveBakeSchema.parse(baseBake);
-    expect(parsed.bakingMethod).toBe("dutch-oven");
+    expect(parsed.bakingMethod).toBe("closed-vessel");
   });
 
-  it("accepts 'stone-with-steam'", () => {
-    const parsed = ActiveBakeSchema.parse({ ...baseBake, bakingMethod: "stone-with-steam" });
-    expect(parsed.bakingMethod).toBe("stone-with-steam");
+  it("accepts 'open-with-steam'", () => {
+    const parsed = ActiveBakeSchema.parse({ ...baseBake, bakingMethod: "open-with-steam" });
+    expect(parsed.bakingMethod).toBe("open-with-steam");
   });
 
-  it("accepts 'tray-with-bowl'", () => {
-    const parsed = ActiveBakeSchema.parse({ ...baseBake, bakingMethod: "tray-with-bowl" });
-    expect(parsed.bakingMethod).toBe("tray-with-bowl");
+  it("accepts 'other'", () => {
+    const parsed = ActiveBakeSchema.parse({ ...baseBake, bakingMethod: "other" });
+    expect(parsed.bakingMethod).toBe("other");
   });
 
   it("rejects an unknown method value", () => {

@@ -45,13 +45,13 @@ const chooser = await page.evaluate(() => {
       /קלאסי|מלא|שיפון|לבן|כפרי/.test(b.textContent ?? "")
     ).length,
     methodCount: radios.length,
-    defaultMethod: radios.find((r) => r.getAttribute("aria-checked") === "true")?.textContent?.includes("סיר ברזל יצוק"),
+    defaultMethod: radios.find((r) => r.getAttribute("aria-checked") === "true")?.textContent?.includes("סיר/כלי סגור"),
   };
 });
 console.log("  chooser:", JSON.stringify(chooser));
 if (chooser.presetCount < 6) fail(`chooser: expected ≥6 preset cards, got ${chooser.presetCount}`);
 if (chooser.methodCount !== 3) fail(`chooser: expected 3 method radios, got ${chooser.methodCount}`);
-if (!chooser.defaultMethod) fail("chooser: default method should be 'סיר ברזל יצוק'");
+if (!chooser.defaultMethod) fail("chooser: default method should be 'סיר/כלי סגור'");
 
 console.log("→ Step 3: tap first preset → starts bake → /bake/stage/1");
 await page.getByRole("button", { name: /כפרי קלאסי/ }).click();
@@ -157,13 +157,13 @@ await page.getByRole("button", { name: "סיים בייק" }).click();
 await page.getByRole("button", { name: "כן, להפסיק" }).click();
 await page.waitForTimeout(300);
 
-// --- Method probe: verify the tray-with-bowl variant + safety warning end-to-end. ---
-console.log("→ Step 3g: start a tray-with-bowl bake, advance to stage 8, verify warning");
+// --- Method probe: verify the 'other' generic variant + safety warning end-to-end. ---
+console.log("→ Step 3g: start a bake with method='other', advance to stage 8, verify warning");
 await page.getByRole("button", { name: /התחל אפייה/ }).first().click();
 await page.waitForURL(/\/bake\/new/, { timeout: 4000 });
 await page
   .locator('[role="radio"]')
-  .filter({ hasText: "תבנית + קערה הפוכה" })
+  .filter({ hasText: "אחר / לא בטוח" })
   .click();
 await page.getByRole("button", { name: /כפרי קלאסי/ }).click();
 await page.waitForURL(/\/bake\/stage\/1/, { timeout: 4000 });
@@ -181,20 +181,20 @@ for (const next of [
   await page.waitForTimeout(150);
 }
 await page.waitForURL(/\/bake\/stage\/8/, { timeout: 4000 });
-const stage8Tray = await page.evaluate(() => {
+const stage8Generic = await page.evaluate(() => {
   const alert = document.querySelector('[role="alert"]');
   return {
     hasWarning: !!alert,
     warningText: alert?.textContent ?? "",
-    bodyMentionsTray: !!document.body.textContent?.includes("התבנית והקערה"),
+    bodyMentionsGeneric: !!document.body.textContent?.includes("החליטו מה הסטאפ שלכם"),
   };
 });
-console.log(" ", JSON.stringify(stage8Tray));
-if (!stage8Tray.hasWarning) fail("stage 8 (tray-with-bowl): SafetyWarning role='alert' missing");
-if (!stage8Tray.warningText.includes("250°C")) fail("stage 8 warning: should mention 250°C");
-if (!stage8Tray.bodyMentionsTray) fail("stage 8 (tray-with-bowl): preheat copy should mention 'התבנית והקערה'");
+console.log(" ", JSON.stringify(stage8Generic));
+if (!stage8Generic.hasWarning) fail("stage 8 (other): SafetyWarning role='alert' missing");
+if (!stage8Generic.warningText.includes("250°C")) fail("stage 8 warning: should mention 250°C");
+if (!stage8Generic.bodyMentionsGeneric) fail("stage 8 (other): preheat copy should mention 'החליטו מה הסטאפ שלכם'");
 
-// Clean up the tray-with-bowl bake and start a fresh dutch-oven bake for steps 4-6.
+// Clean up the other bake and start a fresh closed-vessel bake for steps 4-6.
 await page.click('a[href="/"]');
 await page.waitForURL(BASE + "/", { timeout: 4000 });
 await page.waitForSelector("aside[aria-label='ממשיכים']", { timeout: 4000 });

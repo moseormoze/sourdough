@@ -36,7 +36,7 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
     observationChecks: {},
     subStep: 0,
     timerStartedAt: null,
-    bakingMethod: "dutch-oven",
+    bakingMethod: "closed-vessel",
     ...overrides,
   };
 }
@@ -189,89 +189,89 @@ describe("StageScreen — bulk (stage 4) sub-step flow", () => {
 });
 
 describe("StageScreen — bakingMethod variants (stages 8-10)", () => {
-  it("stage 8 with method='dutch-oven' uses the base content (סיר)", () => {
+  it("stage 8 with method='closed-vessel' uses the base content (סיר)", () => {
     const stage = getStage(8)!;
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(8, { bakingMethod: "dutch-oven" })}
+        activeBake={makeBake(8, { bakingMethod: "closed-vessel" })}
         api={makeApi()}
       />
     );
     expect(screen.getByText(/מחממים את התנור והסיר/)).toBeInTheDocument();
   });
 
-  it("stage 8 with method='stone-with-steam' uses the stone variant", () => {
+  it("stage 8 with method='open-with-steam' uses the open-surface variant", () => {
     const stage = getStage(8)!;
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(8, { bakingMethod: "stone-with-steam" })}
+        activeBake={makeBake(8, { bakingMethod: "open-with-steam" })}
         api={makeApi()}
       />
     );
-    expect(screen.getByText(/מחממים את התנור, האבן, ותבנית האדים/)).toBeInTheDocument();
+    expect(screen.getByText(/מחממים משטח אפייה \+ תבנית אדים/)).toBeInTheDocument();
     expect(screen.queryByText(/מחממים את התנור והסיר/)).not.toBeInTheDocument();
   });
 
-  it("stage 8 with method='tray-with-bowl' uses the tray variant", () => {
+  it("stage 8 with method='other' uses the generic variant", () => {
     const stage = getStage(8)!;
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(8, { bakingMethod: "tray-with-bowl" })}
+        activeBake={makeBake(8, { bakingMethod: "other" })}
         api={makeApi()}
       />
     );
-    expect(screen.getByText(/מחממים את התנור, התבנית, והקערה/)).toBeInTheDocument();
+    expect(screen.getByText(/מחממים את התנור והציוד שלכם/)).toBeInTheDocument();
   });
 
-  it("stage 9 with method='stone-with-steam' uses the stone variant", () => {
+  it("stage 9 with method='open-with-steam' uses the open-surface variant", () => {
     const stage = getStage(9)!;
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(9, { bakingMethod: "stone-with-steam" })}
+        activeBake={makeBake(9, { bakingMethod: "open-with-steam" })}
         api={makeApi()}
       />
     );
-    expect(screen.getByText(/20 דקות עם אדים על האבן/)).toBeInTheDocument();
+    expect(screen.getByText(/20 דקות עם אדים חיצוניים/)).toBeInTheDocument();
   });
 
-  it("stage 9 with method='tray-with-bowl' uses the tray variant", () => {
+  it("stage 9 with method='other' uses the generic variant", () => {
     const stage = getStage(9)!;
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(9, { bakingMethod: "tray-with-bowl" })}
+        activeBake={makeBake(9, { bakingMethod: "other" })}
         api={makeApi()}
       />
     );
-    expect(screen.getByText(/20 דקות מתחת לקערה הלוהטת/)).toBeInTheDocument();
+    expect(screen.getByText(/20 דקות עם אדים — לפי הסטאפ שלכם/)).toBeInTheDocument();
   });
 
-  it("stage 10 with method='stone-with-steam' uses the stone variant", () => {
+  it("stage 10 with method='open-with-steam' uses the open-surface variant", () => {
     const stage = getStage(10)!;
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(10, { bakingMethod: "stone-with-steam" })}
+        activeBake={makeBake(10, { bakingMethod: "open-with-steam" })}
         api={makeApi()}
       />
     );
     expect(screen.getByText(/מוציאים את האדים/)).toBeInTheDocument();
   });
 
-  it("stage 10 with method='tray-with-bowl' uses the tray variant", () => {
+  it("stage 10 with method='other' uses the generic variant", () => {
     const stage = getStage(10)!;
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(10, { bakingMethod: "tray-with-bowl" })}
+        activeBake={makeBake(10, { bakingMethod: "other" })}
         api={makeApi()}
       />
     );
-    expect(screen.getByText(/מסירים את הקערה/)).toBeInTheDocument();
+    expect(screen.getByText(/מסירים את האדים — לפי הסטאפ שלכם/)).toBeInTheDocument();
   });
 
   it("stage 1 is unaffected by bakingMethod choice", () => {
@@ -279,7 +279,7 @@ describe("StageScreen — bakingMethod variants (stages 8-10)", () => {
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(1, { bakingMethod: "stone-with-steam" })}
+        activeBake={makeBake(1, { bakingMethod: "open-with-steam" })}
         api={makeApi()}
       />
     );
@@ -287,12 +287,12 @@ describe("StageScreen — bakingMethod variants (stages 8-10)", () => {
     expect(screen.getByText(stage.briefing.heading)).toBeInTheDocument();
   });
 
-  it("stage 8 with method='tray-with-bowl' renders a SafetyWarning above the briefing", () => {
+  it("stage 8 with method='other' renders a SafetyWarning above the briefing", () => {
     const stage = getStage(8)!;
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(8, { bakingMethod: "tray-with-bowl" })}
+        activeBake={makeBake(8, { bakingMethod: "other" })}
         api={makeApi()}
       />
     );
@@ -301,24 +301,24 @@ describe("StageScreen — bakingMethod variants (stages 8-10)", () => {
     expect(alert).toHaveTextContent(/זכוכית רגילה תיסדק/);
   });
 
-  it("stage 8 with method='dutch-oven' does NOT render a SafetyWarning", () => {
+  it("stage 8 with method='closed-vessel' does NOT render a SafetyWarning", () => {
     const stage = getStage(8)!;
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(8, { bakingMethod: "dutch-oven" })}
+        activeBake={makeBake(8, { bakingMethod: "closed-vessel" })}
         api={makeApi()}
       />
     );
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("stage 8 with method='stone-with-steam' does NOT render a SafetyWarning", () => {
+  it("stage 8 with method='open-with-steam' does NOT render a SafetyWarning", () => {
     const stage = getStage(8)!;
     render(
       <StageScreen
         stage={stage}
-        activeBake={makeBake(8, { bakingMethod: "stone-with-steam" })}
+        activeBake={makeBake(8, { bakingMethod: "open-with-steam" })}
         api={makeApi()}
       />
     );

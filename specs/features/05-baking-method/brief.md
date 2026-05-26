@@ -11,7 +11,7 @@
 ## Scope — What's In
 
 ### שדה חדש ב-`ActiveBake` schema
-- `bakingMethod: z.enum(['dutch-oven', 'stone-with-steam', 'tray-with-bowl']).default('dutch-oven')`
+- `bakingMethod: z.enum(['closed-vessel', 'open-with-steam', 'other']).default('closed-vessel')`
 - **לא** על Recipe. אותו מתכון אפשר לאפות בשיטות שונות.
 - מיגרציה: בייקים פעילים שנשמרו לפני 05 מקבלים `dutch-oven` אוטומטית דרך Zod default.
 
@@ -51,7 +51,7 @@
 - **ב-chooser**: התיאור הקצר כולל ״לא זכוכית רגילה, לא פלסטיק״.
 - **בשלב 9 (חימום) של ״תבנית+קערה״**: אזהרה מודגשת עם אייקון `AlertTriangle` —
   > ⚠️ ודאו שהקערה עמידה לחום של 250°C. **מתכת** (קערת ערבוב נירוסטה) או **קרמיקה** עוברות. **זכוכית רגילה תיסדק. פלסטיק יימס.**
-- אזהרה מופיעה רק אם `bakingMethod === 'tray-with-bowl'`.
+- אזהרה מופיעה רק אם `bakingMethod === 'other'`.
 
 ### עדכון `StageScreen`
 - בשלבים 9-11 (במידה ויש `byMethod`), קורא מה-`activeBake.bakingMethod` ומציג את הגרסה המתאימה.
@@ -62,8 +62,8 @@
 - Unit: stages.ts data — שלבים 9-11 כוללים `byMethod` עם 3 כניסות (`dutch-oven`, `stone-with-steam`, `tray-with-bowl`); כל אחת עם content תקין.
 - RTL: BakingMethodSelector מציג 3 אופציות, ה-default מסומן, לחיצה מעדכנת state.
 - RTL: ChooserScreen משלב את ה-selector ושומר את הבחירה ב-ActiveBake החדש.
-- RTL: StageScreen על שלב 9 עם `bakingMethod='stone-with-steam'` מציג את ההוראות לאבן, לא לסיר.
-- RTL: StageScreen על שלב 9 עם `bakingMethod='tray-with-bowl'` מציג את אזהרת הבטיחות.
+- RTL: StageScreen על שלב 9 עם `bakingMethod='open-with-steam'` מציג את ההוראות לאבן, לא לסיר.
+- RTL: StageScreen על שלב 9 עם `bakingMethod='other'` מציג את אזהרת הבטיחות.
 - Playwright: התחלת בייק עם method=stone → ב-stage 9 רואים ״אבן״, לא ״סיר״.
 
 ## Out of Scope
@@ -77,8 +77,8 @@
 
 ## Acceptance Criteria
 
-- [ ] `ActiveBakeSchema` מכיל `bakingMethod: z.enum([...]).default('dutch-oven')`
-- [ ] בייק ישן ב-localStorage (לפני 05) נטען עם `bakingMethod='dutch-oven'` בלי שגיאה
+- [ ] `ActiveBakeSchema` מכיל `bakingMethod: z.enum([...]).default('closed-vessel')`
+- [ ] בייק ישן ב-localStorage (לפני 05) נטען עם `bakingMethod='closed-vessel'` בלי שגיאה
 - [ ] `BakingMethodSelector` קיים, מציג 3 אופציות בעברית עם תיאור קצר
 - [ ] ChooserScreen משלב את ה-selector מעל רשת ה-cards
 - [ ] בחירת method לפני start נשמרת ב-ActiveBake החדש
@@ -88,6 +88,10 @@
 - [ ] שלבים 1-8 ו-12 לא משתנים (אין `byMethod`)
 - [ ] טסטים: lint, type-check, build, 380+ unit/RTL tests passing, Playwright probe extended ומעבר
 - [ ] כל הטקסטים בעברית; CSS לוגי בלבד; touch targets ≥44px; rtl-check 0 findings
+
+## Revision History
+
+- **2026-05-26 (post-merge)**: שמות השיטות שונו מ-equipment-first ל-technique-first: `dutch-oven` → `closed-vessel`, `stone-with-steam` → `open-with-steam`, `tray-with-bowl` → `other`. הסיבה: ה-labels הקודמים תיארו ציוד ספציפי (״סיר ברזל יצוק״, ״תבנית + קערה הפוכה״) וזה הוציא מהמשחק משתמשים שמשתמשים בציוד הברידי (״אני אופה על סיר נירוסטה ללא מכסה עם תבנית מים״). הקבוצות החדשות הן טכניקה (״כלי סגור״, ״משטח פתוח + אדים״, ״אחר״) ומכניסות יותר סטאפים נפוצים. ההוראות הספציפיות ל-tray+bowl נדחו — מי שמשתמש בקערה הפוכה בוחר ״סיר/כלי סגור״ ומותאם בעצמו, או ״אחר״ לקבל הוראות גנריות. אזהרת הבטיחות עברה ל-״אחר״ בנוסח גנרי. ה-Zod schema כולל `preprocess` שממפה ערכים ישנים → חדשים כדי שבייקים פעילים שנשמרו במצב הקודם ימשיכו לעבוד.
 
 ## Dependencies
 

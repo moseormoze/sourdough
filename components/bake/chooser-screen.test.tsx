@@ -77,35 +77,35 @@ describe("ChooserScreen", () => {
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/1");
   });
 
-  it("renders the BakingMethodSelector with dutch-oven as default", () => {
+  it("renders the BakingMethodSelector with closed-vessel as default", () => {
     render(<ChooserScreen />);
     expect(screen.getByText("באיזה כלי תאפה?")).toBeInTheDocument();
     const radios = screen.getAllByRole("radio");
     expect(radios).toHaveLength(3);
     const checked = radios.find((r) => r.getAttribute("aria-checked") === "true");
-    expect(checked).toHaveTextContent("סיר ברזל יצוק");
+    expect(checked).toHaveTextContent("סיר/כלי סגור");
   });
 
-  it("default bake start writes bakingMethod='dutch-oven' to the active bake", async () => {
+  it("default bake start writes bakingMethod='closed-vessel' to the active bake", async () => {
     render(<ChooserScreen />);
     const country = PRESETS[0]!;
     const btn = screen.getByRole("button", { name: country.name });
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
     await waitFor(() => {
-      expect(loadActiveBake()?.bakingMethod).toBe("dutch-oven");
+      expect(loadActiveBake()?.bakingMethod).toBe("closed-vessel");
     });
   });
 
   it("picking a different method before starting persists it on the active bake", async () => {
     render(<ChooserScreen />);
-    fireEvent.click(screen.getByText("אבן/פלדת אפייה + תבנית אדים"));
+    fireEvent.click(screen.getByText("אפייה פתוחה + תבנית אדים"));
     const country = PRESETS[0]!;
     const btn = screen.getByRole("button", { name: country.name });
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
     await waitFor(() => {
-      expect(loadActiveBake()?.bakingMethod).toBe("stone-with-steam");
+      expect(loadActiveBake()?.bakingMethod).toBe("open-with-steam");
     });
   });
 
@@ -120,7 +120,7 @@ describe("ChooserScreen", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
-      bakingMethod: "dutch-oven",
+      bakingMethod: "closed-vessel",
     });
 
     render(<ChooserScreen />);
@@ -152,7 +152,7 @@ describe("ChooserScreen", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
-      bakingMethod: "dutch-oven",
+      bakingMethod: "closed-vessel",
     });
 
     render(<ChooserScreen />);
@@ -188,7 +188,7 @@ describe("ChooserScreen", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
-      bakingMethod: "dutch-oven",
+      bakingMethod: "closed-vessel",
     });
 
     render(<ChooserScreen />);
