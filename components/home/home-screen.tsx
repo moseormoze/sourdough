@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Wheat, BookOpen } from "lucide-react";
 import { HomeCta } from "./home-cta";
 import { ResumeBanner } from "./resume-banner";
@@ -24,10 +25,18 @@ export function HomeScreen() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-12 pb-10">
-      <header className="text-center mb-10">
-        <h1 className="text-display-lg font-display text-ink">{strings.home.wordmark}</h1>
-        <p className="mt-2 text-body-lg text-ink-2">{strings.home.subtitle}</p>
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-8 pb-10">
+      <header className="text-center mb-6">
+        <h1 className="sr-only">{strings.home.wordmark}</h1>
+        <Image
+          src="/logo.svg"
+          alt={strings.home.wordmark}
+          width={220}
+          height={220}
+          priority
+          className="mx-auto"
+        />
+        <p className="text-body-lg text-ink-2">{strings.home.subtitle}</p>
       </header>
 
       {!bakeLoading && activeBake && (

@@ -52,6 +52,13 @@ describe("HomeScreen", () => {
     expect(screen.getByText("מה אופים היום?")).toBeInTheDocument();
   });
 
+  it("renders the SVG logo with the wordmark as alt text", () => {
+    render(<HomeScreen />);
+    const logo = screen.getByRole("img", { name: "כיכר" });
+    expect(logo).toBeInTheDocument();
+    expect(logo.getAttribute("src")).toContain("logo.svg");
+  });
+
   it("renders the CTAs in fresh state", async () => {
     render(<HomeScreen />);
     expect(await screen.findByText("התחל אפייה")).toBeInTheDocument();
