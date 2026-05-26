@@ -29,6 +29,12 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     [activeBake.recipe]
   );
 
+  const methodOverride = stage.byMethod?.[activeBake.bakingMethod];
+  const briefing = methodOverride?.briefing ?? stage.briefing;
+  const todoData = methodOverride?.todo ?? stage.todo;
+  const checks = methodOverride?.checks ?? stage.checks;
+  const durationSeconds = methodOverride?.durationSeconds ?? stage.durationSeconds;
+
   const foldsRemaining =
     stage.type === "bulk" &&
     typeof stage.subSteps === "number" &&
@@ -55,20 +61,20 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     return strings.bake.stageDone;
   })();
 
-  const showBulkTimer = stage.type === "bulk" && stage.durationSeconds !== undefined;
-  const showStandaloneTimer = stage.type === "timer" && stage.durationSeconds !== undefined;
+  const showBulkTimer = stage.type === "bulk" && durationSeconds !== undefined;
+  const showStandaloneTimer = stage.type === "timer" && durationSeconds !== undefined;
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-32">
       <StageHeader stage={stage} totalStages={TOTAL_STAGES} />
 
       <div className="mt-6 flex flex-col gap-4">
-        <Briefing briefing={stage.briefing} disclosure={stage.briefingDisclosure} />
+        <Briefing briefing={briefing} disclosure={stage.briefingDisclosure} />
 
-        {stage.todo && (
+        {todoData && (
           <InstructionCard
-            steps={stage.todo.steps}
-            tip={stage.todo.tip}
+            steps={todoData.steps}
+            tip={todoData.tip}
             note={stage.todoNote}
             quantities={quantities}
           />
@@ -97,10 +103,10 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
                 </Button>
               </div>
             )}
-            {showBulkTimer && stage.durationSeconds !== undefined && (
+            {showBulkTimer && durationSeconds !== undefined && (
               <div className="mt-4 pt-4 border-t border-line/60">
                 <OptionalTimer
-                  durationSeconds={stage.durationSeconds}
+                  durationSeconds={durationSeconds}
                   startedAt={activeBake.timerStartedAt}
                   onStart={api.startTimer}
                   onStop={api.stopTimer}
@@ -113,14 +119,14 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           </section>
         )}
 
-        {stage.checks && stage.checks.length > 0 && (
-          <ChecklistReference items={stage.checks} />
+        {checks && checks.length > 0 && (
+          <ChecklistReference items={checks} />
         )}
 
-        {showStandaloneTimer && stage.durationSeconds !== undefined && (
+        {showStandaloneTimer && durationSeconds !== undefined && (
           <div className="self-start">
             <OptionalTimer
-              durationSeconds={stage.durationSeconds}
+              durationSeconds={durationSeconds}
               startedAt={activeBake.timerStartedAt}
               onStart={api.startTimer}
               onStop={api.stopTimer}

@@ -188,6 +188,106 @@ describe("StageScreen — bulk (stage 4) sub-step flow", () => {
   });
 });
 
+describe("StageScreen — bakingMethod variants (stages 8-10)", () => {
+  it("stage 8 with method='dutch-oven' uses the base content (סיר)", () => {
+    const stage = getStage(8)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(8, { bakingMethod: "dutch-oven" })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByText(/מחממים את התנור והסיר/)).toBeInTheDocument();
+  });
+
+  it("stage 8 with method='stone-with-steam' uses the stone variant", () => {
+    const stage = getStage(8)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(8, { bakingMethod: "stone-with-steam" })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByText(/מחממים את התנור, האבן, ותבנית האדים/)).toBeInTheDocument();
+    expect(screen.queryByText(/מחממים את התנור והסיר/)).not.toBeInTheDocument();
+  });
+
+  it("stage 8 with method='tray-with-bowl' uses the tray variant", () => {
+    const stage = getStage(8)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(8, { bakingMethod: "tray-with-bowl" })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByText(/מחממים את התנור, התבנית, והקערה/)).toBeInTheDocument();
+  });
+
+  it("stage 9 with method='stone-with-steam' uses the stone variant", () => {
+    const stage = getStage(9)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(9, { bakingMethod: "stone-with-steam" })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByText(/20 דקות עם אדים על האבן/)).toBeInTheDocument();
+  });
+
+  it("stage 9 with method='tray-with-bowl' uses the tray variant", () => {
+    const stage = getStage(9)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(9, { bakingMethod: "tray-with-bowl" })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByText(/20 דקות מתחת לקערה הלוהטת/)).toBeInTheDocument();
+  });
+
+  it("stage 10 with method='stone-with-steam' uses the stone variant", () => {
+    const stage = getStage(10)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(10, { bakingMethod: "stone-with-steam" })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByText(/מוציאים את האדים/)).toBeInTheDocument();
+  });
+
+  it("stage 10 with method='tray-with-bowl' uses the tray variant", () => {
+    const stage = getStage(10)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(10, { bakingMethod: "tray-with-bowl" })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByText(/מסירים את הקערה/)).toBeInTheDocument();
+  });
+
+  it("stage 1 is unaffected by bakingMethod choice", () => {
+    const stage = getStage(1)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(1, { bakingMethod: "stone-with-steam" })}
+        api={makeApi()}
+      />
+    );
+    // base briefing heading still renders
+    expect(screen.getByText(stage.briefing.heading)).toBeInTheDocument();
+  });
+});
+
 describe("StageScreen — timer stage", () => {
   it("shows the optional timer button in idle state", () => {
     const stage = getStage(7)!;

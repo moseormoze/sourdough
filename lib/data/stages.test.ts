@@ -123,4 +123,25 @@ describe("STAGES data", () => {
       }
     }
   });
+
+  it("stages 8, 9, 10 define byMethod with stone-with-steam + tray-with-bowl variants", () => {
+    for (const n of [8, 9, 10]) {
+      const stage = getStage(n)!;
+      expect(stage.byMethod, `stage ${n} should have byMethod`).toBeDefined();
+      expect(stage.byMethod?.["stone-with-steam"]).toBeDefined();
+      expect(stage.byMethod?.["tray-with-bowl"]).toBeDefined();
+    }
+  });
+
+  it("stages without byMethod fall back to base content", () => {
+    for (const s of STAGES) {
+      if ([8, 9, 10].includes(s.n)) continue;
+      expect(s.byMethod, `stage ${s.n} should NOT define byMethod`).toBeUndefined();
+    }
+  });
+
+  it("tray-with-bowl variant at stage 8 includes a safety warning", () => {
+    const stage = getStage(8)!;
+    expect(stage.byMethod?.["tray-with-bowl"]?.warning).toMatch(/250°C/);
+  });
 });
