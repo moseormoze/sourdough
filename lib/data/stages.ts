@@ -35,6 +35,10 @@ export interface Stage {
   checks?: string[];
   durationSeconds?: number;
   subSteps?: number;
+  imageUrl?: string;
+  imageAlt?: string;
+  youtubeId?: string;
+  videoCaption?: string;
   byMethod?: Partial<Record<BakingMethod, StageMethodContent>>;
 }
 
@@ -45,6 +49,8 @@ export const STAGES: readonly Stage[] = [
     hint: "(levain)",
     type: "check",
     durationLabel: "כ-10–12 שעות",
+    imageUrl: "/stages/1-levain.png",
+    imageAlt: "שאור פעיל בצנצנת — מבעבע, הוכפל בנפח, גומייה מסמנת את גובה ההתחלה",
     briefing: {
       heading: "התחלת הבייק — בונים שאור פעיל",
       blurb:
@@ -78,6 +84,8 @@ export const STAGES: readonly Stage[] = [
     name: "אוטוליזה",
     type: "check",
     durationLabel: "30–60 דקות",
+    imageUrl: "/stages/2-autolyse.png",
+    imageAlt: "בצק אוטוליזה גס בקערת קרמיקה — כל הקמח הורטב, עוד אין חלקות",
     briefing: {
       heading: "מים פוגשים קמח — בלי שאור ובלי מלח",
       blurb:
@@ -108,6 +116,8 @@ export const STAGES: readonly Stage[] = [
     name: "לישה והוספת שאור ומלח",
     type: "check",
     durationLabel: "כ-15 דקות",
+    imageUrl: "/stages/3-mixed-dough.png",
+    imageAlt: "בצק חלק וגמיש אחרי לישה — מבריק קלות, מתפעל יפה",
     briefing: {
       heading: "מכניסים את השאור והמלח",
       blurb:
@@ -139,6 +149,8 @@ export const STAGES: readonly Stage[] = [
     name: "תסיסה ראשונית",
     hint: "(Bulk fermentation)",
     type: "bulk",
+    youtubeId: "jrDy90gD710",
+    videoCaption: "טכניקת stretch & fold · The Perfect Loaf / Maurizio Leo",
     durationLabel: "כ-4 שעות · קיפולים ×4",
     durationSeconds: 30 * 60,
     subSteps: 4,
@@ -174,6 +186,8 @@ export const STAGES: readonly Stage[] = [
     hint: "(pre-shape)",
     type: "check",
     durationLabel: "20–30 דקות",
+    youtubeId: "Op-LKk-i4zQ",
+    videoCaption: "עיצוב ראשוני · The Perfect Loaf / Maurizio Leo",
     briefing: {
       heading: "מעצבים לכדור רפוי",
       blurb:
@@ -205,6 +219,8 @@ export const STAGES: readonly Stage[] = [
     name: "עיצוב סופי",
     type: "check",
     durationLabel: "כ-10 דקות",
+    youtubeId: "fFXp-StcueY",
+    videoCaption: "עיצוב באטארד (slow-motion) · The Perfect Loaf / Maurizio Leo",
     briefing: {
       heading: "הצורה הסופית — בולה או באטארד",
       blurb:
@@ -351,6 +367,10 @@ export const STAGES: readonly Stage[] = [
     n: 9,
     name: "אפייה — מכוסה",
     type: "timer",
+    imageUrl: "/stages/9-scoring.png",
+    imageAlt: "חריצה בלייימה בזווית 45° על בצק לפני אפייה",
+    youtubeId: "rlfpcN_oiek",
+    videoCaption: "טכניקת חריצה · The Perfect Loaf / Maurizio Leo",
     durationLabel: "20 דקות",
     durationSeconds: 20 * 60,
     briefing: {
