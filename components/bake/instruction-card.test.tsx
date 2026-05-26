@@ -8,7 +8,15 @@ const sampleQuantities: BakeQuantities = {
   totalWaterGrams: 375,
   saltGrams: 10,
   levainTotalGrams: 100,
-  levainBuild: { starterGrams: 33, waterGrams: 33, flourGrams: 33 },
+  levainBuild: {
+    starterGrams: 33,
+    waterGrams: 33,
+    flourGrams: 33,
+    flourBreakdown: [
+      { type: "white", grams: 26 },
+      { type: "wholeWheat", grams: 7 },
+    ],
+  },
   mixAdditions: {
     flourGrams: 451,
     flourBreakdown: [

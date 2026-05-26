@@ -41,6 +41,11 @@ function renderFlourBreakdown(entries: FlourBreakdownEntry[], baseKey: number): 
   });
 }
 
+const BREAKDOWN_TOKENS: Record<string, (q: BakeQuantities) => FlourBreakdownEntry[]> = {
+  mixFlourBreakdown: (q) => q.mixAdditions.flourBreakdown,
+  levainFlourBreakdown: (q) => q.levainBuild.flourBreakdown,
+};
+
 function renderStep(
   text: string,
   tokens: TokenMap | null,
@@ -56,8 +61,9 @@ function renderStep(
       parts.push(text.slice(lastIndex, match.index));
     }
     const tokenName = match[1];
-    if (tokenName === "mixFlourBreakdown" && quantities) {
-      parts.push(renderFlourBreakdown(quantities.mixAdditions.flourBreakdown, match.index));
+    const breakdownLookup = tokenName ? BREAKDOWN_TOKENS[tokenName] : undefined;
+    if (breakdownLookup && quantities) {
+      parts.push(renderFlourBreakdown(breakdownLookup(quantities), match.index));
     } else {
       const value = tokenName !== undefined ? tokens[tokenName] : undefined;
       if (value !== undefined) {

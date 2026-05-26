@@ -197,4 +197,23 @@ describe("computeBakeQuantities — mix flourBreakdown", () => {
       expect(Number.isInteger(e.grams)).toBe(true);
     });
   });
+
+  it("levainBuild.flourBreakdown follows the recipe blend proportionally", () => {
+    const q = computeBakeQuantities(
+      makeRecipe({
+        flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+      })
+    );
+    const breakdown = q.levainBuild.flourBreakdown;
+    expect(breakdown).toHaveLength(2);
+    expect(breakdown[0]?.type).toBe("white");
+    expect(breakdown[1]?.type).toBe("wholeWheat");
+    const sum = breakdown.reduce((acc, e) => acc + e.grams, 0);
+    expect(sum).toBe(q.levainBuild.flourGrams);
+  });
+
+  it("levainBuild.flourBreakdown is empty array when levain=0", () => {
+    const q = computeBakeQuantities(makeRecipe({ levain: 0 }));
+    expect(q.levainBuild.flourBreakdown).toEqual([]);
+  });
 });

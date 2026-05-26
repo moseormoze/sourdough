@@ -56,13 +56,23 @@ describe("StageScreen — basic stage", () => {
   it("stage 1 substitutes placeholder tokens with bolded gram values", () => {
     const stage = getStage(1)!;
     render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
-    // Recipe 500g flour, 20% levain → 100g levain total → ~33g each in 1:1:1
+    // Recipe 500g flour, 20% levain → 100g levain total → ~33g starter + 33g water
     const bold33 = screen.getAllByText(/^33g$/);
     expect(bold33.length).toBeGreaterThanOrEqual(2);
     bold33.forEach((el) => {
       expect(el.tagName).toBe("STRONG");
       expect(el).toHaveClass("font-semibold");
     });
+  });
+
+  it("stage 1 step 3 shows the levain flour breakdown by recipe blend", () => {
+    const stage = getStage(1)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
+    // 33g levain flour, 80/20 blend → 26g white + 7g wholeWheat
+    expect(screen.getByText("26g").tagName).toBe("STRONG");
+    expect(screen.getByText("7g").tagName).toBe("STRONG");
+    expect(screen.getAllByText(/קמח לבן/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/קמח מלא/).length).toBeGreaterThan(0);
   });
 
   it("stage 1 renders both disclosures (briefing + todo note)", () => {

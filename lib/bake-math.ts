@@ -16,6 +16,7 @@ export interface BakeQuantities {
     starterGrams: number;
     waterGrams: number;
     flourGrams: number;
+    flourBreakdown: FlourBreakdownEntry[];
   };
   mixAdditions: {
     flourGrams: number;
@@ -69,6 +70,7 @@ export function computeBakeQuantities(recipe: Recipe): BakeQuantities {
       starterGrams: levainStarter,
       waterGrams: levainWater,
       flourGrams: levainFlour,
+      flourBreakdown: breakdownByBlend(levainFlour, recipe.flour),
     },
     mixAdditions: {
       flourGrams: mixFlour,

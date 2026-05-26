@@ -84,6 +84,7 @@ describe("STAGES data", () => {
     "saltGrams",
     "saltReserveWaterGrams",
     "mixFlourBreakdown",
+    "levainFlourBreakdown",
   ]);
 
   function tokensIn(text: string): string[] {
