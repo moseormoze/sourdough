@@ -31,8 +31,8 @@ export function HomeScreen() {
         <Image
           src="/logo.svg"
           alt={strings.home.wordmark}
-          width={220}
-          height={220}
+          width={280}
+          height={280}
           priority
           className="mx-auto"
         />

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: "כיכר",
   description: "מלווה אפייה של לחם מחמצת",
   icons: {
-    icon: "/logo.svg",
+    icon: "/icon.svg",
   },
 };
 
