@@ -9,6 +9,7 @@ import type { RecipeFormValues } from "@/lib/validate-recipe";
 const validValues: RecipeFormValues = {
   name: "כפרי",
   flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+  flourWeightGrams: 500,
   hydration: 75,
   salt: 2,
   levain: 20,
@@ -46,10 +47,40 @@ describe("RecipeFormScreen", () => {
     renderForm();
     expect(screen.getByLabelText("שם המתכון")).toBeInTheDocument();
     expect(screen.getByLabelText("לבן")).toBeInTheDocument();
+    expect(screen.getByLabelText("משקל קמח")).toBeInTheDocument();
     expect(screen.getByLabelText("הידרציה")).toBeInTheDocument();
     expect(screen.getByLabelText("מלח")).toBeInTheDocument();
     expect(screen.getByLabelText("שאור")).toBeInTheDocument();
     expect(screen.getByLabelText("טמפ׳ מטבח")).toBeInTheDocument();
+  });
+
+  it("seeds flourWeightGrams to 500 in create mode", () => {
+    renderForm();
+    expect((screen.getByLabelText("משקל קמח") as HTMLInputElement).value).toBe("500");
+  });
+
+  it("renders flour weight before hydration in the DOM", () => {
+    renderForm();
+    const flourWeight = screen.getByLabelText("משקל קמח");
+    const hydration = screen.getByLabelText("הידרציה");
+    expect(
+      flourWeight.compareDocumentPosition(hydration) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  it("shows flour weight error after blur on out-of-range value", () => {
+    renderForm({ initialValues: { ...validValues, flourWeightGrams: 50 } });
+    fireEvent.blur(screen.getByLabelText("משקל קמח"));
+    expect(
+      screen.getByText(/משקל קמח חייב להיות בין 100g ל-1500g/)
+    ).toBeInTheDocument();
+  });
+
+  it("persists flourWeightGrams through save", () => {
+    renderForm({ initialValues: { ...validValues, flourWeightGrams: 800 } });
+    fireEvent.click(screen.getByRole("button", { name: "שמור" }));
+    expect(listRecipes()).toHaveLength(1);
+    expect(listRecipes()[0]?.flourWeightGrams).toBe(800);
   });
 
   it("fills initial values when provided", () => {

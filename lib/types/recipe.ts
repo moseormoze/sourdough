@@ -24,6 +24,7 @@ export const RecipeSchema = z.object({
   hydration: z.number().min(50).max(100),
   salt: z.number().min(0).max(5),
   levain: z.number().min(0).max(40),
+  flourWeightGrams: z.number().int().min(100).max(1500).default(500),
   kitchenTemp: z.number().min(10).max(40),
   inclusions: z.array(InclusionSchema),
   createdAt: z.number().int().positive(),
@@ -41,4 +42,4 @@ export const RecipeInputSchema = RecipeSchema.omit({
 export type Flour = z.infer<typeof FlourSchema>;
 export type Inclusion = z.infer<typeof InclusionSchema>;
 export type Recipe = z.infer<typeof RecipeSchema>;
-export type RecipeInput = z.infer<typeof RecipeInputSchema>;
+export type RecipeInput = z.input<typeof RecipeInputSchema>;

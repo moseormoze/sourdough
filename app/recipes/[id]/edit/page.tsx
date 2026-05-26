@@ -23,6 +23,7 @@ export default function Page() {
     setInitial({
       name: recipe.name,
       flour: { ...recipe.flour },
+      flourWeightGrams: recipe.flourWeightGrams,
       hydration: recipe.hydration,
       salt: recipe.salt,
       levain: recipe.levain,

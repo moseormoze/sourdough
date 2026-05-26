@@ -53,6 +53,7 @@ export function saveRecipe(input: RecipeInput): Recipe {
     hydration: parsed.hydration,
     salt: parsed.salt,
     levain: parsed.levain,
+    flourWeightGrams: parsed.flourWeightGrams,
     kitchenTemp: parsed.kitchenTemp,
     inclusions: parsed.inclusions,
     createdAt: existing?.createdAt ?? now,

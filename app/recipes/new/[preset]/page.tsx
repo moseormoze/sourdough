@@ -20,6 +20,7 @@ export default async function Page({ params }: PageProps) {
     initialValues = {
       name: found.name,
       flour: { ...found.data.flour },
+      flourWeightGrams: found.data.flourWeightGrams ?? 500,
       hydration: found.data.hydration,
       salt: found.data.salt,
       levain: found.data.levain,

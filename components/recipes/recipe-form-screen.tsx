@@ -8,6 +8,7 @@ import { TextInput } from "@/components/ui/text-input";
 import { FormSection } from "@/components/ui/form-section";
 import { useToast } from "@/components/ui/toast";
 import { FlourBreakdownInput } from "./flour-breakdown-input";
+import { FlourWeightInput } from "./flour-weight-input";
 import { PercentInputWithHint } from "./percent-input-with-hint";
 import { TempInput } from "./temp-input";
 import { InclusionsSection } from "./inclusions-section";
@@ -46,6 +47,7 @@ function formValuesToInput(values: RecipeFormValues, recipeId?: string): RecipeI
     hydration: values.hydration === "" ? 0 : values.hydration,
     salt: values.salt === "" ? 0 : values.salt,
     levain: values.levain === "" ? 0 : values.levain,
+    flourWeightGrams: values.flourWeightGrams === "" ? 500 : values.flourWeightGrams,
     kitchenTemp: values.kitchenTemp === "" ? 25 : values.kitchenTemp,
     inclusions: values.inclusions.map((i) => ({
       name: i.name.trim(),
@@ -91,6 +93,7 @@ export function RecipeFormScreen({
   type SingleErrorKey =
     | "name"
     | "flour"
+    | "flourWeightGrams"
     | "hydration"
     | "salt"
     | "levain"
@@ -104,6 +107,7 @@ export function RecipeFormScreen({
     const allTouched = new Set([
       "name",
       "flour",
+      "flourWeightGrams",
       "hydration",
       "salt",
       "levain",
@@ -200,6 +204,12 @@ export function RecipeFormScreen({
         />
 
         <FormSection>
+          <FlourWeightInput
+            value={values.flourWeightGrams}
+            onChange={(v) => setValues({ ...values, flourWeightGrams: v })}
+            onBlur={() => touch("flourWeightGrams")}
+            error={showError("flourWeightGrams")}
+          />
           <PercentInputWithHint
             label={strings.form.hydration}
             min={50}

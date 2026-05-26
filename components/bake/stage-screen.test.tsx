@@ -24,6 +24,7 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
       hydration: 75,
       salt: 2,
       levain: 20,
+      flourWeightGrams: 500,
       kitchenTemp: 25,
       inclusions: [],
       createdAt: 1,

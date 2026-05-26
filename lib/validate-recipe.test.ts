@@ -9,6 +9,7 @@ import {
 const valid = () => ({
   name: "כפרי",
   flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+  flourWeightGrams: 500,
   hydration: 75,
   salt: 2,
   levain: 20,
@@ -63,13 +64,27 @@ describe("validateRecipe", () => {
     expect(validateRecipe({ ...valid(), kitchenTemp: 50 }).kitchenTemp).toBeTruthy();
   });
 
+  it("flags flourWeightGrams outside 100-1500", () => {
+    expect(validateRecipe({ ...valid(), flourWeightGrams: 50 }).flourWeightGrams).toBeTruthy();
+    expect(validateRecipe({ ...valid(), flourWeightGrams: 2000 }).flourWeightGrams).toBeTruthy();
+  });
+
+  it("flags non-integer flourWeightGrams", () => {
+    expect(validateRecipe({ ...valid(), flourWeightGrams: 500.5 }).flourWeightGrams).toBeTruthy();
+  });
+
+  it("flags empty flourWeightGrams", () => {
+    expect(validateRecipe({ ...valid(), flourWeightGrams: "" }).flourWeightGrams).toBeTruthy();
+  });
+
   it("flags empty numeric field as out of range", () => {
     expect(validateRecipe({ ...valid(), hydration: "" }).hydration).toBeTruthy();
   });
 
-  it("emptyRecipeFormValues seeds kitchenTemp to 25 (default)", () => {
+  it("emptyRecipeFormValues seeds defaults (kitchenTemp 25, flourWeightGrams 500)", () => {
     const empty = emptyRecipeFormValues();
     expect(empty.kitchenTemp).toBe(25);
+    expect(empty.flourWeightGrams).toBe(500);
     expect(empty.name).toBe("");
   });
 

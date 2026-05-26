@@ -18,6 +18,7 @@ export interface RecipeFormValues {
     rye: number | "";
     other: number | "";
   };
+  flourWeightGrams: number | "";
   hydration: number | "";
   salt: number | "";
   levain: number | "";
@@ -28,6 +29,7 @@ export interface RecipeFormValues {
 export interface RecipeFormErrors {
   name: string | null;
   flour: string | null;
+  flourWeightGrams: string | null;
   hydration: string | null;
   salt: string | null;
   levain: string | null;
@@ -39,6 +41,7 @@ export function emptyRecipeFormValues(): RecipeFormValues {
   return {
     name: "",
     flour: { white: "", wholeWheat: "", rye: "", other: "" },
+    flourWeightGrams: 500,
     hydration: "",
     salt: "",
     levain: "",
@@ -78,6 +81,7 @@ export function validateRecipe(values: RecipeFormValues): RecipeFormErrors {
   const errors: RecipeFormErrors = {
     name: null,
     flour: null,
+    flourWeightGrams: null,
     hydration: null,
     salt: null,
     levain: null,
@@ -92,6 +96,7 @@ export function validateRecipe(values: RecipeFormValues): RecipeFormErrors {
     errors.flour = v.flourSumWrong(sum);
   }
 
+  errors.flourWeightGrams = checkFlourWeight(values.flourWeightGrams, v.flourWeightRange);
   errors.hydration = checkRange(values.hydration, 50, 100, v.hydrationRange);
   errors.salt = checkRange(values.salt, 0, 5, v.saltRange);
   errors.levain = checkRange(values.levain, 0, 40, v.levainRange);
@@ -100,10 +105,18 @@ export function validateRecipe(values: RecipeFormValues): RecipeFormErrors {
   return errors;
 }
 
+function checkFlourWeight(value: number | "", message: string): string | null {
+  if (value === "") return message;
+  if (!Number.isInteger(value)) return message;
+  if (value < 100 || value > 1500) return message;
+  return null;
+}
+
 export function hasAnyError(errors: RecipeFormErrors): boolean {
   const fieldErrors = [
     errors.name,
     errors.flour,
+    errors.flourWeightGrams,
     errors.hydration,
     errors.salt,
     errors.levain,

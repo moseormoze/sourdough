@@ -18,6 +18,7 @@ function presetToRecipe(preset: Preset): Recipe {
     id: `preset:${preset.id}:${now}`,
     name: preset.name,
     flour: { ...preset.data.flour },
+    flourWeightGrams: preset.data.flourWeightGrams ?? 500,
     hydration: preset.data.hydration,
     salt: preset.data.salt,
     levain: preset.data.levain,

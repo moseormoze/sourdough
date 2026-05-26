@@ -10,3 +10,4 @@ build/
 .idea/
 *.tsbuildinfo
 .claude/settings.local.json
+*.code-workspace
