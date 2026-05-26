@@ -72,6 +72,22 @@ describe("InstructionCard", () => {
     expect(screen.getByRole("listitem")).toHaveTextContent("{wrongName}");
   });
 
+  it("renders a footer note when provided", () => {
+    render(
+      <InstructionCard
+        steps={["x"]}
+        note="הקמח של השאור כלול בתוך 100% הקמח."
+      />
+    );
+    expect(screen.getByText(/הערה:/)).toBeInTheDocument();
+    expect(screen.getByText(/הקמח של השאור כלול/)).toBeInTheDocument();
+  });
+
+  it("omits the note when not provided", () => {
+    render(<InstructionCard steps={["x"]} />);
+    expect(screen.queryByText(/הערה:/)).not.toBeInTheDocument();
+  });
+
   it("handles multiple placeholders mixed with text in a single step", () => {
     render(
       <InstructionCard

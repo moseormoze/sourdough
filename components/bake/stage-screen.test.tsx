@@ -53,6 +53,46 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText(stage.checks![0]!)).toBeInTheDocument();
   });
 
+  it("stage 1 substitutes placeholder tokens with bolded gram values", () => {
+    const stage = getStage(1)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
+    // Recipe 500g flour, 20% levain → 100g levain total → ~33g each in 1:1:1
+    const bold33 = screen.getAllByText(/^33g$/);
+    expect(bold33.length).toBeGreaterThanOrEqual(2);
+    bold33.forEach((el) => {
+      expect(el.tagName).toBe("STRONG");
+      expect(el).toHaveClass("font-semibold");
+    });
+  });
+
+  it("stage 1 renders both disclosures (briefing + todo note)", () => {
+    const stage = getStage(1)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
+    expect(screen.getByText(/הנחה: סטארטר ב-100% הידרציה/)).toBeInTheDocument();
+    expect(screen.getByText(/הקמח של השאור כלול/)).toBeInTheDocument();
+  });
+
+  it("stage 2 renders totalFlour and autolyse water as bolded numbers", () => {
+    const stage = getStage(2)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
+    // totalFlour = 500g
+    expect(screen.getByText(/^500g$/).tagName).toBe("STRONG");
+  });
+
+  it("stage 3 renders salt as a bolded number", () => {
+    const stage = getStage(3)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(3)} api={makeApi()} />);
+    // salt = 10g
+    expect(screen.getByText(/^10g$/).tagName).toBe("STRONG");
+  });
+
+  it("stages 4+ do NOT show the stage-1 disclosures", () => {
+    const stage = getStage(4)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(4)} api={makeApi()} />);
+    expect(screen.queryByText(/הנחה: סטארטר ב-100% הידרציה/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/הקמח של השאור כלול/)).not.toBeInTheDocument();
+  });
+
   it("primary action moves to next stage", () => {
     const stage = getStage(1)!;
     const api = makeApi();

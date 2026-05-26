@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { StageHeader } from "./stage-header";
@@ -9,6 +10,7 @@ import { ChecklistReference } from "./checklist-reference";
 import { FoldDots } from "./fold-dots";
 import { OptionalTimer } from "./optional-timer";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
+import { computeBakeQuantities } from "@/lib/bake-math";
 import { strings } from "@/lib/strings";
 import type { ActiveBake } from "@/lib/types/active-bake";
 import type { UseActiveBakeApi } from "@/lib/hooks/use-active-bake";
@@ -22,6 +24,10 @@ export interface StageScreenProps {
 export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const router = useRouter();
   const nextStage = getStage(stage.n + 1);
+  const quantities = useMemo(
+    () => computeBakeQuantities(activeBake.recipe),
+    [activeBake.recipe]
+  );
 
   const isBulkMidFold =
     stage.type === "bulk" &&
@@ -62,9 +68,16 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       <StageHeader stage={stage} totalStages={TOTAL_STAGES} />
 
       <div className="mt-6 flex flex-col gap-4">
-        <Briefing briefing={stage.briefing} />
+        <Briefing briefing={stage.briefing} disclosure={stage.briefingDisclosure} />
 
-        {stage.todo && <InstructionCard steps={stage.todo.steps} tip={stage.todo.tip} />}
+        {stage.todo && (
+          <InstructionCard
+            steps={stage.todo.steps}
+            tip={stage.todo.tip}
+            note={stage.todoNote}
+            quantities={quantities}
+          />
+        )}
 
         {stage.type === "bulk" && typeof stage.subSteps === "number" && (
           <section className="rounded-2xl bg-paper shadow-sm p-5">

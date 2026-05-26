@@ -18,7 +18,9 @@ export interface Stage {
   type: StageType;
   durationLabel: string;
   briefing: StageBriefing;
+  briefingDisclosure?: string;
   todo?: StageTodo;
+  todoNote?: string;
   checks?: string[];
   durationSeconds?: number;
   subSteps?: number;
@@ -41,6 +43,8 @@ export const STAGES: readonly Stage[] = [
         "טמפ׳ חמה מאיצה, קרה מאטה",
       ],
     },
+    briefingDisclosure: "הנחה: סטארטר ב-100% הידרציה (יחס 1:1 בין קמח למים).",
+    todoNote: "הקמח של השאור כלול בתוך 100% הקמח הכולל של המתכון — לא מעליו.",
     todo: {
       steps: [
         "השתמשו בסטארטר שכבר עבר האכלה והוא בשיא — מבעבע, מתוק-חמצמץ, ועובר מבחן ציפה (float test).",

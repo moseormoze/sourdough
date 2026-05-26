@@ -26,4 +26,16 @@ describe("Briefing", () => {
     render(<Briefing briefing={sample} />);
     expect(screen.getByLabelText(sample.heading)).toBeInTheDocument();
   });
+
+  it("renders a disclosure note when provided", () => {
+    render(
+      <Briefing briefing={sample} disclosure="הנחה: סטארטר ב-100% הידרציה" />
+    );
+    expect(screen.getByText(/הנחה: סטארטר ב-100% הידרציה/)).toBeInTheDocument();
+  });
+
+  it("omits the disclosure when not provided", () => {
+    render(<Briefing briefing={sample} />);
+    expect(screen.queryByText(/הנחה:/)).not.toBeInTheDocument();
+  });
 });

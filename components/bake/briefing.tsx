@@ -1,10 +1,12 @@
+import { Info } from "lucide-react";
 import type { StageBriefing } from "@/lib/data/stages";
 
 export interface BriefingProps {
   briefing: StageBriefing;
+  disclosure?: string;
 }
 
-export function Briefing({ briefing }: BriefingProps) {
+export function Briefing({ briefing, disclosure }: BriefingProps) {
   return (
     <section
       aria-label={briefing.heading}
@@ -20,6 +22,12 @@ export function Briefing({ briefing }: BriefingProps) {
           </li>
         ))}
       </ul>
+      {disclosure && (
+        <p className="mt-3 flex items-start gap-1.5 text-small text-ink-2">
+          <Info size={16} aria-hidden className="mt-0.5 shrink-0 text-ink-3" />
+          <span>{disclosure}</span>
+        </p>
+      )}
     </section>
   );
 }

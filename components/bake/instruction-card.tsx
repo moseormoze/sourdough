@@ -4,6 +4,7 @@ import type { BakeQuantities } from "@/lib/bake-math";
 export interface InstructionCardProps {
   steps: string[];
   tip?: string;
+  note?: string;
   title?: string;
   quantities?: BakeQuantities;
 }
@@ -55,6 +56,7 @@ function renderStep(text: string, tokens: TokenMap | null): ReactNode {
 export function InstructionCard({
   steps,
   tip,
+  note,
   title = "מה לעשות",
   quantities,
 }: InstructionCardProps) {
@@ -76,6 +78,12 @@ export function InstructionCard({
             {tip}
           </p>
         </aside>
+      )}
+      {note && (
+        <p className="mt-3 text-small text-ink-2 italic leading-relaxed">
+          <span className="font-semibold not-italic">הערה: </span>
+          {note}
+        </p>
       )}
     </section>
   );

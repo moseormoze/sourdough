@@ -53,17 +53,37 @@ const stage1 = await page.evaluate(() => ({
     b.textContent?.includes("הבא — אוטוליזה")
   ),
   hasBackLink: !!document.querySelector('a[href="/"]'),
+  // 04-bake-quantities: stage 1 should now show bolded gram numbers + disclosures
+  boldedGrams: Array.from(document.querySelectorAll("strong"))
+    .map((s) => s.textContent?.trim())
+    .filter((t) => t && /^\d+g$/.test(t)),
+  hasStarterDisclosure: !!document.body.textContent?.includes("הנחה: סטארטר ב-100% הידרציה"),
+  hasFlourNote: !!document.body.textContent?.includes("הקמח של השאור כלול"),
 }));
 console.log(" ", JSON.stringify(stage1));
 if (!stage1.hasStageName) fail("stage 1: stage name missing");
 if (!stage1.hasBriefing) fail("stage 1: briefing missing");
 if (!stage1.hasNextButton) fail("stage 1: 'הבא — אוטוליזה' button missing");
 if (!stage1.hasBackLink) fail("stage 1: back link missing");
+if (stage1.boldedGrams.length < 2)
+  fail(`stage 1: expected ≥2 bolded gram values from quantities, got ${stage1.boldedGrams.length}`);
+if (!stage1.hasStarterDisclosure) fail("stage 1: 'הנחה: סטארטר ב-100% הידרציה' missing");
+if (!stage1.hasFlourNote) fail("stage 1: 'הקמח של השאור כלול' note missing");
 
 console.log("→ Step 3a: tap 'הבא — אוטוליזה' → /bake/stage/2");
 await page.getByRole("button", { name: /הבא — אוטוליזה/ }).click();
 await page.waitForURL(/\/bake\/stage\/2/, { timeout: 4000 });
 await page.waitForSelector("text=אוטוליזה", { timeout: 4000 });
+
+const stage2 = await page.evaluate(() => ({
+  boldedGrams: Array.from(document.querySelectorAll("strong"))
+    .map((s) => s.textContent?.trim())
+    .filter((t) => t && /^\d+g$/.test(t)),
+}));
+console.log(" stage 2 grams:", stage2.boldedGrams);
+// Country preset (500g flour default) → expect 500g totalFlour to appear bolded
+if (!stage2.boldedGrams.includes("500g"))
+  fail(`stage 2: expected '500g' total flour bolded, got ${stage2.boldedGrams.join(",")}`);
 
 console.log("→ Step 3b: advance to bulk stage (stage 4)");
 await page.getByRole("button", { name: /הבא — לישה והוספת שאור/ }).click();
