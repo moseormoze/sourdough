@@ -48,7 +48,7 @@ describe("StageScreen — basic stage", () => {
     const stage = getStage(1)!;
     render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
     expect(screen.getByText(stage.briefing.heading)).toBeInTheDocument();
-    expect(screen.getByText(stage.todo!)).toBeInTheDocument();
+    expect(screen.getByText(stage.todo!.steps[0]!)).toBeInTheDocument();
     expect(screen.getByText(stage.checks![0]!)).toBeInTheDocument();
   });
 

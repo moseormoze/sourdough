@@ -64,7 +64,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       <div className="mt-6 flex flex-col gap-4">
         <Briefing briefing={stage.briefing} />
 
-        {stage.todo && <InstructionCard text={stage.todo} />}
+        {stage.todo && <InstructionCard steps={stage.todo.steps} tip={stage.todo.tip} />}
 
         {stage.type === "bulk" && typeof stage.subSteps === "number" && (
           <section className="rounded-2xl bg-paper shadow-sm p-5">
