@@ -286,6 +286,44 @@ describe("StageScreen — bakingMethod variants (stages 8-10)", () => {
     // base briefing heading still renders
     expect(screen.getByText(stage.briefing.heading)).toBeInTheDocument();
   });
+
+  it("stage 8 with method='tray-with-bowl' renders a SafetyWarning above the briefing", () => {
+    const stage = getStage(8)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(8, { bakingMethod: "tray-with-bowl" })}
+        api={makeApi()}
+      />
+    );
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(/250°C/);
+    expect(alert).toHaveTextContent(/זכוכית רגילה תיסדק/);
+  });
+
+  it("stage 8 with method='dutch-oven' does NOT render a SafetyWarning", () => {
+    const stage = getStage(8)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(8, { bakingMethod: "dutch-oven" })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("stage 8 with method='stone-with-steam' does NOT render a SafetyWarning", () => {
+    const stage = getStage(8)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(8, { bakingMethod: "stone-with-steam" })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
 });
 
 describe("StageScreen — timer stage", () => {

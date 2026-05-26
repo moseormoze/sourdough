@@ -38,9 +38,20 @@ await page
 await page.waitForURL(/\/bake\/new/, { timeout: 4000 });
 console.log("   landed at " + page.url());
 
-const chooserCount = await page.locator("button").filter({ hasText: /קלאסי|מלא|שיפון|לבן|כפרי/ }).count();
-console.log("  chooser cards (presets matched):", chooserCount);
-if (chooserCount < 6) fail(`chooser: expected ≥6 preset cards, got ${chooserCount}`);
+const chooser = await page.evaluate(() => {
+  const radios = Array.from(document.querySelectorAll('[role="radio"]'));
+  return {
+    presetCount: Array.from(document.querySelectorAll("button")).filter((b) =>
+      /קלאסי|מלא|שיפון|לבן|כפרי/.test(b.textContent ?? "")
+    ).length,
+    methodCount: radios.length,
+    defaultMethod: radios.find((r) => r.getAttribute("aria-checked") === "true")?.textContent?.includes("סיר ברזל יצוק"),
+  };
+});
+console.log("  chooser:", JSON.stringify(chooser));
+if (chooser.presetCount < 6) fail(`chooser: expected ≥6 preset cards, got ${chooser.presetCount}`);
+if (chooser.methodCount !== 3) fail(`chooser: expected 3 method radios, got ${chooser.methodCount}`);
+if (!chooser.defaultMethod) fail("chooser: default method should be 'סיר ברזל יצוק'");
 
 console.log("→ Step 3: tap first preset → starts bake → /bake/stage/1");
 await page.getByRole("button", { name: /כפרי קלאסי/ }).click();
@@ -146,7 +157,51 @@ await page.getByRole("button", { name: "סיים בייק" }).click();
 await page.getByRole("button", { name: "כן, להפסיק" }).click();
 await page.waitForTimeout(300);
 
-// re-create a fresh bake so the rest of the original probe (steps 4-6) works
+// --- Method probe: verify the tray-with-bowl variant + safety warning end-to-end. ---
+console.log("→ Step 3g: start a tray-with-bowl bake, advance to stage 8, verify warning");
+await page.getByRole("button", { name: /התחל אפייה/ }).first().click();
+await page.waitForURL(/\/bake\/new/, { timeout: 4000 });
+await page
+  .locator('[role="radio"]')
+  .filter({ hasText: "תבנית + קערה הפוכה" })
+  .click();
+await page.getByRole("button", { name: /כפרי קלאסי/ }).click();
+await page.waitForURL(/\/bake\/stage\/1/, { timeout: 4000 });
+
+for (const next of [
+  /הבא — אוטוליזה/,
+  /הבא — לישה והוספת שאור/,
+  /הבא — תסיסה ראשונית/,
+  /הבא — עיצוב ראשוני/,
+  /הבא — עיצוב סופי/,
+  /הבא — התפחה במקרר/,
+  /הבא — חימום תנור/,
+]) {
+  await page.getByRole("button", { name: next }).click();
+  await page.waitForTimeout(150);
+}
+await page.waitForURL(/\/bake\/stage\/8/, { timeout: 4000 });
+const stage8Tray = await page.evaluate(() => {
+  const alert = document.querySelector('[role="alert"]');
+  return {
+    hasWarning: !!alert,
+    warningText: alert?.textContent ?? "",
+    bodyMentionsTray: !!document.body.textContent?.includes("התבנית והקערה"),
+  };
+});
+console.log(" ", JSON.stringify(stage8Tray));
+if (!stage8Tray.hasWarning) fail("stage 8 (tray-with-bowl): SafetyWarning role='alert' missing");
+if (!stage8Tray.warningText.includes("250°C")) fail("stage 8 warning: should mention 250°C");
+if (!stage8Tray.bodyMentionsTray) fail("stage 8 (tray-with-bowl): preheat copy should mention 'התבנית והקערה'");
+
+// Clean up the tray-with-bowl bake and start a fresh dutch-oven bake for steps 4-6.
+await page.click('a[href="/"]');
+await page.waitForURL(BASE + "/", { timeout: 4000 });
+await page.waitForSelector("aside[aria-label='ממשיכים']", { timeout: 4000 });
+await page.getByRole("button", { name: "סיים בייק" }).click();
+await page.getByRole("button", { name: "כן, להפסיק" }).click();
+await page.waitForTimeout(300);
+
 await page.getByRole("button", { name: /התחל אפייה/ }).first().click();
 await page.waitForURL(/\/bake\/new/, { timeout: 4000 });
 await page.getByRole("button", { name: /כפרי קלאסי/ }).click();

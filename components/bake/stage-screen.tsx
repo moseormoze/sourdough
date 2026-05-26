@@ -9,6 +9,7 @@ import { InstructionCard } from "./instruction-card";
 import { ChecklistReference } from "./checklist-reference";
 import { FoldDots } from "./fold-dots";
 import { OptionalTimer } from "./optional-timer";
+import { SafetyWarning } from "./safety-warning";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
 import { computeBakeQuantities } from "@/lib/bake-math";
 import { strings } from "@/lib/strings";
@@ -34,6 +35,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const todoData = methodOverride?.todo ?? stage.todo;
   const checks = methodOverride?.checks ?? stage.checks;
   const durationSeconds = methodOverride?.durationSeconds ?? stage.durationSeconds;
+  const warning = methodOverride?.warning;
 
   const foldsRemaining =
     stage.type === "bulk" &&
@@ -69,6 +71,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       <StageHeader stage={stage} totalStages={TOTAL_STAGES} />
 
       <div className="mt-6 flex flex-col gap-4">
+        {warning && <SafetyWarning>{warning}</SafetyWarning>}
         <Briefing briefing={briefing} disclosure={stage.briefingDisclosure} />
 
         {todoData && (
