@@ -124,27 +124,48 @@ describe("StageScreen — basic stage", () => {
 });
 
 describe("StageScreen — bulk (stage 4) sub-step flow", () => {
-  it("primary says 'סיימתי קיפול' when subStep < total and calls advanceSubStep", () => {
+  it("primary always shows 'הבא — עיצוב ראשוני' (folds are optional)", () => {
+    const stage = getStage(4)!;
+    render(
+      <StageScreen stage={stage} activeBake={makeBake(4, { subStep: 0 })} api={makeApi()} />
+    );
+    expect(screen.getByRole("button", { name: /הבא — עיצוב ראשוני/ })).toBeInTheDocument();
+  });
+
+  it("in-page 'סיימתי קיפול' button advances subStep without leaving the stage", () => {
     const stage = getStage(4)!;
     const api = makeApi();
     render(
       <StageScreen stage={stage} activeBake={makeBake(4, { subStep: 0 })} api={api} />
     );
-    expect(screen.getByText(/קיפולים בוצעו/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "סיימתי קיפול" }));
     expect(api.advanceSubStep).toHaveBeenCalledOnce();
     expect(api.advanceTo).not.toHaveBeenCalled();
   });
 
-  it("primary flips to 'הבא — עיצוב ראשוני' when subStep === total", () => {
+  it("hides the in-page 'סיימתי קיפול' button once all folds are done", () => {
+    const stage = getStage(4)!;
+    render(
+      <StageScreen stage={stage} activeBake={makeBake(4, { subStep: 4 })} api={makeApi()} />
+    );
+    expect(screen.queryByRole("button", { name: "סיימתי קיפול" })).not.toBeInTheDocument();
+  });
+
+  it("primary advances to stage 5 regardless of fold count", () => {
     const stage = getStage(4)!;
     const api = makeApi();
     render(
-      <StageScreen stage={stage} activeBake={makeBake(4, { subStep: 4 })} api={api} />
+      <StageScreen stage={stage} activeBake={makeBake(4, { subStep: 0 })} api={api} />
     );
     fireEvent.click(screen.getByRole("button", { name: /הבא — עיצוב ראשוני/ }));
     expect(api.advanceTo).toHaveBeenCalledWith(5);
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/5");
+  });
+
+  it("shows the optional timer (4h bulk fermentation)", () => {
+    const stage = getStage(4)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(4)} api={makeApi()} />);
+    expect(screen.getByRole("button", { name: /התחל טיימר/ })).toBeInTheDocument();
   });
 });
 

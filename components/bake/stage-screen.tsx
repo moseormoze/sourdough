@@ -29,7 +29,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     [activeBake.recipe]
   );
 
-  const isBulkMidFold =
+  const foldsRemaining =
     stage.type === "bulk" &&
     typeof stage.subSteps === "number" &&
     activeBake.subStep < stage.subSteps;
@@ -39,11 +39,6 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       router.push("/bake/done");
       return;
     }
-    if (isBulkMidFold) {
-      api.advanceSubStep();
-      return;
-    }
-    // Default: advance to next stage
     api.advanceTo(stage.n + 1);
     router.push(`/bake/stage/${stage.n + 1}`);
   }
@@ -56,12 +51,13 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
 
   const primaryLabel = (() => {
     if (stage.type === "done") return strings.bake.stageDone;
-    if (isBulkMidFold) return strings.bake.stageFinishFold;
     if (nextStage) return strings.bake.stageNext(nextStage.name);
     return strings.bake.stageDone;
   })();
 
-  const showTimer = stage.type === "timer" && stage.durationSeconds !== undefined;
+  const showTimer =
+    stage.durationSeconds !== undefined &&
+    (stage.type === "timer" || stage.type === "bulk");
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-32">
@@ -95,6 +91,13 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             <div className="mt-3">
               <FoldDots total={stage.subSteps} current={activeBake.subStep} />
             </div>
+            {foldsRemaining && (
+              <div className="mt-4">
+                <Button variant="accent" size="sm" onClick={api.advanceSubStep}>
+                  {strings.bake.stageFinishFold}
+                </Button>
+              </div>
+            )}
           </section>
         )}
 

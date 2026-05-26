@@ -95,29 +95,24 @@ await page.getByRole("button", { name: /הבא — תסיסה ראשונית/ })
 await page.waitForURL(/\/bake\/stage\/4/, { timeout: 4000 });
 await page.waitForSelector("text=תסיסה ראשונית", { timeout: 4000 });
 
-const stage4Initial = await page.evaluate(() => ({
-  primaryText: Array.from(document.querySelectorAll("button"))
-    .map((b) => b.textContent?.trim())
-    .find((t) => t === "סיימתי קיפול" || (t && t.startsWith("הבא"))),
-  hasFoldsSection: !!document.body.textContent?.includes("קיפולים בוצעו"),
-}));
+const stage4Initial = await page.evaluate(() => {
+  const buttons = Array.from(document.querySelectorAll("button"));
+  return {
+    hasNextPrimary: !!buttons.find((b) => b.textContent?.trim().startsWith("הבא — עיצוב ראשוני")),
+    hasInPageFoldButton: !!buttons.find((b) => b.textContent?.trim() === "סיימתי קיפול"),
+    hasFoldsSection: !!document.body.textContent?.includes("קיפולים בוצעו"),
+    hasTimerButton: !!buttons.find((b) => b.textContent?.includes("התחל טיימר")),
+  };
+});
 console.log(" ", JSON.stringify(stage4Initial));
-if (stage4Initial.primaryText !== "סיימתי קיפול")
-  fail(`stage 4 initial: primary should be 'סיימתי קיפול', got '${stage4Initial.primaryText}'`);
+if (!stage4Initial.hasNextPrimary) fail("stage 4: primary 'הבא — עיצוב ראשוני' should be visible from the start");
+if (!stage4Initial.hasInPageFoldButton) fail("stage 4: in-page 'סיימתי קיפול' button missing");
 if (!stage4Initial.hasFoldsSection) fail("stage 4: folds section missing");
+if (!stage4Initial.hasTimerButton) fail("stage 4: optional 4h timer button missing");
 
-console.log("→ Step 3c: complete 4 folds in stage 4");
-for (let i = 0; i < 4; i++) {
-  await page.getByRole("button", { name: "סיימתי קיפול" }).click();
-  await page.waitForTimeout(150);
-}
-const stage4Done = await page.evaluate(() => ({
-  primaryText: Array.from(document.querySelectorAll("button"))
-    .map((b) => b.textContent?.trim())
-    .find((t) => t && t.startsWith("הבא")),
-}));
-if (!stage4Done.primaryText?.startsWith("הבא — עיצוב ראשוני"))
-  fail(`stage 4 after folds: primary should be 'הבא — עיצוב ראשוני', got '${stage4Done.primaryText}'`);
+console.log("→ Step 3c: tap in-page 'סיימתי קיפול' once (folds are optional now)");
+await page.getByRole("button", { name: "סיימתי קיפול" }).click();
+await page.waitForTimeout(150);
 
 console.log("→ Step 3d: skip ahead — directly advance stages 5..11");
 for (const next of [
