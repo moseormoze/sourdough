@@ -55,9 +55,8 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     return strings.bake.stageDone;
   })();
 
-  const showTimer =
-    stage.durationSeconds !== undefined &&
-    (stage.type === "timer" || stage.type === "bulk");
+  const showBulkTimer = stage.type === "bulk" && stage.durationSeconds !== undefined;
+  const showStandaloneTimer = stage.type === "timer" && stage.durationSeconds !== undefined;
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-32">
@@ -98,6 +97,19 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
                 </Button>
               </div>
             )}
+            {showBulkTimer && stage.durationSeconds !== undefined && (
+              <div className="mt-4 pt-4 border-t border-line/60">
+                <OptionalTimer
+                  durationSeconds={stage.durationSeconds}
+                  startedAt={activeBake.timerStartedAt}
+                  onStart={api.startTimer}
+                  onStop={api.stopTimer}
+                />
+                <p className="mt-2 text-tiny text-ink-3 leading-relaxed">
+                  מנוחה של 30 דקות בין קיפולים — אפשר גם 40 דקות בבצק קר או כבד.
+                </p>
+              </div>
+            )}
           </section>
         )}
 
@@ -105,7 +117,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           <ChecklistReference items={stage.checks} />
         )}
 
-        {showTimer && stage.durationSeconds !== undefined && (
+        {showStandaloneTimer && stage.durationSeconds !== undefined && (
           <div className="self-start">
             <OptionalTimer
               durationSeconds={stage.durationSeconds}

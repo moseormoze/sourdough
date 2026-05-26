@@ -172,10 +172,18 @@ describe("StageScreen — bulk (stage 4) sub-step flow", () => {
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/5");
   });
 
-  it("shows the optional timer (4h bulk fermentation)", () => {
+  it("shows the optional 30-min rest timer inside the folds section", () => {
     const stage = getStage(4)!;
     render(<StageScreen stage={stage} activeBake={makeBake(4)} api={makeApi()} />);
-    expect(screen.getByRole("button", { name: /התחל טיימר/ })).toBeInTheDocument();
+    const timer = screen.getByRole("button", { name: /התחל טיימר/ });
+    const foldsSection = screen.getByText("קיפולים").closest("section");
+    expect(foldsSection).toContainElement(timer);
+  });
+
+  it("shows the '30 or 40 min between folds' hint near the timer", () => {
+    const stage = getStage(4)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(4)} api={makeApi()} />);
+    expect(screen.getByText(/30 דקות בין קיפולים — אפשר גם 40/)).toBeInTheDocument();
   });
 });
 

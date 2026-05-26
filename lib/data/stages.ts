@@ -128,7 +128,7 @@ export const STAGES: readonly Stage[] = [
     hint: "(Bulk fermentation)",
     type: "bulk",
     durationLabel: "כ-4 שעות · קיפולים ×4",
-    durationSeconds: 4 * 60 * 60,
+    durationSeconds: 30 * 60,
     subSteps: 4,
     briefing: {
       heading: "כאן הלחם מקבל את האופי שלו",
