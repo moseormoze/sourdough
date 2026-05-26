@@ -55,7 +55,9 @@ export const strings = {
     replaceCancel: "ביטול",
     stagePlaceholderTitle: (stageNumber: number) => `שלב ${stageNumber} — בקרוב`,
     stagePlaceholderBackToHome: "חזרה למסך הבית",
-    doneTitle: "הבייק הסתיים — בקרוב",
+    doneTitle: "הלחם מוכן!",
+    doneBlurb: "תהנו מהפרי של 24–48 שעות עבודה. הקרום הכי טוב אחרי לפחות שעה של קירור על רשת.",
+    doneButton: "סיימתי",
     // Stage screen
     stageCounter: (current: number, total: number) => `${current}/${total}`,
     stageNext: (nextName: string) => `הבא — ${nextName}`,

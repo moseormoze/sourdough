@@ -2,15 +2,15 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
 
 export default function Page() {
   const router = useRouter();
-  const { activeBake, loading } = useActiveBake();
+  const { activeBake, loading, abandon } = useActiveBake();
 
   useEffect(() => {
     if (loading) return;
@@ -21,11 +21,17 @@ export default function Page() {
 
   if (loading || !activeBake) return null;
 
+  function finishBake() {
+    abandon();
+    router.push("/");
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-10">
       <header className="relative z-10 flex items-center">
-        <Link
-          href="/"
+        <button
+          type="button"
+          onClick={finishBake}
           className={cn(
             "pressable inline-flex items-center gap-2 rounded-full",
             "min-h-touch px-4 text-body font-medium",
@@ -38,14 +44,17 @@ export default function Page() {
             <ChevronRight size={20} />
           </span>
           <span>{strings.bake.stagePlaceholderBackToHome}</span>
-        </Link>
+        </button>
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center text-center">
+      <div className="flex-1 flex flex-col items-center justify-center text-center gap-6">
         <h1 className="text-display-md font-display text-ink">{strings.bake.doneTitle}</h1>
-        <p className="mt-3 max-w-xs text-body-lg text-ink-2">
-          התוכן של מסך הסיום יוגדר ב-feature 04 (bake-completion-journal).
+        <p className="max-w-xs text-body-lg text-ink-2 leading-relaxed">
+          {strings.bake.doneBlurb}
         </p>
+        <Button variant="accent" onClick={finishBake} className="mt-2">
+          {strings.bake.doneButton}
+        </Button>
       </div>
     </main>
   );
