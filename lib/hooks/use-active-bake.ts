@@ -8,11 +8,12 @@ import {
 } from "@/lib/storage/active-bake";
 import type { ActiveBake } from "@/lib/types/active-bake";
 import type { Recipe } from "@/lib/types/recipe";
+import { DEFAULT_BAKING_METHOD, type BakingMethod } from "@/lib/types/baking-method";
 
 export interface UseActiveBakeApi {
   activeBake: ActiveBake | null;
   loading: boolean;
-  start: (recipe: Recipe) => ActiveBake;
+  start: (recipe: Recipe, bakingMethod?: BakingMethod) => ActiveBake;
   abandon: () => void;
   advanceTo: (stage: number) => void;
   advanceSubStep: () => void;
@@ -29,22 +30,26 @@ export function useActiveBake(): UseActiveBakeApi {
     setLoading(false);
   }, []);
 
-  const start = useCallback((recipe: Recipe): ActiveBake => {
-    const now = Date.now();
-    const next: ActiveBake = {
-      id: crypto.randomUUID(),
-      recipe,
-      startedAt: now,
-      currentStage: 1,
-      stageStartedAt: now,
-      observationChecks: {},
-      subStep: 0,
-      timerStartedAt: null,
-    };
-    saveActiveBake(next);
-    setActiveBake(next);
-    return next;
-  }, []);
+  const start = useCallback(
+    (recipe: Recipe, bakingMethod: BakingMethod = DEFAULT_BAKING_METHOD): ActiveBake => {
+      const now = Date.now();
+      const next: ActiveBake = {
+        id: crypto.randomUUID(),
+        recipe,
+        startedAt: now,
+        currentStage: 1,
+        stageStartedAt: now,
+        observationChecks: {},
+        subStep: 0,
+        timerStartedAt: null,
+        bakingMethod,
+      };
+      saveActiveBake(next);
+      setActiveBake(next);
+      return next;
+    },
+    []
+  );
 
   const abandon = useCallback(() => {
     clearActiveBake();

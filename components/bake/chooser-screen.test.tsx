@@ -88,6 +88,7 @@ describe("ChooserScreen", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
+      bakingMethod: "dutch-oven",
     });
 
     render(<ChooserScreen />);
@@ -119,6 +120,7 @@ describe("ChooserScreen", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
+      bakingMethod: "dutch-oven",
     });
 
     render(<ChooserScreen />);
@@ -154,6 +156,7 @@ describe("ChooserScreen", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
+      bakingMethod: "dutch-oven",
     });
 
     render(<ChooserScreen />);

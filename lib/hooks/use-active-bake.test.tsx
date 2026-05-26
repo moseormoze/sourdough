@@ -152,3 +152,39 @@ describe("useActiveBake — 03 extensions", () => {
     expect(result.current.activeBake?.timerStartedAt).toBeNull();
   });
 });
+
+describe("useActiveBake — 05 baking method", () => {
+  it("start() without method defaults to 'dutch-oven'", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    expect(result.current.activeBake?.bakingMethod).toBe("dutch-oven");
+  });
+
+  it("start() with explicit method preserves it on the active bake", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe, "stone-with-steam"); });
+    expect(result.current.activeBake?.bakingMethod).toBe("stone-with-steam");
+    expect(loadActiveBake()?.bakingMethod).toBe("stone-with-steam");
+  });
+
+  it("legacy active bake without bakingMethod loads with default", async () => {
+    const recipe = saveRecipe(sample);
+    const legacy = {
+      id: "legacy-1",
+      recipe,
+      startedAt: 1000,
+      currentStage: 2 as const,
+      stageStartedAt: 2000,
+      observationChecks: {},
+    };
+    localStorage.setItem("sourdough:v1:active-bake", JSON.stringify(legacy));
+
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.activeBake?.bakingMethod).toBe("dutch-oven");
+  });
+});

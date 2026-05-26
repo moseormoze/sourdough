@@ -36,6 +36,7 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
     observationChecks: {},
     subStep: 0,
     timerStartedAt: null,
+    bakingMethod: "dutch-oven",
     ...overrides,
   };
 }
