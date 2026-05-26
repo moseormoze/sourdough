@@ -78,7 +78,7 @@ export const STAGES: readonly Stage[] = [
     },
     todo: {
       steps: [
-        "שקלו {totalFlourGrams} קמח לקערה גדולה.",
+        "שקלו {mixFlourBreakdown} לקערה גדולה.",
         "הוסיפו {autolyseWaterGrams} מים (שמרו {saltReserveWaterGrams} מים בצד — יתווספו יחד עם המלח בשלב הבא).",
         "ערבבו ביד או בכף עץ רק עד שאין כיסי קמח יבש. אין צורך בלישה — הבצק יישאר גס.",
         "כסו את הקערה במגבת לחה או ניילון נצמד, והשאירו לפחות 30 דקות (עד שעה).",

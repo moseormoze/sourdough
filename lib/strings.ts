@@ -66,6 +66,12 @@ export const strings = {
     timerStart: "התחל טיימר",
     timerStop: "עצור",
     timerFinished: "הסתיים",
+    flourTypeLabels: {
+      white: "קמח לבן",
+      wholeWheat: "קמח מלא",
+      rye: "קמח שיפון",
+      other: "קמח אחר",
+    },
   },
   form: {
     nameLabel: "שם המתכון",

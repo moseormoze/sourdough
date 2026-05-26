@@ -141,3 +141,60 @@ describe("computeBakeQuantities — invariants", () => {
     expect(computeBakeQuantities(makeRecipe({ flourWeightGrams: 1500 })).mixAdditions.saltReserveWaterGrams).toBe(20);
   });
 });
+
+describe("computeBakeQuantities — mix flourBreakdown", () => {
+  it("100% white → single entry summing to mixFlour", () => {
+    const q = computeBakeQuantities(makeRecipe());
+    expect(q.mixAdditions.flourBreakdown).toEqual([
+      { type: "white", grams: q.mixAdditions.flourGrams },
+    ]);
+  });
+
+  it("80% white + 20% wholeWheat → two entries summing to mixFlour", () => {
+    const q = computeBakeQuantities(
+      makeRecipe({
+        flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+      })
+    );
+    const breakdown = q.mixAdditions.flourBreakdown;
+    expect(breakdown).toHaveLength(2);
+    expect(breakdown[0]?.type).toBe("white");
+    expect(breakdown[1]?.type).toBe("wholeWheat");
+    const sum = breakdown.reduce((acc, e) => acc + e.grams, 0);
+    expect(sum).toBe(q.mixAdditions.flourGrams);
+  });
+
+  it("zero-percent flour types are omitted from breakdown", () => {
+    const q = computeBakeQuantities(
+      makeRecipe({
+        flour: { white: 50, wholeWheat: 0, rye: 50, other: 0 },
+      })
+    );
+    const types = q.mixAdditions.flourBreakdown.map((e) => e.type);
+    expect(types).toEqual(["white", "rye"]);
+  });
+
+  it("three-way blend: rounding drift goes to the largest entry", () => {
+    const q = computeBakeQuantities(
+      makeRecipe({
+        flour: { white: 33, wholeWheat: 33, rye: 34, other: 0 },
+        flourWeightGrams: 1000,
+      })
+    );
+    const breakdown = q.mixAdditions.flourBreakdown;
+    expect(breakdown).toHaveLength(3);
+    const sum = breakdown.reduce((acc, e) => acc + e.grams, 0);
+    expect(sum).toBe(q.mixAdditions.flourGrams);
+  });
+
+  it("all entries are integers", () => {
+    const q = computeBakeQuantities(
+      makeRecipe({
+        flour: { white: 60, wholeWheat: 30, rye: 10, other: 0 },
+      })
+    );
+    q.mixAdditions.flourBreakdown.forEach((e) => {
+      expect(Number.isInteger(e.grams)).toBe(true);
+    });
+  });
+});

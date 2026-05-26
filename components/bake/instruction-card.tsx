@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from "react";
-import type { BakeQuantities } from "@/lib/bake-math";
+import type { BakeQuantities, FlourBreakdownEntry } from "@/lib/bake-math";
+import { strings } from "@/lib/strings";
 
 export interface InstructionCardProps {
   steps: string[];
@@ -24,7 +25,27 @@ function buildTokenMap(q: BakeQuantities): TokenMap {
   };
 }
 
-function renderStep(text: string, tokens: TokenMap | null): ReactNode {
+function renderFlourBreakdown(entries: FlourBreakdownEntry[], baseKey: number): ReactNode {
+  const labels = strings.bake.flourTypeLabels;
+  return entries.map((entry, i) => {
+    const isFirst = i === 0;
+    const isLast = i === entries.length - 1;
+    const separator = isFirst ? "" : isLast ? " ו-" : ", ";
+    return (
+      <Fragment key={`${baseKey}-${i}`}>
+        {separator}
+        <strong className="font-semibold text-ink">{entry.grams}g</strong>
+        {" " + labels[entry.type]}
+      </Fragment>
+    );
+  });
+}
+
+function renderStep(
+  text: string,
+  tokens: TokenMap | null,
+  quantities: BakeQuantities | null
+): ReactNode {
   if (!tokens) return text;
   const parts: ReactNode[] = [];
   const regex = /\{(\w+)\}/g;
@@ -35,15 +56,19 @@ function renderStep(text: string, tokens: TokenMap | null): ReactNode {
       parts.push(text.slice(lastIndex, match.index));
     }
     const tokenName = match[1];
-    const value = tokenName !== undefined ? tokens[tokenName] : undefined;
-    if (value !== undefined) {
-      parts.push(
-        <strong key={match.index} className="font-semibold text-ink">
-          {value}g
-        </strong>
-      );
+    if (tokenName === "mixFlourBreakdown" && quantities) {
+      parts.push(renderFlourBreakdown(quantities.mixAdditions.flourBreakdown, match.index));
     } else {
-      parts.push(match[0]);
+      const value = tokenName !== undefined ? tokens[tokenName] : undefined;
+      if (value !== undefined) {
+        parts.push(
+          <strong key={match.index} className="font-semibold text-ink">
+            {value}g
+          </strong>
+        );
+      } else {
+        parts.push(match[0]);
+      }
     }
     lastIndex = match.index + match[0].length;
   }
@@ -67,7 +92,7 @@ export function InstructionCard({
       <ol className="mt-3 flex flex-col gap-2.5 text-body-lg text-ink leading-relaxed list-decimal ps-6 marker:text-ink-2 marker:font-semibold">
         {steps.map((step, i) => (
           <li key={i} className="ps-1">
-            {renderStep(step, tokens)}
+            {renderStep(step, tokens, quantities ?? null)}
           </li>
         ))}
       </ol>

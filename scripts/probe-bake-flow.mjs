@@ -79,11 +79,14 @@ const stage2 = await page.evaluate(() => ({
   boldedGrams: Array.from(document.querySelectorAll("strong"))
     .map((s) => s.textContent?.trim())
     .filter((t) => t && /^\d+g$/.test(t)),
+  hasFlourBreakdownLabel: !!document.body.textContent?.match(/קמח לבן|קמח מלא|קמח שיפון/),
 }));
 console.log(" stage 2 grams:", stage2.boldedGrams);
-// Country preset (500g flour default) → expect 500g totalFlour to appear bolded
-if (!stage2.boldedGrams.includes("500g"))
-  fail(`stage 2: expected '500g' total flour bolded, got ${stage2.boldedGrams.join(",")}`);
+// Country preset (500g flour, 80% white + 20% wholeWheat) → mixFlour breakdown should show two bolded entries + labeled
+if (stage2.boldedGrams.length < 2)
+  fail(`stage 2: expected ≥2 bolded grams (flour breakdown + autolyse water), got ${stage2.boldedGrams.length}`);
+if (!stage2.hasFlourBreakdownLabel)
+  fail("stage 2: expected per-flour-type label (e.g. 'קמח לבן') in the breakdown");
 
 console.log("→ Step 3b: advance to bulk stage (stage 4)");
 await page.getByRole("button", { name: /הבא — לישה והוספת שאור/ }).click();

@@ -9,7 +9,15 @@ const sampleQuantities: BakeQuantities = {
   saltGrams: 10,
   levainTotalGrams: 100,
   levainBuild: { starterGrams: 33, waterGrams: 33, flourGrams: 33 },
-  mixAdditions: { flourGrams: 384, waterGrams: 305, saltReserveWaterGrams: 20 },
+  mixAdditions: {
+    flourGrams: 451,
+    flourBreakdown: [
+      { type: "white", grams: 361 },
+      { type: "wholeWheat", grams: 90 },
+    ],
+    waterGrams: 305,
+    saltReserveWaterGrams: 20,
+  },
 };
 
 describe("InstructionCard", () => {
@@ -86,6 +94,48 @@ describe("InstructionCard", () => {
   it("omits the note when not provided", () => {
     render(<InstructionCard steps={["x"]} />);
     expect(screen.queryByText(/הערה:/)).not.toBeInTheDocument();
+  });
+
+  it("renders flour breakdown token with bolded per-type grams + Hebrew labels", () => {
+    render(
+      <InstructionCard
+        steps={["שקלו {mixFlourBreakdown} לקערה גדולה."]}
+        quantities={sampleQuantities}
+      />
+    );
+    const item = screen.getByRole("listitem");
+    expect(item).toHaveTextContent(/361g.*קמח לבן.*90g.*קמח מלא/);
+    expect(screen.getByText("361g").tagName).toBe("STRONG");
+    expect(screen.getByText("90g").tagName).toBe("STRONG");
+  });
+
+  it("flour breakdown joins last item with 'ו-' (Hebrew 'and')", () => {
+    render(
+      <InstructionCard
+        steps={["שקלו {mixFlourBreakdown}."]}
+        quantities={sampleQuantities}
+      />
+    );
+    expect(screen.getByRole("listitem")).toHaveTextContent(/ו-/);
+  });
+
+  it("flour breakdown with single type uses no separator", () => {
+    const oneTypeQuantities: BakeQuantities = {
+      ...sampleQuantities,
+      mixAdditions: {
+        ...sampleQuantities.mixAdditions,
+        flourBreakdown: [{ type: "white", grams: 451 }],
+      },
+    };
+    render(
+      <InstructionCard
+        steps={["שקלו {mixFlourBreakdown}."]}
+        quantities={oneTypeQuantities}
+      />
+    );
+    const item = screen.getByRole("listitem");
+    expect(item).toHaveTextContent(/451g קמח לבן/);
+    expect(item.textContent).not.toContain("ו-");
   });
 
   it("handles multiple placeholders mixed with text in a single step", () => {

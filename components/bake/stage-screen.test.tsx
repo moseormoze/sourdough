@@ -72,11 +72,14 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText(/הקמח של השאור כלול/)).toBeInTheDocument();
   });
 
-  it("stage 2 renders totalFlour and autolyse water as bolded numbers", () => {
+  it("stage 2 renders the flour breakdown by type (80/20 blend → two bolded entries)", () => {
     const stage = getStage(2)!;
     render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
-    // totalFlour = 500g
-    expect(screen.getByText(/^500g$/).tagName).toBe("STRONG");
+    // Country preset 500g flour, 80/20 blend → mixFlour = 451g → 361g white + 90g wholeWheat
+    expect(screen.getByText("361g").tagName).toBe("STRONG");
+    expect(screen.getByText("90g").tagName).toBe("STRONG");
+    expect(screen.getByText(/קמח לבן/)).toBeInTheDocument();
+    expect(screen.getByText(/קמח מלא/)).toBeInTheDocument();
   });
 
   it("stage 3 renders salt as a bolded number", () => {
