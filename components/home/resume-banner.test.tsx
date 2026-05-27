@@ -33,11 +33,20 @@ describe("ResumeBanner", () => {
     routerMock.push.mockClear();
   });
 
-  it("renders the resume label + recipe name + stage number", () => {
+  it("renders the resume label + recipe name + stage progress", () => {
     render(<ResumeBanner activeBake={activeBake} onStopRequest={() => {}} />);
     expect(screen.getByText("ממשיכים")).toBeInTheDocument();
     expect(screen.getByText("לחם של שישי")).toBeInTheDocument();
-    expect(screen.getByText("שלב 4")).toBeInTheDocument();
+    expect(screen.getByText("שלב 4 מתוך 12")).toBeInTheDocument();
+  });
+
+  it("renders a 12-segment progress bar with current stage reflected", () => {
+    render(<ResumeBanner activeBake={activeBake} onStopRequest={() => {}} />);
+    const bar = screen.getByRole("progressbar");
+    expect(bar.getAttribute("aria-valuenow")).toBe("4");
+    expect(bar.getAttribute("aria-valuemin")).toBe("1");
+    expect(bar.getAttribute("aria-valuemax")).toBe("12");
+    expect(bar.children).toHaveLength(12);
   });
 
   it("primary 'המשך' navigates to /bake/stage/{currentStage}", () => {

@@ -31,22 +31,32 @@ export function HomeScreen() {
     abandon();
   }
 
+  const hasActiveBake = !bakeLoading && !!activeBake;
+
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-8 pb-10">
-      <header className="text-center mb-6">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-10">
+      <header
+        className={
+          hasActiveBake
+            ? "flex items-center justify-center mb-5"
+            : "text-center mb-5"
+        }
+      >
         <h1 className="sr-only">{strings.home.wordmark}</h1>
         <Image
           src="/logo.svg"
           alt={strings.home.wordmark}
-          width={280}
-          height={280}
+          width={hasActiveBake ? 96 : 180}
+          height={hasActiveBake ? 96 : 180}
           priority
           className="mx-auto"
         />
-        <p className="text-body-lg text-ink-2">{strings.home.subtitle}</p>
+        {!hasActiveBake && (
+          <p className="mt-2 text-body-lg text-ink-2">{strings.home.subtitle}</p>
+        )}
       </header>
 
-      {!bakeLoading && activeBake && (
+      {hasActiveBake && (
         <ResumeBanner
           activeBake={activeBake}
           onStopRequest={() => setStopOpen(true)}
@@ -55,10 +65,10 @@ export function HomeScreen() {
 
       <div className="flex flex-col gap-4">
         <HomeCta
-          variant="primary"
+          variant={hasActiveBake ? "secondary" : "primary"}
           href="/bake/new"
-          icon={<Wheat size={28} />}
-          label={strings.home.startBaking}
+          icon={<Wheat size={hasActiveBake ? 24 : 28} />}
+          label={hasActiveBake ? strings.home.startBakingAlt : strings.home.startBaking}
         />
         <HomeCta
           variant="secondary"
