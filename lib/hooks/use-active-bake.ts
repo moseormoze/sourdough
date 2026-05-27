@@ -19,7 +19,9 @@ export interface UseActiveBakeApi {
   advanceTo: (stage: number) => void;
   advanceSubStep: () => void;
   startTimer: () => void;
-  stopTimer: () => void;
+  pauseTimer: () => void;
+  resumeTimer: () => void;
+  resetTimer: () => void;
 }
 
 export function useActiveBake(): UseActiveBakeApi {
@@ -43,6 +45,7 @@ export function useActiveBake(): UseActiveBakeApi {
         observationChecks: {},
         subStep: 0,
         timerStartedAt: null,
+        timerElapsedSeconds: 0,
         bakingMethod,
       };
       saveActiveBake(next);
@@ -71,6 +74,7 @@ export function useActiveBake(): UseActiveBakeApi {
         stageStartedAt: Date.now(),
         subStep: 0,
         timerStartedAt: null,
+        timerElapsedSeconds: 0,
       };
       saveActiveBake(next);
       track("stage_advanced", { from: current.currentStage, to: stage });
@@ -96,18 +100,48 @@ export function useActiveBake(): UseActiveBakeApi {
       const next: ActiveBake = {
         ...current,
         timerStartedAt: Date.now(),
+        timerElapsedSeconds: 0,
       };
       saveActiveBake(next);
       return next;
     });
   }, []);
 
-  const stopTimer = useCallback(() => {
+  const pauseTimer = useCallback(() => {
+    setActiveBake((current) => {
+      if (!current) return current;
+      if (current.timerStartedAt === null) return current;
+      const segmentSeconds = (Date.now() - current.timerStartedAt) / 1000;
+      const next: ActiveBake = {
+        ...current,
+        timerStartedAt: null,
+        timerElapsedSeconds: current.timerElapsedSeconds + segmentSeconds,
+      };
+      saveActiveBake(next);
+      return next;
+    });
+  }, []);
+
+  const resumeTimer = useCallback(() => {
+    setActiveBake((current) => {
+      if (!current) return current;
+      if (current.timerStartedAt !== null) return current;
+      const next: ActiveBake = {
+        ...current,
+        timerStartedAt: Date.now(),
+      };
+      saveActiveBake(next);
+      return next;
+    });
+  }, []);
+
+  const resetTimer = useCallback(() => {
     setActiveBake((current) => {
       if (!current) return current;
       const next: ActiveBake = {
         ...current,
         timerStartedAt: null,
+        timerElapsedSeconds: 0,
       };
       saveActiveBake(next);
       return next;
@@ -122,6 +156,8 @@ export function useActiveBake(): UseActiveBakeApi {
     advanceTo,
     advanceSubStep,
     startTimer,
-    stopTimer,
+    pauseTimer,
+    resumeTimer,
+    resetTimer,
   };
 }

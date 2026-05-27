@@ -41,9 +41,12 @@ export function StageHeader({ stage, totalStages }: StageHeaderProps) {
         <h1 className="mt-2 text-display-sm text-ink">
           {stage.name}
           {stage.hint && (
-            <span className="ms-2 text-body text-ink-3" dir="ltr">
-              {stage.hint}
-            </span>
+            <>
+              {" "}
+              <span className="text-body text-ink-3" dir="ltr">
+                {stage.hint}
+              </span>
+            </>
           )}
         </h1>
       </div>

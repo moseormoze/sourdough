@@ -123,6 +123,7 @@ describe("ChooserScreen", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
+      timerElapsedSeconds: 0,
       bakingMethod: "closed-vessel",
     });
 
@@ -155,6 +156,7 @@ describe("ChooserScreen", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
+      timerElapsedSeconds: 0,
       bakingMethod: "closed-vessel",
     });
 
@@ -191,6 +193,7 @@ describe("ChooserScreen", () => {
       observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
+      timerElapsedSeconds: 0,
       bakingMethod: "closed-vessel",
     });
 

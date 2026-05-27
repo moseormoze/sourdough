@@ -69,7 +69,9 @@ export const strings = {
     stageDone: "סיימתי",
     // Optional timer
     timerStart: "התחל טיימר",
-    timerStop: "עצור",
+    timerPause: "השהה",
+    timerResume: "המשך",
+    timerReset: "אפס",
     timerFinished: "הסתיים",
     flourTypeLabels: {
       white: "קמח לבן",

@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { OptionalTimer } from "./optional-timer";
 
+const noop = () => {};
+
 describe("OptionalTimer", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -12,93 +14,241 @@ describe("OptionalTimer", () => {
     vi.useRealTimers();
   });
 
-  it("renders 'התחל טיימר' when startedAt is null", () => {
+  it("renders 'התחל טיימר' when idle (no startedAt, no elapsed)", () => {
     render(
       <OptionalTimer
         durationSeconds={60}
         startedAt={null}
-        onStart={() => {}}
-        onStop={() => {}}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
       />
     );
     expect(screen.getByRole("button", { name: /התחל טיימר/ })).toBeInTheDocument();
   });
 
-  it("calls onStart when the start button is clicked", () => {
+  it("calls onStart when the start button is clicked from idle", () => {
     const onStart = vi.fn();
     render(
       <OptionalTimer
         durationSeconds={60}
         startedAt={null}
+        elapsedSeconds={0}
         onStart={onStart}
-        onStop={() => {}}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
       />
     );
     fireEvent.click(screen.getByRole("button", { name: /התחל טיימר/ }));
     expect(onStart).toHaveBeenCalledOnce();
   });
 
-  it("renders MM:SS countdown when running", () => {
-    const startedAt = Date.now();
+  it("renders MM:SS countdown and pause + reset buttons while running", () => {
     render(
       <OptionalTimer
         durationSeconds={120}
-        startedAt={startedAt}
-        onStart={() => {}}
-        onStop={() => {}}
+        startedAt={Date.now()}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
       />
     );
     expect(screen.getByText("02:00")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "השהה" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "אפס" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "המשך" })).not.toBeInTheDocument();
   });
 
   it("ticks down each second", () => {
-    const startedAt = Date.now();
     render(
       <OptionalTimer
         durationSeconds={120}
-        startedAt={startedAt}
-        onStart={() => {}}
-        onStop={() => {}}
+        startedAt={Date.now()}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
       />
     );
     expect(screen.getByText("02:00")).toBeInTheDocument();
-    act(() => {
-      vi.advanceTimersByTime(1000);
-    });
+    act(() => { vi.advanceTimersByTime(1000); });
     expect(screen.getByText("01:59")).toBeInTheDocument();
-    act(() => {
-      vi.advanceTimersByTime(60_000);
-    });
+    act(() => { vi.advanceTimersByTime(60_000); });
     expect(screen.getByText("00:59")).toBeInTheDocument();
   });
 
-  it("shows 'הסתיים' when the countdown reaches 0", () => {
-    const startedAt = Date.now();
+  it("renders frozen MM:SS + resume + reset buttons when paused", () => {
     render(
       <OptionalTimer
-        durationSeconds={2}
-        startedAt={startedAt}
-        onStart={() => {}}
-        onStop={() => {}}
+        durationSeconds={120}
+        startedAt={null}
+        elapsedSeconds={30}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
       />
     );
-    act(() => {
-      vi.advanceTimersByTime(3000);
-    });
-    expect(screen.getByText("הסתיים")).toBeInTheDocument();
+    // 120 - 30 = 90 seconds left = 01:30
+    expect(screen.getByText("01:30")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "המשך" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "אפס" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "השהה" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /התחל טיימר/ })).not.toBeInTheDocument();
   });
 
-  it("calls onStop when the stop button is clicked while running", () => {
-    const onStop = vi.fn();
+  it("paused display does not tick", () => {
+    render(
+      <OptionalTimer
+        durationSeconds={120}
+        startedAt={null}
+        elapsedSeconds={30}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+    expect(screen.getByText("01:30")).toBeInTheDocument();
+    act(() => { vi.advanceTimersByTime(5000); });
+    expect(screen.getByText("01:30")).toBeInTheDocument();
+  });
+
+  it("calls onPause when pause is clicked while running", () => {
+    const onPause = vi.fn();
     render(
       <OptionalTimer
         durationSeconds={60}
         startedAt={Date.now()}
-        onStart={() => {}}
-        onStop={onStop}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={onPause}
+        onResume={noop}
+        onReset={noop}
       />
     );
-    fireEvent.click(screen.getByRole("button", { name: "עצור" }));
-    expect(onStop).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "השהה" }));
+    expect(onPause).toHaveBeenCalledOnce();
+  });
+
+  it("calls onResume when resume is clicked while paused", () => {
+    const onResume = vi.fn();
+    render(
+      <OptionalTimer
+        durationSeconds={120}
+        startedAt={null}
+        elapsedSeconds={30}
+        onStart={noop}
+        onPause={noop}
+        onResume={onResume}
+        onReset={noop}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "המשך" }));
+    expect(onResume).toHaveBeenCalledOnce();
+  });
+
+  it("calls onReset when reset is clicked (running or paused)", () => {
+    const onReset = vi.fn();
+    const { rerender } = render(
+      <OptionalTimer
+        durationSeconds={60}
+        startedAt={Date.now()}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={onReset}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "אפס" }));
+    expect(onReset).toHaveBeenCalledOnce();
+
+    rerender(
+      <OptionalTimer
+        durationSeconds={60}
+        startedAt={null}
+        elapsedSeconds={20}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={onReset}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "אפס" }));
+    expect(onReset).toHaveBeenCalledTimes(2);
+  });
+
+  it("formats as HH:MM:SS when durationSeconds >= 1 hour", () => {
+    render(
+      <OptionalTimer
+        durationSeconds={12 * 3600}
+        startedAt={Date.now()}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+    expect(screen.getByText("12:00:00")).toBeInTheDocument();
+  });
+
+  it("HH:MM:SS counts down correctly across hour boundaries", () => {
+    render(
+      <OptionalTimer
+        durationSeconds={2 * 3600}
+        startedAt={Date.now()}
+        elapsedSeconds={3599}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+    // 7200 - 3599 = 3601 seconds left = 1h 0m 1s
+    expect(screen.getByText("01:00:01")).toBeInTheDocument();
+    act(() => { vi.advanceTimersByTime(2000); });
+    expect(screen.getByText("00:59:59")).toBeInTheDocument();
+  });
+
+  it("stays in MM:SS when durationSeconds is under an hour", () => {
+    render(
+      <OptionalTimer
+        durationSeconds={1800}
+        startedAt={Date.now()}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+    expect(screen.getByText("30:00")).toBeInTheDocument();
+  });
+
+  it("shows 'הסתיים' and only a reset button when the countdown reaches 0", () => {
+    render(
+      <OptionalTimer
+        durationSeconds={2}
+        startedAt={Date.now()}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+    act(() => { vi.advanceTimersByTime(3000); });
+    expect(screen.getByText("הסתיים")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "השהה" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "המשך" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "אפס" })).toBeInTheDocument();
   });
 });

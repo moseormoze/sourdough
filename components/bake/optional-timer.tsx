@@ -1,21 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Timer } from "lucide-react";
+import { Timer, Pause, Play, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
 
 export interface OptionalTimerProps {
   durationSeconds: number;
-  /** epoch ms when the timer started, or null when not running */
+  /** epoch ms when the current run segment started, or null when not running */
   startedAt: number | null;
+  /** total seconds accumulated across prior pause/resume cycles */
+  elapsedSeconds: number;
   onStart: () => void;
-  onStop: () => void;
+  onPause: () => void;
+  onResume: () => void;
+  onReset: () => void;
   className?: string;
 }
 
-function format(secondsLeft: number): string {
+function format(secondsLeft: number, durationSeconds: number): string {
   const safe = Math.max(0, Math.floor(secondsLeft));
+  const showHours = durationSeconds >= 3600;
+  if (showHours) {
+    const h = Math.floor(safe / 3600);
+    const m = Math.floor((safe % 3600) / 60);
+    const s = safe % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
   const m = Math.floor(safe / 60);
   const s = safe % 60;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
@@ -24,8 +35,11 @@ function format(secondsLeft: number): string {
 export function OptionalTimer({
   durationSeconds,
   startedAt,
+  elapsedSeconds,
   onStart,
-  onStop,
+  onPause,
+  onResume,
+  onReset,
   className,
 }: OptionalTimerProps) {
   const [now, setNow] = useState<number>(() => Date.now());
@@ -37,7 +51,11 @@ export function OptionalTimer({
     return () => clearInterval(id);
   }, [startedAt]);
 
-  if (startedAt === null) {
+  const isIdle = startedAt === null && elapsedSeconds === 0;
+  const isRunning = startedAt !== null;
+  const isPaused = startedAt === null && elapsedSeconds > 0;
+
+  if (isIdle) {
     return (
       <button
         type="button"
@@ -55,15 +73,18 @@ export function OptionalTimer({
     );
   }
 
-  const elapsed = Math.floor((now - startedAt) / 1000);
-  const secondsLeft = durationSeconds - elapsed;
+  const liveSegment = isRunning && startedAt !== null ? (now - startedAt) / 1000 : 0;
+  const totalElapsed = elapsedSeconds + liveSegment;
+  const secondsLeft = durationSeconds - totalElapsed;
   const finished = secondsLeft <= 0;
+
+  const stateAttr = finished ? "finished" : isPaused ? "paused" : "running";
 
   return (
     <div
-      data-state={finished ? "finished" : "running"}
+      data-state={stateAttr}
       className={cn(
-        "inline-flex items-center gap-3 min-h-touch px-4 rounded-full",
+        "inline-flex items-center gap-2 min-h-touch px-3 rounded-full",
         finished ? "bg-sage-bg text-sage-2" : "bg-bg-2 text-ink-2",
         className
       )}
@@ -73,15 +94,39 @@ export function OptionalTimer({
         <span className="text-body">{strings.bake.timerFinished}</span>
       ) : (
         <span dir="ltr" className="num font-mono text-body-lg">
-          {format(secondsLeft)}
+          {format(secondsLeft, durationSeconds)}
         </span>
       )}
+
+      {!finished && isRunning && (
+        <button
+          type="button"
+          onClick={onPause}
+          aria-label={strings.bake.timerPause}
+          className="pressable min-h-touch min-w-touch inline-flex items-center justify-center text-ink-2 hover:text-ink transition-colors"
+        >
+          <Pause size={18} aria-hidden />
+        </button>
+      )}
+
+      {!finished && isPaused && (
+        <button
+          type="button"
+          onClick={onResume}
+          aria-label={strings.bake.timerResume}
+          className="pressable min-h-touch min-w-touch inline-flex items-center justify-center text-accent hover:text-accent/80 transition-colors"
+        >
+          <Play size={18} aria-hidden />
+        </button>
+      )}
+
       <button
         type="button"
-        onClick={onStop}
-        className="min-h-touch px-2 text-tiny text-ink-3 hover:text-danger transition-colors"
+        onClick={onReset}
+        aria-label={strings.bake.timerReset}
+        className="pressable min-h-touch min-w-touch inline-flex items-center justify-center text-ink-3 hover:text-danger transition-colors"
       >
-        {strings.bake.timerStop}
+        <RotateCcw size={16} aria-hidden />
       </button>
     </div>
   );

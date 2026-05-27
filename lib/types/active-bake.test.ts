@@ -43,3 +43,21 @@ describe("ActiveBakeSchema — bakingMethod", () => {
     ).toThrow();
   });
 });
+
+describe("ActiveBakeSchema — timerElapsedSeconds", () => {
+  it("defaults to 0 when missing (legacy active bake)", () => {
+    const parsed = ActiveBakeSchema.parse(baseBake);
+    expect(parsed.timerElapsedSeconds).toBe(0);
+  });
+
+  it("accepts a positive accumulated elapsed value", () => {
+    const parsed = ActiveBakeSchema.parse({ ...baseBake, timerElapsedSeconds: 42 });
+    expect(parsed.timerElapsedSeconds).toBe(42);
+  });
+
+  it("rejects a negative value", () => {
+    expect(() =>
+      ActiveBakeSchema.parse({ ...baseBake, timerElapsedSeconds: -1 })
+    ).toThrow();
+  });
+});
