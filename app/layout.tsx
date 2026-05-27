@@ -20,8 +20,15 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "כיכר",
   description: "מלווה אפייה של לחם מחמצת",
+  manifest: "/manifest.json",
   icons: {
     icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "כיכר",
+    statusBarStyle: "default",
   },
 };
 

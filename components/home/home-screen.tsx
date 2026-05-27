@@ -9,6 +9,7 @@ import { StopBakeDialog } from "@/components/bake/stop-bake-dialog";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
 import { listRecipes } from "@/lib/storage/recipes";
 import { strings } from "@/lib/strings";
+import { track } from "@/lib/analytics/track";
 
 export function HomeScreen() {
   const { activeBake, loading: bakeLoading, abandon } = useActiveBake();
@@ -20,6 +21,12 @@ export function HomeScreen() {
   }, [activeBake?.id]);
 
   function handleConfirmStop() {
+    if (activeBake) {
+      track("bake_abandoned", {
+        atStage: activeBake.currentStage,
+        recipeName: activeBake.recipe.name,
+      });
+    }
     setStopOpen(false);
     abandon();
   }

@@ -9,6 +9,7 @@ import {
 import type { ActiveBake } from "@/lib/types/active-bake";
 import type { Recipe } from "@/lib/types/recipe";
 import { DEFAULT_BAKING_METHOD, type BakingMethod } from "@/lib/types/baking-method";
+import { track } from "@/lib/analytics/track";
 
 export interface UseActiveBakeApi {
   activeBake: ActiveBake | null;
@@ -46,6 +47,11 @@ export function useActiveBake(): UseActiveBakeApi {
       };
       saveActiveBake(next);
       setActiveBake(next);
+      track("bake_started", {
+        recipeName: recipe.name,
+        bakingMethod,
+        flourWeightGrams: recipe.flourWeightGrams,
+      });
       return next;
     },
     []
@@ -67,6 +73,7 @@ export function useActiveBake(): UseActiveBakeApi {
         timerStartedAt: null,
       };
       saveActiveBake(next);
+      track("stage_advanced", { from: current.currentStage, to: stage });
       return next;
     });
   }, []);

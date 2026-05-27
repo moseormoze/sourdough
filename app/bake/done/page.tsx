@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
+import { track } from "@/lib/analytics/track";
 
 export default function Page() {
   const router = useRouter();
@@ -22,6 +23,14 @@ export default function Page() {
   if (loading || !activeBake) return null;
 
   function finishBake() {
+    if (activeBake) {
+      const durationMinutes = Math.round((Date.now() - activeBake.startedAt) / 60000);
+      track("bake_completed", {
+        recipeName: activeBake.recipe.name,
+        bakingMethod: activeBake.bakingMethod,
+        durationMinutes,
+      });
+    }
     abandon();
     router.push("/");
   }

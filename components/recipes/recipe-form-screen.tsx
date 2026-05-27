@@ -17,6 +17,7 @@ import { DiscardChangesDialog } from "./discard-changes-dialog";
 import { hintFor } from "@/lib/recommendations";
 import { strings } from "@/lib/strings";
 import { saveRecipe, deleteRecipe } from "@/lib/storage/recipes";
+import { track } from "@/lib/analytics/track";
 import type { RecipeInput } from "@/lib/types/recipe";
 import {
   emptyRecipeFormValues,
@@ -126,7 +127,15 @@ export function RecipeFormScreen({
     }
 
     try {
-      saveRecipe(formValuesToInput(values, recipeId));
+      const input = formValuesToInput(values, recipeId);
+      saveRecipe(input);
+      if (!recipeId) {
+        track("recipe_created", {
+          name: input.name,
+          flourWeightGrams: input.flourWeightGrams ?? 500,
+          hydration: input.hydration,
+        });
+      }
       toast.show("המתכון נשמר");
       router.push("/recipes");
     } catch {
