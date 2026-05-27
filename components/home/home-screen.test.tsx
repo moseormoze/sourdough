@@ -46,10 +46,18 @@ describe("HomeScreen", () => {
     localStorage.clear();
   });
 
-  it("renders wordmark and subtitle", () => {
+  it("renders wordmark and subtitle in fresh (no active bake) state", () => {
     render(<HomeScreen />);
     expect(screen.getByText("כיכר")).toBeInTheDocument();
     expect(screen.getByText("מה אופים היום?")).toBeInTheDocument();
+  });
+
+  it("hides the subtitle when an active bake exists (the banner is the answer)", async () => {
+    const recipe = saveRecipe(sample);
+    seedActive(recipe);
+    render(<HomeScreen />);
+    await screen.findByText("ממשיכים");
+    expect(screen.queryByText("מה אופים היום?")).not.toBeInTheDocument();
   });
 
   it("renders the SVG logo with the wordmark as alt text", () => {
@@ -78,14 +86,14 @@ describe("HomeScreen", () => {
     expect(screen.queryByText("0")).not.toBeInTheDocument();
   });
 
-  it("ALSO shows the resume banner when an active bake exists (CTAs remain visible underneath)", async () => {
+  it("shows the resume banner with active bake; new-bake CTA demotes to 'אפייה חדשה'", async () => {
     const recipe = saveRecipe(sample);
     seedActive(recipe);
     render(<HomeScreen />);
     expect(await screen.findByText("ממשיכים")).toBeInTheDocument();
     expect(screen.getByText("כפרי")).toBeInTheDocument();
-    // The dashboard CTAs are still accessible
-    expect(screen.getByText("התחל אפייה")).toBeInTheDocument();
+    expect(screen.getByText("אפייה חדשה")).toBeInTheDocument();
+    expect(screen.queryByText("התחל אפייה")).not.toBeInTheDocument();
     expect(screen.getByText("המתכונים שלי")).toBeInTheDocument();
   });
 

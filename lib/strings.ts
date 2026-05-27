@@ -20,6 +20,7 @@ export const strings = {
     wordmark: "כיכר",
     subtitle: "מה אופים היום?",
     startBaking: "התחל אפייה",
+    startBakingAlt: "אפייה חדשה",
     myRecipes: "המתכונים שלי",
   },
   recipes: {
@@ -39,7 +40,8 @@ export const strings = {
     myBadge: "שלי",
     // Banner (compact, on top of HomeScreen when there's an active bake)
     resumeBannerLabel: "ממשיכים",
-    resumeBannerStage: (stageNumber: number) => `שלב ${stageNumber}`,
+    resumeBannerStage: (stageNumber: number, totalStages: number) =>
+      `שלב ${stageNumber} מתוך ${totalStages}`,
     resumeBannerContinue: "המשך",
     resumeBannerStop: "סיים בייק",
     // Dialog: stopping the current bake (from the banner)
