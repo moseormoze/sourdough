@@ -73,9 +73,9 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       <StageHeader stage={stage} totalStages={TOTAL_STAGES} />
 
       <div className="mt-6 flex flex-col gap-4">
+        {stage.type === "done" && <StageCelebration />}
         {warning && <SafetyWarning>{warning}</SafetyWarning>}
         <Briefing briefing={briefing} disclosure={stage.briefingDisclosure} />
-        {stage.type === "done" && <StageCelebration />}
         <StageMedia
           imageUrl={stage.imageUrl}
           imageAlt={stage.imageAlt}
