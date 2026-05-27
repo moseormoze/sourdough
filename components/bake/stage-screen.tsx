@@ -10,6 +10,7 @@ import { ChecklistReference } from "./checklist-reference";
 import { FoldDots } from "./fold-dots";
 import { OptionalTimer } from "./optional-timer";
 import { SafetyWarning } from "./safety-warning";
+import { StageCelebration } from "./stage-celebration";
 import { StageMedia } from "./stage-media";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
 import { computeBakeQuantities } from "@/lib/bake-math";
@@ -74,6 +75,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       <div className="mt-6 flex flex-col gap-4">
         {warning && <SafetyWarning>{warning}</SafetyWarning>}
         <Briefing briefing={briefing} disclosure={stage.briefingDisclosure} />
+        {stage.type === "done" && <StageCelebration />}
         <StageMedia
           imageUrl={stage.imageUrl}
           imageAlt={stage.imageAlt}
