@@ -219,8 +219,8 @@ export const STAGES: readonly Stage[] = [
     name: "עיצוב סופי",
     type: "check",
     durationLabel: "כ-10 דקות",
-    youtubeId: "fFXp-StcueY",
-    videoCaption: "עיצוב באטארד (slow-motion) · The Perfect Loaf / Maurizio Leo",
+    youtubeId: "y_mzSDCT6Kc",
+    videoCaption: "עיצוב באטארד (Shaping a Bâtard)",
     briefing: {
       heading: "הצורה הסופית — בולה או באטארד",
       blurb:
