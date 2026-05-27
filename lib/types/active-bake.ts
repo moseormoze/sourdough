@@ -11,6 +11,7 @@ export const ActiveBakeSchema = z.object({
   observationChecks: z.record(z.string(), z.record(z.string(), z.boolean())).default({}),
   subStep: z.number().int().min(0).default(0),
   timerStartedAt: z.number().int().nullable().default(null),
+  timerElapsedSeconds: z.number().min(0).default(0),
   bakingMethod: BakingMethodSchema.default(DEFAULT_BAKING_METHOD),
 });
 

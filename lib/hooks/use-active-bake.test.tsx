@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useActiveBake } from "./use-active-bake";
 import { saveRecipe } from "@/lib/storage/recipes";
@@ -130,26 +130,90 @@ describe("useActiveBake — 03 extensions", () => {
     expect(result.current.activeBake?.currentStage).toBe(5);
   });
 
-  it("startTimer() sets timerStartedAt, stopTimer() clears it", async () => {
+  it("startTimer() sets timerStartedAt and zeroes elapsed; resetTimer() clears both", async () => {
     const recipe = saveRecipe(sample);
     const { result } = renderHook(() => useActiveBake());
     await waitFor(() => expect(result.current.loading).toBe(false));
     act(() => { result.current.start(recipe); });
     expect(result.current.activeBake?.timerStartedAt).toBeNull();
+    expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
     act(() => { result.current.startTimer(); });
     expect(result.current.activeBake?.timerStartedAt).toBeTruthy();
-    act(() => { result.current.stopTimer(); });
+    expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
+    act(() => { result.current.resetTimer(); });
     expect(result.current.activeBake?.timerStartedAt).toBeNull();
+    expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
   });
 
-  it("advanceTo() also clears timerStartedAt", async () => {
+  it("pauseTimer() accumulates elapsed and clears startedAt; resumeTimer() restores startedAt while preserving elapsed", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+
+    const t0 = 10_000_000;
+    vi.spyOn(Date, "now").mockReturnValue(t0);
+    act(() => { result.current.startTimer(); });
+    expect(result.current.activeBake?.timerStartedAt).toBe(t0);
+
+    // 20 seconds later, pause
+    vi.spyOn(Date, "now").mockReturnValue(t0 + 20_000);
+    act(() => { result.current.pauseTimer(); });
+    expect(result.current.activeBake?.timerStartedAt).toBeNull();
+    expect(result.current.activeBake?.timerElapsedSeconds).toBe(20);
+
+    // Resume 60s later, run another 15s, pause again — total should be 35s
+    vi.spyOn(Date, "now").mockReturnValue(t0 + 80_000);
+    act(() => { result.current.resumeTimer(); });
+    expect(result.current.activeBake?.timerStartedAt).toBe(t0 + 80_000);
+    expect(result.current.activeBake?.timerElapsedSeconds).toBe(20);
+
+    vi.spyOn(Date, "now").mockReturnValue(t0 + 95_000);
+    act(() => { result.current.pauseTimer(); });
+    expect(result.current.activeBake?.timerStartedAt).toBeNull();
+    expect(result.current.activeBake?.timerElapsedSeconds).toBe(35);
+
+    vi.restoreAllMocks();
+  });
+
+  it("pauseTimer() is a no-op when timer is not running", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    act(() => { result.current.pauseTimer(); });
+    expect(result.current.activeBake?.timerStartedAt).toBeNull();
+    expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
+  });
+
+  it("resumeTimer() is a no-op when timer is already running", async () => {
     const recipe = saveRecipe(sample);
     const { result } = renderHook(() => useActiveBake());
     await waitFor(() => expect(result.current.loading).toBe(false));
     act(() => { result.current.start(recipe); });
     act(() => { result.current.startTimer(); });
+    const startedAt = result.current.activeBake?.timerStartedAt;
+    act(() => { result.current.resumeTimer(); });
+    expect(result.current.activeBake?.timerStartedAt).toBe(startedAt);
+  });
+
+  it("advanceTo() clears timerStartedAt AND timerElapsedSeconds", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    const t0 = 20_000_000;
+    vi.spyOn(Date, "now").mockReturnValue(t0);
+    act(() => { result.current.startTimer(); });
+    vi.spyOn(Date, "now").mockReturnValue(t0 + 30_000);
+    act(() => { result.current.pauseTimer(); });
+    expect(result.current.activeBake?.timerElapsedSeconds).toBe(30);
+
     act(() => { result.current.advanceTo(3); });
     expect(result.current.activeBake?.timerStartedAt).toBeNull();
+    expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
+
+    vi.restoreAllMocks();
   });
 });
 

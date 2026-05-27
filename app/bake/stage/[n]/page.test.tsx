@@ -26,6 +26,7 @@ function seedActive(currentStage: number) {
     observationChecks: {},
       subStep: 0,
       timerStartedAt: null,
+      timerElapsedSeconds: 0,
       bakingMethod: "closed-vessel",
   });
 }

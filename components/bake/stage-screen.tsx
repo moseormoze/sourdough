@@ -21,7 +21,10 @@ import type { UseActiveBakeApi } from "@/lib/hooks/use-active-bake";
 export interface StageScreenProps {
   stage: Stage;
   activeBake: ActiveBake;
-  api: Pick<UseActiveBakeApi, "advanceTo" | "advanceSubStep" | "startTimer" | "stopTimer">;
+  api: Pick<
+    UseActiveBakeApi,
+    "advanceTo" | "advanceSubStep" | "startTimer" | "pauseTimer" | "resumeTimer" | "resetTimer"
+  >;
 }
 
 export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
@@ -69,7 +72,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const showStandaloneTimer = stage.type === "timer" && durationSeconds !== undefined;
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-32">
+    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-44">
       <StageHeader stage={stage} totalStages={TOTAL_STAGES} />
 
       <div className="mt-6 flex flex-col gap-4">
@@ -120,8 +123,11 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
                 <OptionalTimer
                   durationSeconds={durationSeconds}
                   startedAt={activeBake.timerStartedAt}
+                  elapsedSeconds={activeBake.timerElapsedSeconds}
                   onStart={api.startTimer}
-                  onStop={api.stopTimer}
+                  onPause={api.pauseTimer}
+                  onResume={api.resumeTimer}
+                  onReset={api.resetTimer}
                 />
                 <p className="mt-2 text-tiny text-ink-3 leading-relaxed">
                   מנוחה של 30 דקות בין קיפולים — אפשר גם 40 דקות בבצק קר או כבד.
@@ -140,8 +146,11 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             <OptionalTimer
               durationSeconds={durationSeconds}
               startedAt={activeBake.timerStartedAt}
+              elapsedSeconds={activeBake.timerElapsedSeconds}
               onStart={api.startTimer}
-              onStop={api.stopTimer}
+              onPause={api.pauseTimer}
+              onResume={api.resumeTimer}
+              onReset={api.resetTimer}
             />
           </div>
         )}

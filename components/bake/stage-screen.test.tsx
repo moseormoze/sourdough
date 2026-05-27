@@ -10,7 +10,9 @@ function makeApi() {
     advanceTo: vi.fn(),
     advanceSubStep: vi.fn(),
     startTimer: vi.fn(),
-    stopTimer: vi.fn(),
+    pauseTimer: vi.fn(),
+    resumeTimer: vi.fn(),
+    resetTimer: vi.fn(),
   };
 }
 
@@ -36,6 +38,7 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
     observationChecks: {},
     subStep: 0,
     timerStartedAt: null,
+    timerElapsedSeconds: 0,
     bakingMethod: "closed-vessel",
     ...overrides,
   };

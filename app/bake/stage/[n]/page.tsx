@@ -9,8 +9,16 @@ import { getStage } from "@/lib/data/stages";
 export default function Page() {
   const router = useRouter();
   const params = useParams<{ n: string }>();
-  const { activeBake, loading, advanceTo, advanceSubStep, startTimer, stopTimer } =
-    useActiveBake();
+  const {
+    activeBake,
+    loading,
+    advanceTo,
+    advanceSubStep,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    resetTimer,
+  } = useActiveBake();
 
   const requestedRaw = params.n;
   const requested = Number(requestedRaw);
@@ -42,7 +50,7 @@ export default function Page() {
     <StageScreen
       stage={stage}
       activeBake={activeBake}
-      api={{ advanceTo, advanceSubStep, startTimer, stopTimer }}
+      api={{ advanceTo, advanceSubStep, startTimer, pauseTimer, resumeTimer, resetTimer }}
     />
   );
 }
