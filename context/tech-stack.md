@@ -1,5 +1,7 @@
 # Tech Stack
 
+> **MVP scope only.** For the planned additions post-MVP (PostHog, Supabase, Stripe, Resend, Sentry — and *when* each enters), see [`launch-plan.md`](./launch-plan.md).
+
 ## Runtime
 - **Framework**: Next.js 15 (App Router)
 - **Language**: TypeScript strict mode — `noImplicitAny`, `strictNullChecks`, no `any`
