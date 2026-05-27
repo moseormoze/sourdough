@@ -100,6 +100,8 @@ export function ChooserScreen() {
         <BakingMethodSelector value={bakingMethod} onChange={setBakingMethod} />
       </div>
 
+      <h2 className="text-heading text-ink mb-3">{strings.bake.chooserRecipeHeading}</h2>
+
       <div className="grid grid-cols-2 gap-3">
         {PRESETS.map((preset) => (
           <ChooserCard

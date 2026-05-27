@@ -34,7 +34,8 @@ export const strings = {
     description: "הזרימה הזאת תיכנס בקרוב. בינתיים, תכין את המתכונים שלך.",
   },
   bake: {
-    chooserTitle: "במה אופים?",
+    chooserTitle: "בייק חדש",
+    chooserRecipeHeading: "איזה סוג לחם?",
     myBadge: "שלי",
     // Banner (compact, on top of HomeScreen when there's an active bake)
     resumeBannerLabel: "ממשיכים",

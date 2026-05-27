@@ -35,10 +35,13 @@ describe("ChooserScreen", () => {
     routerMock.back.mockClear();
   });
 
-  it("renders the page title 'במה אופים?'", () => {
+  it("renders the page title + recipe section heading", () => {
     render(<ChooserScreen />);
     expect(
-      screen.getByRole("heading", { name: "במה אופים?" })
+      screen.getByRole("heading", { level: 1, name: "בייק חדש" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "איזה סוג לחם?" })
     ).toBeInTheDocument();
   });
 
