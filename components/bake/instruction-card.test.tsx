@@ -104,6 +104,29 @@ describe("InstructionCard", () => {
     expect(screen.queryByText(/הערה:/)).not.toBeInTheDocument();
   });
 
+  it("renders **markdown bold** segments as <strong>", () => {
+    render(
+      <InstructionCard
+        steps={["**אם כלי סגור** — פתחו את הכלי, שימו את הבצק."]}
+      />
+    );
+    const bolded = screen.getByText("אם כלי סגור");
+    expect(bolded.tagName).toBe("STRONG");
+    expect(bolded).toHaveClass("font-semibold");
+  });
+
+  it("processes bold inside tip + note as well", () => {
+    render(
+      <InstructionCard
+        steps={["x"]}
+        tip="הקפידו על **טמפ׳ נכונה** — זה קריטי"
+        note="הערה על **קמח** שצריך לבחור"
+      />
+    );
+    expect(screen.getByText("טמפ׳ נכונה").tagName).toBe("STRONG");
+    expect(screen.getByText("קמח").tagName).toBe("STRONG");
+  });
+
   it("renders flour breakdown token with bolded per-type grams + Hebrew labels", () => {
     render(
       <InstructionCard

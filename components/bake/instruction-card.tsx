@@ -46,19 +46,45 @@ const BREAKDOWN_TOKENS: Record<string, (q: BakeQuantities) => FlourBreakdownEntr
   levainFlourBreakdown: (q) => q.levainBuild.flourBreakdown,
 };
 
+function renderInlineBold(text: string, baseKey: string): ReactNode {
+  if (!text.includes("**")) return text;
+  const parts: ReactNode[] = [];
+  const regex = /\*\*([^*]+)\*\*/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let i = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(
+      <strong key={`${baseKey}-b${i}`} className="font-semibold text-ink">
+        {match[1]}
+      </strong>
+    );
+    lastIndex = match.index + match[0].length;
+    i++;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts.map((part, idx) => <Fragment key={`${baseKey}-f${idx}`}>{part}</Fragment>);
+}
+
 function renderStep(
   text: string,
   tokens: TokenMap | null,
-  quantities: BakeQuantities | null
+  quantities: BakeQuantities | null,
+  baseKey: string
 ): ReactNode {
-  if (!tokens) return text;
+  if (!tokens) return renderInlineBold(text, baseKey);
   const parts: ReactNode[] = [];
   const regex = /\{(\w+)\}/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
+      parts.push(renderInlineBold(text.slice(lastIndex, match.index), `${baseKey}-t${match.index}`));
     }
     const tokenName = match[1];
     const breakdownLookup = tokenName ? BREAKDOWN_TOKENS[tokenName] : undefined;
@@ -79,9 +105,9 @@ function renderStep(
     lastIndex = match.index + match[0].length;
   }
   if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
+    parts.push(renderInlineBold(text.slice(lastIndex), `${baseKey}-tend`));
   }
-  return parts.map((part, i) => <Fragment key={i}>{part}</Fragment>);
+  return parts.map((part, i) => <Fragment key={`${baseKey}-${i}`}>{part}</Fragment>);
 }
 
 export function InstructionCard({
@@ -98,7 +124,7 @@ export function InstructionCard({
       <ol className="mt-3 flex flex-col gap-2.5 text-body-lg text-ink leading-relaxed list-decimal ps-6 marker:text-ink-2 marker:font-semibold">
         {steps.map((step, i) => (
           <li key={i} className="ps-1">
-            {renderStep(step, tokens, quantities ?? null)}
+            {renderStep(step, tokens, quantities ?? null, `s${i}`)}
           </li>
         ))}
       </ol>
@@ -106,14 +132,14 @@ export function InstructionCard({
         <aside className="mt-4 rounded-xl bg-bg/60 border border-line p-3.5">
           <p className="text-small text-ink-2 leading-relaxed">
             <span className="font-semibold text-ink">טיפ: </span>
-            {tip}
+            {renderInlineBold(tip, "tip")}
           </p>
         </aside>
       )}
       {note && (
         <p className="mt-3 text-small text-ink-2 italic leading-relaxed">
           <span className="font-semibold not-italic">הערה: </span>
-          {note}
+          {renderInlineBold(note, "note")}
         </p>
       )}
     </section>
