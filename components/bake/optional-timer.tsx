@@ -18,8 +18,15 @@ export interface OptionalTimerProps {
   className?: string;
 }
 
-function format(secondsLeft: number): string {
+function format(secondsLeft: number, durationSeconds: number): string {
   const safe = Math.max(0, Math.floor(secondsLeft));
+  const showHours = durationSeconds >= 3600;
+  if (showHours) {
+    const h = Math.floor(safe / 3600);
+    const m = Math.floor((safe % 3600) / 60);
+    const s = safe % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
   const m = Math.floor(safe / 60);
   const s = safe % 60;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
@@ -87,7 +94,7 @@ export function OptionalTimer({
         <span className="text-body">{strings.bake.timerFinished}</span>
       ) : (
         <span dir="ltr" className="num font-mono text-body-lg">
-          {format(secondsLeft)}
+          {format(secondsLeft, durationSeconds)}
         </span>
       )}
 

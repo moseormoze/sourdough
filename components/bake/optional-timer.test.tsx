@@ -185,6 +185,54 @@ describe("OptionalTimer", () => {
     expect(onReset).toHaveBeenCalledTimes(2);
   });
 
+  it("formats as HH:MM:SS when durationSeconds >= 1 hour", () => {
+    render(
+      <OptionalTimer
+        durationSeconds={12 * 3600}
+        startedAt={Date.now()}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+    expect(screen.getByText("12:00:00")).toBeInTheDocument();
+  });
+
+  it("HH:MM:SS counts down correctly across hour boundaries", () => {
+    render(
+      <OptionalTimer
+        durationSeconds={2 * 3600}
+        startedAt={Date.now()}
+        elapsedSeconds={3599}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+    // 7200 - 3599 = 3601 seconds left = 1h 0m 1s
+    expect(screen.getByText("01:00:01")).toBeInTheDocument();
+    act(() => { vi.advanceTimersByTime(2000); });
+    expect(screen.getByText("00:59:59")).toBeInTheDocument();
+  });
+
+  it("stays in MM:SS when durationSeconds is under an hour", () => {
+    render(
+      <OptionalTimer
+        durationSeconds={1800}
+        startedAt={Date.now()}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+    expect(screen.getByText("30:00")).toBeInTheDocument();
+  });
+
   it("shows 'הסתיים' and only a reset button when the countdown reaches 0", () => {
     render(
       <OptionalTimer
