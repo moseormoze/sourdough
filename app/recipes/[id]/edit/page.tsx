@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { RecipeFormScreen } from "@/components/recipes/recipe-form-screen";
 import { getRecipe } from "@/lib/storage/recipes";
 import type { RecipeFormValues } from "@/lib/validate-recipe";
@@ -9,6 +9,9 @@ import type { RecipeFormValues } from "@/lib/validate-recipe";
 export default function Page() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const returnToBake = searchParams.get("returnToBake") === "1";
+
   const [initial, setInitial] = useState<RecipeFormValues | null>(null);
   const [missing, setMissing] = useState(false);
 
@@ -44,5 +47,5 @@ export default function Page() {
     );
   }
 
-  return <RecipeFormScreen initialValues={initial} recipeId={params.id} />;
+  return <RecipeFormScreen initialValues={initial} recipeId={params.id} returnToBake={returnToBake} />;
 }

@@ -28,6 +28,11 @@ export interface Stage {
   hint?: string;
   type: StageType;
   durationLabel: string;
+  /** Base duration in seconds at BASE_TEMP_C (24°C). When present, the displayed
+   *  label is computed dynamically from kitchenTemp via tempAdjustedDurationLabel. */
+  tempSensitiveBaseSecs?: number;
+  /** Appended after the (possibly adjusted) time portion, e.g. " · קיפולים ×4" */
+  durationLabelSuffix?: string;
   briefing: StageBriefing;
   briefingDisclosure?: string;
   todo?: StageTodo;
@@ -48,7 +53,8 @@ export const STAGES: readonly Stage[] = [
     name: "בניית שאור",
     hint: "(levain)",
     type: "check",
-    durationLabel: "כ-10–12 שעות",
+    durationLabel: "כ-10 שעות",
+    tempSensitiveBaseSecs: 10 * 3600,
     imageUrl: "/stages/1-levain.png",
     imageAlt: "שאור פעיל בצנצנת — מבעבע, הוכפל בנפח, גומייה מסמנת את גובה ההתחלה",
     briefing: {
@@ -152,6 +158,8 @@ export const STAGES: readonly Stage[] = [
     youtubeId: "jrDy90gD710",
     videoCaption: "טכניקת stretch & fold · The Perfect Loaf / Maurizio Leo",
     durationLabel: "כ-4 שעות · קיפולים ×4",
+    tempSensitiveBaseSecs: 4 * 3600,
+    durationLabelSuffix: " · קיפולים ×4",
     durationSeconds: 30 * 60,
     subSteps: 4,
     briefing: {

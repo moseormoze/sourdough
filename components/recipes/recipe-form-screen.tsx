@@ -29,6 +29,8 @@ import {
 export interface RecipeFormScreenProps {
   initialValues?: RecipeFormValues;
   recipeId?: string;
+  /** After saving, navigate to /bake/new instead of /recipes. */
+  returnToBake?: boolean;
   /** When provided, replaces the built-in save (used in tests / future integrations). */
   onSubmit?: (values: RecipeFormValues, recipeId: string | undefined) => void;
 }
@@ -60,6 +62,7 @@ function formValuesToInput(values: RecipeFormValues, recipeId?: string): RecipeI
 export function RecipeFormScreen({
   initialValues,
   recipeId,
+  returnToBake = false,
   onSubmit,
 }: RecipeFormScreenProps) {
   const router = useRouter();
@@ -136,8 +139,13 @@ export function RecipeFormScreen({
           hydration: input.hydration,
         });
       }
-      toast.show("המתכון נשמר");
-      router.push("/recipes");
+      if (returnToBake) {
+        toast.show(strings.bakeConfirm.savedReturnToast);
+        router.push("/bake/new");
+      } else {
+        toast.show("המתכון נשמר");
+        router.push("/recipes");
+      }
     } catch {
       toast.show("לא הצלחנו לשמור — נסה שוב", { variant: "danger" });
     }

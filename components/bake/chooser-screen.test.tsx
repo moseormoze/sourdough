@@ -28,6 +28,14 @@ beforeAll(() => {
   }
 });
 
+/** Tap a recipe card to open the confirm sheet, then click "התחל בייק". */
+async function tapCardAndConfirm(cardName: string) {
+  const btn = screen.getByRole("button", { name: cardName });
+  fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
+  fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+  fireEvent.click(await screen.findByRole("button", { name: "התחל בייק" }));
+}
+
 describe("ChooserScreen", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -56,7 +64,6 @@ describe("ChooserScreen", () => {
     saveRecipe(sampleRecipeInput);
     render(<ChooserScreen />);
     expect(await screen.findByText("שיפון מותאם")).toBeInTheDocument();
-    // The "שלי" badge appears exactly once (no preset is mine).
     expect(screen.getAllByText("שלי")).toHaveLength(1);
   });
 
@@ -68,20 +75,36 @@ describe("ChooserScreen", () => {
     expect(screen.getByText("אחר")).toBeInTheDocument();
   });
 
-  it("tapping a preset starts an active bake and navigates to /bake/stage/1", async () => {
+  it("tapping a preset opens the confirm sheet (does NOT navigate yet)", async () => {
     render(<ChooserScreen />);
     const country = PRESETS[0]!;
     const btn = screen.getByRole("button", { name: country.name });
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+
+    expect(await screen.findByText("מוכן לאפות?")).toBeInTheDocument();
+    expect(routerMock.push).not.toHaveBeenCalled();
+  });
+
+  it("confirming the sheet starts an active bake and navigates to /bake/stage/1", async () => {
+    render(<ChooserScreen />);
+    const country = PRESETS[0]!;
+    await tapCardAndConfirm(country.name);
+
     await waitFor(() => {
       expect(loadActiveBake()?.recipe.name).toBe(country.name);
     });
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/1");
   });
 
-  it("renders the BakingMethodSelector with closed-vessel as default", () => {
+  it("the confirm sheet renders the BakingMethodSelector with closed-vessel as default", async () => {
     render(<ChooserScreen />);
+    const country = PRESETS[0]!;
+    const btn = screen.getByRole("button", { name: country.name });
+    fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+
+    await screen.findByText("מוכן לאפות?");
     expect(screen.getByText("באיזה כלי תאפה?")).toBeInTheDocument();
     const radios = screen.getAllByRole("radio");
     expect(radios).toHaveLength(3);
@@ -92,21 +115,24 @@ describe("ChooserScreen", () => {
   it("default bake start writes bakingMethod='closed-vessel' to the active bake", async () => {
     render(<ChooserScreen />);
     const country = PRESETS[0]!;
-    const btn = screen.getByRole("button", { name: country.name });
-    fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
-    fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+    await tapCardAndConfirm(country.name);
+
     await waitFor(() => {
       expect(loadActiveBake()?.bakingMethod).toBe("closed-vessel");
     });
   });
 
-  it("picking a different method before starting persists it on the active bake", async () => {
+  it("picking a different method in the sheet persists it on the active bake", async () => {
     render(<ChooserScreen />);
-    fireEvent.click(screen.getByText("אפייה פתוחה + תבנית אדים"));
     const country = PRESETS[0]!;
     const btn = screen.getByRole("button", { name: country.name });
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+
+    await screen.findByText("מוכן לאפות?");
+    fireEvent.click(screen.getByText("אפייה פתוחה + תבנית אדים"));
+    fireEvent.click(screen.getByRole("button", { name: "התחל בייק" }));
+
     await waitFor(() => {
       expect(loadActiveBake()?.bakingMethod).toBe("open-with-steam");
     });
@@ -128,9 +154,7 @@ describe("ChooserScreen", () => {
     });
 
     render(<ChooserScreen />);
-    // wait for active bake to load
     await waitFor(() => {
-      // any preset card
       expect(screen.getByText(PRESETS[0]!.name)).toBeInTheDocument();
     });
     const country = PRESETS[0]!;
@@ -140,12 +164,11 @@ describe("ChooserScreen", () => {
 
     expect(routerMock.push).not.toHaveBeenCalled();
     expect(await screen.findByText("להחליף בייק?")).toBeInTheDocument();
-    // The dialog body includes the existing recipe name; assert via the dialog body element specifically.
     const dialog = document.querySelector("dialog");
     expect(dialog?.textContent).toContain("שיפון מותאם");
   });
 
-  it("confirming abandon replaces the existing bake with the new one and navigates", async () => {
+  it("confirming abandon shows confirm sheet, then starting navigates", async () => {
     const seededRecipe = saveRecipe(sampleRecipeInput);
     saveActiveBake({
       id: "existing",
@@ -166,15 +189,13 @@ describe("ChooserScreen", () => {
       expect(screen.getByText(country.name)).toBeInTheDocument();
     });
 
-    fireEvent.pointerDown(screen.getByRole("button", { name: country.name }), {
-      clientX: 0,
-      clientY: 0,
-    });
-    fireEvent.pointerUp(screen.getByRole("button", { name: country.name }), {
-      clientX: 0,
-      clientY: 0,
-    });
+    fireEvent.pointerDown(screen.getByRole("button", { name: country.name }), { clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(screen.getByRole("button", { name: country.name }), { clientX: 0, clientY: 0 });
     fireEvent.click(await screen.findByRole("button", { name: "כן, להחליף" }));
+
+    // Confirm sheet should open now
+    await screen.findByText("מוכן לאפות?");
+    fireEvent.click(screen.getByRole("button", { name: "התחל בייק" }));
 
     await waitFor(() => {
       expect(loadActiveBake()?.recipe.name).toBe(country.name);
@@ -203,14 +224,8 @@ describe("ChooserScreen", () => {
       expect(screen.getByText(country.name)).toBeInTheDocument();
     });
 
-    fireEvent.pointerDown(screen.getByRole("button", { name: country.name }), {
-      clientX: 0,
-      clientY: 0,
-    });
-    fireEvent.pointerUp(screen.getByRole("button", { name: country.name }), {
-      clientX: 0,
-      clientY: 0,
-    });
+    fireEvent.pointerDown(screen.getByRole("button", { name: country.name }), { clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(screen.getByRole("button", { name: country.name }), { clientX: 0, clientY: 0 });
     fireEvent.click(await screen.findByRole("button", { name: "ביטול" }));
 
     expect(loadActiveBake()?.id).toBe("existing");

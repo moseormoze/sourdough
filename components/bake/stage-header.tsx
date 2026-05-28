@@ -5,14 +5,22 @@ import { ChevronRight } from "lucide-react";
 import { ProgressStrip } from "./progress-strip";
 import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
+import { tempAdjustedDurationLabel } from "@/lib/bake-timing";
 import type { Stage } from "@/lib/data/stages";
 
 export interface StageHeaderProps {
   stage: Stage;
   totalStages: number;
+  kitchenTemp?: number;
 }
 
-export function StageHeader({ stage, totalStages }: StageHeaderProps) {
+export function StageHeader({ stage, totalStages, kitchenTemp }: StageHeaderProps) {
+  const durationLabel =
+    stage.tempSensitiveBaseSecs != null && kitchenTemp != null
+      ? tempAdjustedDurationLabel(stage.tempSensitiveBaseSecs, kitchenTemp) +
+        (stage.durationLabelSuffix ?? "")
+      : stage.durationLabel;
+
   return (
     <header className="relative z-10">
       <div className="flex items-center justify-between mb-3">
@@ -36,7 +44,7 @@ export function StageHeader({ stage, totalStages }: StageHeaderProps) {
 
       <div className="mt-4">
         <span className="inline-block bg-accent-bg text-accent text-tiny font-medium px-3 py-1 rounded-full">
-          {stage.durationLabel || "—"}
+          {durationLabel || "—"}
         </span>
         <h1 className="mt-2 text-display-sm text-ink">
           {stage.name}

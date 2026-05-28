@@ -5,10 +5,12 @@ import { emptyRecipeFormValues, type RecipeFormValues } from "@/lib/validate-rec
 
 interface PageProps {
   params: Promise<{ preset: string }>;
+  searchParams: Promise<{ returnToBake?: string }>;
 }
 
-export default async function Page({ params }: PageProps) {
+export default async function Page({ params, searchParams }: PageProps) {
   const { preset } = await params;
+  const { returnToBake } = await searchParams;
 
   let initialValues: RecipeFormValues;
 
@@ -29,5 +31,5 @@ export default async function Page({ params }: PageProps) {
     };
   }
 
-  return <RecipeFormScreen initialValues={initialValues} />;
+  return <RecipeFormScreen initialValues={initialValues} returnToBake={returnToBake === "1"} />;
 }
