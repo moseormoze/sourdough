@@ -128,6 +128,21 @@ export const strings = {
     inclusionAmount: "כמות",
     unitGrams: "גרם",
   },
+  bakeConfirm: {
+    title: "מוכן לאפות?",
+    quantities: "כמויות לבייק",
+    flour: "קמח",
+    water: "מים",
+    levain: "שאור",
+    salt: "מלח",
+    tempLabel: "טמפ׳ מטבח",
+    timingHeading: "זמנים משוערים",
+    timingSuffix: "(תלוי טמפ׳)",
+    startButton: "התחל בייק",
+    recommendedNote: "כמויות מומלצות",
+    editButton: "ערוך מתכון",
+    savedReturnToast: "המתכון נשמר — בחר אותו כאן להתחלת הבייק",
+  },
   validationCopy: {
     nameRequired: "שדה חובה",
     flourSumWrong: (current: number) =>

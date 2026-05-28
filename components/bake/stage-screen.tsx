@@ -73,7 +73,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-44">
-      <StageHeader stage={stage} totalStages={TOTAL_STAGES} />
+      <StageHeader stage={stage} totalStages={TOTAL_STAGES} kitchenTemp={activeBake.recipe.kitchenTemp} />
 
       <div className="mt-6 flex flex-col gap-4">
         {stage.type === "done" && <StageCelebration />}
