@@ -7,12 +7,16 @@ import { Button } from "@/components/ui/button";
 import { ChooserCard } from "./chooser-card";
 import { BakeConfirmSheet } from "./bake-confirm-sheet";
 import { ReplaceBakeDialog } from "./replace-bake-dialog";
+import { StarterGateStep } from "./starter-gate-step";
+import { StarterScheduleStep } from "./starter-schedule-step";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
 import { PRESETS, type Preset } from "@/lib/presets";
 import { listRecipes } from "@/lib/storage/recipes";
 import type { Recipe } from "@/lib/types/recipe";
 import type { BakingMethod } from "@/lib/types/baking-method";
 import { strings } from "@/lib/strings";
+
+type Step = "gate" | "scheduling" | "choosing";
 
 function presetToRecipe(preset: Preset): Recipe {
   const now = Date.now();
@@ -47,6 +51,7 @@ function summarizeForCard(recipe: { flour: Recipe["flour"]; hydration: number })
 export function ChooserScreen() {
   const router = useRouter();
   const { activeBake, loading: bakeLoading, start, abandon } = useActiveBake();
+  const [step, setStep] = useState<Step>("gate");
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipesLoaded, setRecipesLoaded] = useState(false);
   // Recipe waiting for replace-confirmation (when a bake is already active)
@@ -99,13 +104,52 @@ export function ChooserScreen() {
     setPendingRecipe(null);
   }
 
+  if (step === "gate") {
+    return (
+      <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
+        <header className="relative z-10 flex items-center mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            iconStart={<ChevronRight size={20} aria-hidden />}
+          >
+            {strings.recipes.backToHome}
+          </Button>
+        </header>
+        <StarterGateStep
+          onReady={() => setStep("choosing")}
+          onNotReady={() => setStep("scheduling")}
+        />
+      </main>
+    );
+  }
+
+  if (step === "scheduling") {
+    return (
+      <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
+        <header className="relative z-10 flex items-center mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setStep("gate")}
+            iconStart={<ChevronRight size={20} aria-hidden />}
+          >
+            {strings.recipes.backToHome}
+          </Button>
+        </header>
+        <StarterScheduleStep onDismiss={() => router.back()} />
+      </main>
+    );
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
       <header className="relative z-10 flex items-center mb-2">
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.back()}
+          onClick={() => setStep("gate")}
           iconStart={<ChevronRight size={20} aria-hidden />}
         >
           {strings.recipes.backToHome}

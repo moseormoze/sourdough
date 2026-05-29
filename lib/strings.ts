@@ -143,6 +143,28 @@ export const strings = {
     editButton: "ערוך מתכון",
     savedReturnToast: "המתכון נשמר — בחר אותו כאן להתחלת הבייק",
   },
+  starterGate: {
+    // Gate screen — the yes/no question
+    gateTitle: "לפני שמתחילים",
+    gateQuestion: "הסטארטר שלך בשיא?",
+    gateEducationBlurb:
+      "סטארטר בשיא הוכפל בנפח, מלא בועות, ריחו חמצמץ-מתוק, ועובר מבחן ציפה (float test).",
+    gateCta_yes: "כן, הסטארטר בשיא",
+    gateCta_no: "לא, צריך לתכנן",
+    // Schedule screen — planning path
+    scheduleTitle: "מתכננים את הבייק",
+    scheduleReadyLabel: "מתי הלחם צריך להיות מוכן?",
+    scheduleTempLabel: "טמפ׳ מטבח (°C)",
+    scheduleTooSoon: (minDate: string) =>
+      `המינימום לבייק זה הוא ${minDate}. הסטארטר + הבייק לוקחים לפחות 38 שעות.`,
+    scheduleDismiss: "הבנתי, אחזור מאוחר יותר",
+    // Feeding window card
+    feedCardTitle: "תוכנית האכלה",
+    feedCardFeedLabel: "האכילו את הסטארטר",
+    feedCardPeakLabel: "הסטארטר יהיה בשיא",
+    feedCardFeedHint: "(בטמפ׳ חדר רגילה)",
+    feedCardRange: (from: string, to: string) => `בין ${from} ל-${to}`,
+  },
   validationCopy: {
     nameRequired: "שדה חובה",
     flourSumWrong: (current: number) =>
