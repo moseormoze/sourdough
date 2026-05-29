@@ -108,9 +108,13 @@ export function PresetCard({ preset, onSelect }: PresetCardProps) {
 
 function formatFlourSummary(preset: Preset): string {
   const { white, wholeWheat, rye } = preset.data.flour;
+  const speltWhite = preset.data.flour.speltWhite ?? 0;
+  const speltWhole = preset.data.flour.speltWhole ?? 0;
   const parts: string[] = [];
   if (white > 0) parts.push(`${white}% לבן`);
   if (wholeWheat > 0) parts.push(`${wholeWheat}% מלא`);
   if (rye > 0) parts.push(`${rye}% שיפון`);
+  if (speltWhite > 0) parts.push(`${speltWhite}% כוסמין לבן`);
+  if (speltWhole > 0) parts.push(`${speltWhole}% כוסמין מלא`);
   return parts.join(" · ");
 }

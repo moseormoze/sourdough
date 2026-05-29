@@ -16,14 +16,15 @@ export interface FlourBreakdownInputProps {
   error?: string | null;
 }
 
-const LABEL: Record<FlourKey, string> = {
+const KEYS = ["white", "wholeWheat", "rye", "speltWhite", "speltWhole"] as const;
+
+const LABEL: Record<(typeof KEYS)[number], string> = {
   white: strings.form.flourWhite,
   wholeWheat: strings.form.flourWholeWheat,
   rye: strings.form.flourRye,
-  other: strings.form.flourOther,
+  speltWhite: strings.form.flourSpeltWhite,
+  speltWhole: strings.form.flourSpeltWhole,
 };
-
-const KEYS: readonly FlourKey[] = ["white", "wholeWheat", "rye", "other"];
 
 export function FlourBreakdownInput({
   value,

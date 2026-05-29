@@ -58,7 +58,7 @@ describe("ChooserScreen", () => {
     expect(routerMock.back).toHaveBeenCalled();
   });
 
-  it("renders all 6 preset cards", () => {
+  it("renders all 7 preset cards", () => {
     render(<ChooserScreen />);
     for (const p of PRESETS) {
       expect(screen.getByText(p.name)).toBeInTheDocument();

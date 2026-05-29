@@ -5,10 +5,17 @@ export const FlourSchema = z
     white: z.number().min(0).max(100),
     wholeWheat: z.number().min(0).max(100),
     rye: z.number().min(0).max(100),
-    other: z.number().min(0).max(100),
+    speltWhite: z.number().min(0).max(100).default(0),
+    speltWhole: z.number().min(0).max(100).default(0),
+    // Legacy generic bucket: kept for read-back compatibility with recipes
+    // saved before spelt existed. Never written from the UI; defaults to 0.
+    other: z.number().min(0).max(100).default(0),
   })
   .refine(
-    (f) => Math.abs(f.white + f.wholeWheat + f.rye + f.other - 100) < 0.01,
+    (f) =>
+      Math.abs(
+        f.white + f.wholeWheat + f.rye + f.speltWhite + f.speltWhole + f.other - 100
+      ) < 0.01,
     { message: "Flour percentages must sum to 100" }
   );
 
