@@ -28,6 +28,11 @@ beforeAll(() => {
   }
 });
 
+/** Pass through the starter gate by clicking "כן, הסטארטר בשיא". */
+async function clickThroughGate() {
+  fireEvent.click(await screen.findByText("כן, הסטארטר בשיא"));
+}
+
 /** Tap a recipe card to open the confirm sheet, then click "התחל בייק". */
 async function tapCardAndConfirm(cardName: string) {
   const btn = screen.getByRole("button", { name: cardName });
@@ -43,8 +48,46 @@ describe("ChooserScreen", () => {
     routerMock.back.mockClear();
   });
 
-  it("renders the page title + recipe section heading", () => {
+  // ── Gate step ────────────────────────────────────────────────────────────
+
+  it("starts on the gate step — shows 'הסטארטר שלך בשיא?' question", () => {
     render(<ChooserScreen />);
+    expect(screen.getByText("הסטארטר שלך בשיא?")).toBeInTheDocument();
+  });
+
+  it("gate: 'כן' transitions to the recipe chooser", async () => {
+    render(<ChooserScreen />);
+    fireEvent.click(screen.getByText("כן, הסטארטר בשיא"));
+    expect(await screen.findByRole("heading", { level: 1, name: "בייק חדש" })).toBeInTheDocument();
+  });
+
+  it("gate: 'לא' transitions to the schedule screen", async () => {
+    render(<ChooserScreen />);
+    fireEvent.click(screen.getByText("לא, צריך לתכנן"));
+    expect(await screen.findByText("מתכננים את הבייק")).toBeInTheDocument();
+  });
+
+  it("schedule: 'הבנתי' calls router.back()", async () => {
+    render(<ChooserScreen />);
+    fireEvent.click(screen.getByText("לא, צריך לתכנן"));
+    const dismissBtn = await screen.findByText("הבנתי, אחזור מאוחר יותר");
+    if (!(dismissBtn as HTMLButtonElement).disabled) {
+      fireEvent.click(dismissBtn);
+      expect(routerMock.back).toHaveBeenCalled();
+    }
+  });
+
+  it("back button on gate step calls router.back()", () => {
+    render(<ChooserScreen />);
+    fireEvent.click(screen.getByRole("button", { name: /חזרה/ }));
+    expect(routerMock.back).toHaveBeenCalled();
+  });
+
+  // ── Choosing step (after passing the gate) ───────────────────────────────
+
+  it("renders the page title + recipe section heading", async () => {
+    render(<ChooserScreen />);
+    await clickThroughGate();
     expect(
       screen.getByRole("heading", { level: 1, name: "בייק חדש" })
     ).toBeInTheDocument();
@@ -53,8 +96,9 @@ describe("ChooserScreen", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders all 6 preset cards", () => {
+  it("renders all 6 preset cards", async () => {
     render(<ChooserScreen />);
+    await clickThroughGate();
     for (const p of PRESETS) {
       expect(screen.getByText(p.name)).toBeInTheDocument();
     }
@@ -63,6 +107,7 @@ describe("ChooserScreen", () => {
   it("renders user recipes with the 'שלי' badge", async () => {
     saveRecipe(sampleRecipeInput);
     render(<ChooserScreen />);
+    await clickThroughGate();
     expect(await screen.findByText("שיפון מותאם")).toBeInTheDocument();
     expect(screen.getAllByText("שלי")).toHaveLength(1);
   });
@@ -71,12 +116,14 @@ describe("ChooserScreen", () => {
     saveRecipe(sampleRecipeInput);
     saveRecipe({ ...sampleRecipeInput, name: "אחר" });
     render(<ChooserScreen />);
+    await clickThroughGate();
     expect(await screen.findByText("שיפון מותאם")).toBeInTheDocument();
     expect(screen.getByText("אחר")).toBeInTheDocument();
   });
 
   it("tapping a preset opens the confirm sheet (does NOT navigate yet)", async () => {
     render(<ChooserScreen />);
+    await clickThroughGate();
     const country = PRESETS[0]!;
     const btn = screen.getByRole("button", { name: country.name });
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
@@ -88,6 +135,7 @@ describe("ChooserScreen", () => {
 
   it("confirming the sheet starts an active bake and navigates to /bake/stage/1", async () => {
     render(<ChooserScreen />);
+    await clickThroughGate();
     const country = PRESETS[0]!;
     await tapCardAndConfirm(country.name);
 
@@ -99,6 +147,7 @@ describe("ChooserScreen", () => {
 
   it("the confirm sheet renders the BakingMethodSelector with closed-vessel as default", async () => {
     render(<ChooserScreen />);
+    await clickThroughGate();
     const country = PRESETS[0]!;
     const btn = screen.getByRole("button", { name: country.name });
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
@@ -114,6 +163,7 @@ describe("ChooserScreen", () => {
 
   it("default bake start writes bakingMethod='closed-vessel' to the active bake", async () => {
     render(<ChooserScreen />);
+    await clickThroughGate();
     const country = PRESETS[0]!;
     await tapCardAndConfirm(country.name);
 
@@ -124,6 +174,7 @@ describe("ChooserScreen", () => {
 
   it("picking a different method in the sheet persists it on the active bake", async () => {
     render(<ChooserScreen />);
+    await clickThroughGate();
     const country = PRESETS[0]!;
     const btn = screen.getByRole("button", { name: country.name });
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
@@ -141,6 +192,7 @@ describe("ChooserScreen", () => {
   it("tapping a card with an existing active bake opens the abandon dialog (does NOT navigate yet)", async () => {
     const seededRecipe = saveRecipe(sampleRecipeInput);
     saveActiveBake({
+
       id: "existing",
       recipe: seededRecipe,
       startedAt: 1,
@@ -154,6 +206,7 @@ describe("ChooserScreen", () => {
     });
 
     render(<ChooserScreen />);
+    await clickThroughGate();
     await waitFor(() => {
       expect(screen.getByText(PRESETS[0]!.name)).toBeInTheDocument();
     });
@@ -184,6 +237,7 @@ describe("ChooserScreen", () => {
     });
 
     render(<ChooserScreen />);
+    await clickThroughGate();
     const country = PRESETS[0]!;
     await waitFor(() => {
       expect(screen.getByText(country.name)).toBeInTheDocument();
@@ -219,6 +273,7 @@ describe("ChooserScreen", () => {
     });
 
     render(<ChooserScreen />);
+    await clickThroughGate();
     const country = PRESETS[0]!;
     await waitFor(() => {
       expect(screen.getByText(country.name)).toBeInTheDocument();
@@ -230,11 +285,5 @@ describe("ChooserScreen", () => {
 
     expect(loadActiveBake()?.id).toBe("existing");
     expect(routerMock.push).not.toHaveBeenCalled();
-  });
-
-  it("back button calls router.back()", () => {
-    render(<ChooserScreen />);
-    fireEvent.click(screen.getByRole("button", { name: /חזרה/ }));
-    expect(routerMock.back).toHaveBeenCalled();
   });
 });
