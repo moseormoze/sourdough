@@ -64,7 +64,9 @@ export const strings = {
     // Stage screen
     stageCounter: (current: number, total: number) => `${current}/${total}`,
     stageNext: (nextName: string) => `הבא — ${nextName}`,
-    stagePrev: "חזרה לשלב הקודם",
+    stageNextShort: "הבא",
+    stagePrev: "חזרה",
+    stageMenuLabel: "תפריט",
     stageFinishFold: "סיימתי קיפול",
     stageDone: "סיימתי",
     // Optional timer
@@ -154,16 +156,57 @@ export const strings = {
     // Schedule screen — planning path
     scheduleTitle: "מתכננים את הבייק",
     scheduleReadyLabel: "מתי הלחם צריך להיות מוכן?",
+    scheduleContextLine: (hours: number) =>
+      `מהאכלת הסטארטר ועד לחם מוכן — כ-${hours} שעות`,
+    schedulePillEarliest: "הכי מוקדם",
     scheduleTempLabel: "טמפ׳ מטבח (°C)",
     scheduleTooSoon: (minDate: string) =>
       `המינימום לבייק זה הוא ${minDate}. הסטארטר + הבייק לוקחים לפחות 38 שעות.`,
     scheduleDismiss: "הבנתי, אחזור מאוחר יותר",
     // Feeding window card
     feedCardTitle: "תוכנית האכלה",
-    feedCardFeedLabel: "האכילו את הסטארטר",
-    feedCardPeakLabel: "הסטארטר יהיה בשיא",
-    feedCardFeedHint: "(בטמפ׳ חדר רגילה)",
-    feedCardRange: (from: string, to: string) => `בין ${from} ל-${to}`,
+    feedCardFeedLabel: "האכלת הסטארטר",
+    feedCardPeakLabel: "הסטארטר יגיע לשיא",
+    feedCardDurationBridge: (hours: number) => `כ-${hours} שעות`,
+    feedCardTimeDisclaimer: "הזמן הוא הערכה — הסטארטר עצמו יגיד לך מתי הוא מוכן",
+    feedCardReadinessTitle: "איך יודעים שהסטארטר מוכן?",
+    feedCardReadinessSigns:
+      "הוכפל בנפח · מלא בועות · ריח חמצמץ-מתוק · שקוע מעט בפסגה · עובר מבחן ציפה (float test)",
+    feedCardCalcNote: (temp: number) => `ההערכה מחושבת לפי ${temp}°C`,
+  },
+  bakeScheduler: {
+    headerTitle: "תכנון הבייק",
+    starterLabel: "הסטארטר כבר בשיא?",
+    starterYes: "כן",
+    starterNo: "לא",
+    contextLine: (hours: number) => `הבייק ייקח כ-${hours} שעות`,
+    // Timeline row labels
+    timelineFeedLabel: "האכלה",
+    timelineLevainLabel: "שאור",
+    timelineBulkLabel: "תסיסה",
+    timelineOvenLabel: "אפייה",
+    timelineDoneLabel: "לחם מוכן",
+    tooSoon: (minDate: string) => `המוקדם ביותר: ${minDate}`,
+    startButton: "התחל בייק",
+  },
+  feedStage: {
+    title: "האכלת הסטארטר",
+    subtitle: "שלב הכנה",
+    feedLabel: "האכל את הסטארטר",
+    peakLabel: "הסטארטר יגיע לשיא",
+    durationBridge: (hours: number) => `כ-${hours} שעות`,
+    timeDisclaimer: "הזמן הוא הערכה — הסטארטר עצמו יגיד לך מתי הוא מוכן",
+    readinessTitle: "איך יודעים שהסטארטר מוכן?",
+    readinessSigns: [
+      "השאור הוכפל בנפח",
+      "רואים בועות בפנים",
+      "ריח קצת חמצמץ ומתוק",
+      "שקוע מעט בפסגה",
+      "עובר מבחן ציפה (float test)",
+    ] as readonly string[],
+    timerLabel: "עד שיא הסטארטר",
+    ctaButton: "הסטארטר מוכן — מתחיל לאפות!",
+    bannerStage: "האכלת סטארטר",
   },
   validationCopy: {
     nameRequired: "שדה חובה",

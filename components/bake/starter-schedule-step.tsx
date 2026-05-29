@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { TempInput } from "@/components/recipes/temp-input";
 import { calculateFeedingWindow, calculateMinReadyAt } from "@/lib/bake-timing";
 import { strings } from "@/lib/strings";
+import { useDateTimePicker, startOfDay, MAX_HOUR } from "@/lib/hooks/use-date-time-picker";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -21,44 +23,6 @@ const TIME_FMT = new Intl.DateTimeFormat("he-IL", {
   hour12: false,
 });
 
-const MIN_HOUR = 6;
-const MAX_HOUR = 22;
-
-function startOfDay(d: Date): Date {
-  const out = new Date(d);
-  out.setHours(0, 0, 0, 0);
-  return out;
-}
-
-function addDays(d: Date, n: number): Date {
-  const out = new Date(d);
-  out.setDate(out.getDate() + n);
-  return out;
-}
-
-/** Returns up to `count` days starting from the day of `minAt`. */
-function getAvailableDays(minAt: Date, count = 6): Date[] {
-  const base = startOfDay(minAt);
-  return Array.from({ length: count }, (_, i) => addDays(base, i));
-}
-
-/** Earliest valid hour on a given day, constrained to MIN_HOUR–MAX_HOUR. */
-function minHourForDay(day: Date, minAt: Date): number {
-  const dayMs = startOfDay(day).getTime();
-  const minDayMs = startOfDay(minAt).getTime();
-  if (dayMs > minDayMs) return MIN_HOUR;
-  // Same day as minAt
-  const minH = minAt.getHours() + (minAt.getMinutes() > 0 ? 1 : 0);
-  return Math.max(MIN_HOUR, Math.min(minH, MAX_HOUR));
-}
-
-function buildTargetDate(day: Date, hour: number): Date {
-  const out = new Date(day);
-  out.setHours(hour, 0, 0, 0);
-  return out;
-}
-
-// Day label: "מחר" / "מחרתיים" / full weekday name
 function dayLabel(day: Date, today: Date): string {
   const diff =
     Math.round((startOfDay(day).getTime() - startOfDay(today).getTime()) / 86400000);
@@ -67,60 +31,98 @@ function dayLabel(day: Date, today: Date): string {
   return DAY_FMT.format(day);
 }
 
+/** Short contextual day prefix: "היום", "מחר", "מחרתיים", or full weekday. */
+function dayPrefix(d: Date, now: Date): string {
+  const diff = Math.round((startOfDay(d).getTime() - startOfDay(now).getTime()) / 86400000);
+  if (diff === 0) return "היום";
+  if (diff === 1) return "מחר";
+  if (diff === 2) return "מחרתיים";
+  return DAY_FMT.format(d);
+}
+
 // ---------------------------------------------------------------------------
 // Sub-component: FeedingWindowCard
 // ---------------------------------------------------------------------------
 
 interface FeedingWindowCardProps {
-  feedStart: Date;
-  feedEnd: Date;
-  peakStart: Date;
-  peakEnd: Date;
+  feedAt: Date;
+  peakAt: Date;
+  peakHours: number;
+  kitchenTemp: number;
+  now: Date;
+  peakDayLabel: string | null;
 }
 
-function FeedingWindowCard({ feedStart, feedEnd, peakStart, peakEnd }: FeedingWindowCardProps) {
+function FeedingWindowCard({
+  feedAt,
+  peakAt,
+  peakHours,
+  kitchenTemp,
+  now,
+  peakDayLabel,
+}: FeedingWindowCardProps) {
   const s = strings.starterGate;
-
-  function timeRange(a: Date, b: Date): string {
-    return s.feedCardRange(TIME_FMT.format(a), TIME_FMT.format(b));
-  }
-
-  // Show the day context if peak is a different calendar day from feed
-  const feedDay = startOfDay(feedStart).getTime();
-  const peakDay = startOfDay(peakStart).getTime();
-  const showPeakDay = peakDay !== feedDay;
-  const peakDayLabel = showPeakDay
-    ? DAY_FMT.format(peakStart)
-    : null;
 
   return (
     <div
-      className="rounded-2xl bg-accent-bg border border-accent/30 px-4 py-4 flex flex-col gap-3
+      className="rounded-2xl bg-accent-bg border border-accent/30 px-4 py-4 flex flex-col gap-4
                  animate-in fade-in slide-in-from-bottom-2 duration-[250ms] ease-out"
       role="status"
       aria-live="polite"
     >
-      <p className="text-label text-accent font-medium">{strings.starterGate.feedCardTitle}</p>
+      {/* Card title */}
+      <p className="text-label text-accent font-medium">{s.feedCardTitle}</p>
 
-      <div className="flex flex-col gap-1">
+      {/* Step 1: Feed the starter */}
+      <div className="flex flex-col gap-0.5">
         <p className="text-body-sm text-ink-2">{s.feedCardFeedLabel}</p>
-        <p className="text-heading text-ink">
-          <span dir="ltr" className="num">{timeRange(feedStart, feedEnd)}</span>
+        <p className="text-body-sm text-ink-3">{dayPrefix(feedAt, now)}</p>
+        <p className="text-heading text-ink font-semibold">
+          <span dir="ltr" className="num">{TIME_FMT.format(feedAt)}</span>
         </p>
-        <p className="text-body-sm text-ink-3">{s.feedCardFeedHint}</p>
       </div>
 
+      {/* Duration bridge */}
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-accent/25" />
+        <p className="text-body-sm text-ink-3 whitespace-nowrap">
+          {s.feedCardDurationBridge(peakHours)}
+        </p>
+        <div className="h-px flex-1 bg-accent/25" />
+      </div>
+
+      {/* Step 2: Starter at peak */}
+      <div className="flex flex-col gap-0.5">
+        <p className="text-body-sm text-ink-2">{s.feedCardPeakLabel}</p>
+        <p className="text-body-sm text-ink-3">
+          {peakDayLabel ?? dayPrefix(peakAt, now)}
+        </p>
+        <p className="text-heading text-ink font-semibold">
+          <span dir="ltr" className="num">{TIME_FMT.format(peakAt)}</span>
+        </p>
+        <p className="text-body-sm text-ink-3 mt-1">{s.feedCardTimeDisclaimer}</p>
+      </div>
+
+      {/* Separator */}
       <div className="h-px bg-accent/20" />
 
-      <div className="flex flex-col gap-1">
-        <p className="text-body-sm text-ink-2">{s.feedCardPeakLabel}</p>
-        <p className="text-heading text-ink">
-          <span dir="ltr" className="num">{timeRange(peakStart, peakEnd)}</span>
-        </p>
-        {peakDayLabel && (
-          <p className="text-body-sm text-ink-3">{peakDayLabel}</p>
-        )}
+      {/* Visual readiness signs */}
+      <div className="flex flex-col gap-2">
+        <div className="rounded-xl overflow-hidden relative h-36 w-full">
+          <Image
+            src="/stages/1-levain.png"
+            alt="סטארטר מוכן: הוכפל בנפח, מלא בועות, גומייה מסמנת גובה התחלה"
+            fill
+            className="object-cover"
+            sizes="(max-width: 448px) 100vw, 448px"
+          />
+        </div>
+        <p className="text-body-sm text-ink font-medium">{s.feedCardReadinessTitle}</p>
+        <p className="text-body-sm text-ink-2">{s.feedCardReadinessSigns}</p>
       </div>
+
+      {/* Calc note */}
+      <p className="text-body-sm text-ink-3">{s.feedCardCalcNote(kitchenTemp)}</p>
     </div>
   );
 }
@@ -145,21 +147,17 @@ export function StarterScheduleStep({ onDismiss }: StarterScheduleStepProps) {
     [kitchenTemp, now],
   );
 
-  const availableDays = useMemo(() => getAvailableDays(minReadyAt, 6), [minReadyAt]);
-
-  // Selected day index (into availableDays)
-  const [dayIdx, setDayIdx] = useState(0);
-  // availableDays always has exactly 6 elements (count=6 passed to getAvailableDays)
-  const selectedDay = availableDays[dayIdx]!;
-
-  // Selected hour — clamp to valid range when day/temp changes
-  const minHour = minHourForDay(selectedDay, minReadyAt);
-  const [hour, setHour] = useState(() => minHour);
-
-  const effectiveHour = Math.max(hour, minHour);
-
-  const targetAt = buildTargetDate(selectedDay, effectiveHour);
-  const isValid = targetAt.getTime() >= minReadyAt.getTime();
+  const {
+    availableDays,
+    dayIdx,
+    effectiveHour,
+    minHour,
+    handleDaySelect,
+    adjustHour,
+    targetAt,
+    isValid,
+    totalProcessHours,
+  } = useDateTimePicker({ minReadyAt, now });
 
   const window = useMemo(
     () => (isValid ? calculateFeedingWindow(targetAt, kitchenTemp) : null),
@@ -167,18 +165,21 @@ export function StarterScheduleStep({ onDismiss }: StarterScheduleStepProps) {
     [targetAt.getTime(), kitchenTemp, isValid],
   );
 
-  function handleDaySelect(idx: number) {
-    setDayIdx(idx);
-    const newMin = minHourForDay(availableDays[idx]!, minReadyAt);
-    setHour((h) => Math.max(h, newMin));
-  }
+  // Single recommended times (midpoints of the ±1h windows)
+  const feedAt = window
+    ? new Date((window.feedStart.getTime() + window.feedEnd.getTime()) / 2)
+    : null;
+  const peakAt = window ? window.levainStart : null;
 
-  function adjustHour(delta: number) {
-    setHour((h) => {
-      const next = Math.max(minHour, Math.min(MAX_HOUR, (h ?? minHour) + delta));
-      return next;
-    });
-  }
+  const peakHours = feedAt && peakAt
+    ? Math.round((peakAt.getTime() - feedAt.getTime()) / 3600000)
+    : 0;
+
+  // Show day label on peak only if it's a different calendar day from the feed
+  const peakDayLabel =
+    feedAt && peakAt && startOfDay(peakAt).getTime() !== startOfDay(feedAt).getTime()
+      ? dayPrefix(peakAt, now)
+      : null;
 
   const minDateLabel = TIME_FMT.format(minReadyAt) + " " + DAY_FMT.format(minReadyAt);
 
@@ -190,7 +191,12 @@ export function StarterScheduleStep({ onDismiss }: StarterScheduleStepProps) {
 
       {/* Target bread-ready time */}
       <div className="flex flex-col gap-3">
-        <p className="text-label text-ink-2">{s.scheduleReadyLabel}</p>
+        <div>
+          <p className="text-label text-ink-2">{s.scheduleReadyLabel}</p>
+          <p className="text-body-sm text-ink-3 mt-0.5">
+            {s.scheduleContextLine(totalProcessHours)}
+          </p>
+        </div>
 
         {/* Day pills */}
         <div
@@ -198,20 +204,26 @@ export function StarterScheduleStep({ onDismiss }: StarterScheduleStepProps) {
           style={{ scrollbarWidth: "none" }}
         >
           {availableDays.map((day, idx) => (
-            <button
-              key={day.toISOString()}
-              type="button"
-              onClick={() => handleDaySelect(idx)}
-              className={`pressable flex-shrink-0 rounded-full px-4 py-2 text-body font-medium
-                border transition-colors duration-fast ease-out
-                ${
-                  idx === dayIdx
-                    ? "bg-ink text-paper border-ink"
-                    : "bg-paper text-ink-2 border-line"
-                }`}
-            >
-              {dayLabel(day, now)}
-            </button>
+            <div key={day.toISOString()} className="flex-shrink-0 flex flex-col items-center gap-1">
+              <button
+                type="button"
+                onClick={() => handleDaySelect(idx)}
+                className={`pressable rounded-full px-4 py-2 text-body font-medium
+                  border transition-colors duration-fast ease-out
+                  ${
+                    idx === dayIdx
+                      ? "bg-ink text-paper border-ink"
+                      : "bg-paper text-ink-2 border-line"
+                  }`}
+              >
+                {dayLabel(day, now)}
+              </button>
+              {idx === 0 && (
+                <span className="text-xs text-ink-3 whitespace-nowrap">
+                  {s.schedulePillEarliest}
+                </span>
+              )}
+            </div>
           ))}
         </div>
 
@@ -260,12 +272,14 @@ export function StarterScheduleStep({ onDismiss }: StarterScheduleStepProps) {
       )}
 
       {/* Feeding window result */}
-      {window && (
+      {window && feedAt && peakAt && (
         <FeedingWindowCard
-          feedStart={window.feedStart}
-          feedEnd={window.feedEnd}
-          peakStart={window.peakStart}
-          peakEnd={window.peakEnd}
+          feedAt={feedAt}
+          peakAt={peakAt}
+          peakHours={peakHours}
+          kitchenTemp={kitchenTemp}
+          now={now}
+          peakDayLabel={peakDayLabel}
         />
       )}
 

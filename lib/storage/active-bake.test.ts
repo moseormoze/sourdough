@@ -39,6 +39,9 @@ describe("lib/storage/active-bake", () => {
       timerStartedAt: null,
       timerElapsedSeconds: 0,
       bakingMethod: "closed-vessel" as const,
+      feedAt: null,
+      peakAt: null,
+      feedStagePassed: false,
     };
     saveActiveBake(bake);
     expect(loadActiveBake()).toEqual(bake);
@@ -86,6 +89,9 @@ describe("lib/storage/active-bake", () => {
       timerStartedAt: null,
       timerElapsedSeconds: 0,
       bakingMethod: "closed-vessel" as const,
+      feedAt: null,
+      peakAt: null,
+      feedStagePassed: false,
     });
     expect(loadActiveBake()).not.toBeNull();
     clearActiveBake();

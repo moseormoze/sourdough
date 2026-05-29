@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StageHeader } from "./stage-header";
 import { Briefing } from "./briefing";
@@ -57,6 +58,10 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   }
 
   function handleBack() {
+    if (stage.n === 1 && activeBake.feedAt !== null) {
+      router.push("/bake/feed");
+      return;
+    }
     if (stage.n <= 1) return;
     api.advanceTo(stage.n - 1);
     router.push(`/bake/stage/${stage.n - 1}`);
@@ -158,18 +163,34 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
 
       {/* Sticky actions */}
       <div className="fixed bottom-0 inset-x-0 z-sticky bg-bg/95 backdrop-blur-sm border-t border-line">
-        <div className="mx-auto max-w-md px-5 py-4 flex flex-col gap-2">
-          <Button variant="accent" onClick={handlePrimary} className="w-full">
-            {primaryLabel}
-          </Button>
-          {stage.n > 1 && (
+        <div className="mx-auto max-w-md px-5 py-4">
+          {(stage.n > 1 || activeBake.feedAt !== null) ? (
+            <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                className="flex-1"
+                iconStart={<ChevronRight size={18} />}
+              >
+                {strings.bake.stagePrev}
+              </Button>
+              <Button
+                variant="accent"
+                onClick={handlePrimary}
+                className="flex-[2]"
+                iconEnd={stage.type !== "done" ? <ChevronLeft size={18} /> : undefined}
+              >
+                {stage.type === "done" ? strings.bake.stageDone : strings.bake.stageNextShort}
+              </Button>
+            </div>
+          ) : (
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="self-center"
+              variant="accent"
+              onClick={handlePrimary}
+              className="w-full"
+              iconEnd={stage.type !== "done" ? <ChevronLeft size={18} /> : undefined}
             >
-              {strings.bake.stagePrev}
+              {primaryLabel}
             </Button>
           )}
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { X } from "lucide-react";
 import { ProgressStrip } from "./progress-strip";
 import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
@@ -26,14 +26,14 @@ export function StageHeader({ stage, totalStages, kitchenTemp }: StageHeaderProp
       <div className="flex items-center justify-between mb-3">
         <Link
           href="/"
-          aria-label={strings.bake.stagePlaceholderBackToHome}
           className={cn(
-            "pressable inline-flex items-center gap-1 min-h-touch min-w-touch px-2 rounded-full",
+            "pressable inline-flex items-center gap-1.5 min-h-touch px-3 rounded-full",
             "text-ink-2 hover:bg-bg-2 transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-3"
           )}
         >
-          <ChevronRight size={20} aria-hidden />
+          <X size={16} aria-hidden />
+          <span className="text-small">{strings.bake.stageMenuLabel}</span>
         </Link>
         <span dir="ltr" className="num text-tiny font-mono text-ink-3">
           {strings.bake.stageCounter(stage.n, totalStages)}

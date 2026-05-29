@@ -13,6 +13,11 @@ export const ActiveBakeSchema = z.object({
   timerStartedAt: z.number().int().nullable().default(null),
   timerElapsedSeconds: z.number().min(0).default(0),
   bakingMethod: BakingMethodSchema.default(DEFAULT_BAKING_METHOD),
+  // Set when bake starts with starter not yet at peak; kept as historical timestamps after feed stage
+  feedAt: z.number().int().nullable().default(null),
+  peakAt: z.number().int().nullable().default(null),
+  // True once the user confirms starter is ready and advances past the feed stage
+  feedStagePassed: z.boolean().default(false),
 });
 
 export type ActiveBake = z.infer<typeof ActiveBakeSchema>;
