@@ -14,8 +14,9 @@ import { track } from "@/lib/analytics/track";
 export interface UseActiveBakeApi {
   activeBake: ActiveBake | null;
   loading: boolean;
-  start: (recipe: Recipe, bakingMethod?: BakingMethod) => ActiveBake;
+  start: (recipe: Recipe, bakingMethod?: BakingMethod, feedAt?: Date, peakAt?: Date) => ActiveBake;
   abandon: () => void;
+  completeFeedStage: () => void;
   advanceTo: (stage: number) => void;
   advanceSubStep: () => void;
   startTimer: () => void;
@@ -34,7 +35,12 @@ export function useActiveBake(): UseActiveBakeApi {
   }, []);
 
   const start = useCallback(
-    (recipe: Recipe, bakingMethod: BakingMethod = DEFAULT_BAKING_METHOD): ActiveBake => {
+    (
+      recipe: Recipe,
+      bakingMethod: BakingMethod = DEFAULT_BAKING_METHOD,
+      feedAt?: Date,
+      peakAt?: Date,
+    ): ActiveBake => {
       const now = Date.now();
       const next: ActiveBake = {
         id: crypto.randomUUID(),
@@ -47,6 +53,9 @@ export function useActiveBake(): UseActiveBakeApi {
         timerStartedAt: null,
         timerElapsedSeconds: 0,
         bakingMethod,
+        feedAt: feedAt ? feedAt.getTime() : null,
+        peakAt: peakAt ? peakAt.getTime() : null,
+        feedStagePassed: false,
       };
       saveActiveBake(next);
       setActiveBake(next);
@@ -63,6 +72,19 @@ export function useActiveBake(): UseActiveBakeApi {
   const abandon = useCallback(() => {
     clearActiveBake();
     setActiveBake(null);
+  }, []);
+
+  const completeFeedStage = useCallback(() => {
+    setActiveBake((current) => {
+      if (!current) return current;
+      const next: ActiveBake = {
+        ...current,
+        feedStagePassed: true,
+        stageStartedAt: Date.now(),
+      };
+      saveActiveBake(next);
+      return next;
+    });
   }, []);
 
   const advanceTo = useCallback((stage: number) => {
@@ -153,6 +175,7 @@ export function useActiveBake(): UseActiveBakeApi {
     loading,
     start,
     abandon,
+    completeFeedStage,
     advanceTo,
     advanceSubStep,
     startTimer,

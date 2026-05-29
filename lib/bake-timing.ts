@@ -64,6 +64,47 @@ export function calculateMinReadyAt(kitchenTempC: number, now: Date = new Date()
   return new Date(now.getTime() + (peakSecs + bakeDurationSecs(kitchenTempC)) * 1000);
 }
 
+export interface BakeTimelinePoints {
+  feedAt?: Date;     // only when starter not ready — midpoint of feeding window
+  levainStart: Date; // when to start levain build (= when starter reaches peak)
+  bulkStart: Date;   // when bulk fermentation begins (after levain + autolyse + mix)
+  ovenStart: Date;   // when to put dough in oven (after everything except preheat+bake+cool)
+  breadReady: Date;  // targetAt — when bread is done
+}
+
+export function calculateBakeTimeline(
+  targetReadyAt: Date,
+  kitchenTempC: number,
+  starterReady: boolean,
+): BakeTimelinePoints {
+  const levainStart = new Date(
+    targetReadyAt.getTime() - bakeDurationSecs(kitchenTempC) * 1000,
+  );
+
+  const levainAdjustedSecs = adjustDurationSeconds(10 * 3600, kitchenTempC);
+  const bulkStart = new Date(
+    levainStart.getTime() + (levainAdjustedSecs + 45 * 60 + 15 * 60) * 1000,
+  );
+
+  const ovenStart = new Date(
+    targetReadyAt.getTime() - (45 * 60 + 20 * 60 + 22 * 60 + 60 * 60) * 1000,
+  );
+
+  const result: BakeTimelinePoints = {
+    levainStart,
+    bulkStart,
+    ovenStart,
+    breadReady: targetReadyAt,
+  };
+
+  if (!starterReady) {
+    const w = calculateFeedingWindow(targetReadyAt, kitchenTempC);
+    result.feedAt = new Date((w.feedStart.getTime() + w.feedEnd.getTime()) / 2);
+  }
+
+  return result;
+}
+
 /**
  * Given a target bread-ready time and kitchen temperature, returns the
  * optimal feeding window and peak window for the starter.

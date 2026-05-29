@@ -40,6 +40,9 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
     timerStartedAt: null,
     timerElapsedSeconds: 0,
     bakingMethod: "closed-vessel",
+    feedAt: null,
+    peakAt: null,
+    feedStagePassed: false,
     ...overrides,
   };
 }
@@ -119,31 +122,44 @@ describe("StageScreen — basic stage", () => {
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/2");
   });
 
-  it("does NOT show back button on stage 1", () => {
+  it("does NOT show back button on stage 1 when no feed stage was planned", () => {
     const stage = getStage(1)!;
     render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
     expect(
-      screen.queryByRole("button", { name: /חזרה לשלב הקודם/ })
+      screen.queryByRole("button", { name: /^חזרה$/ })
     ).not.toBeInTheDocument();
+  });
+
+  it("shows back button on stage 1 when bake had a feed stage, navigates to /bake/feed", () => {
+    const stage = getStage(1)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(1, { feedAt: Date.now() - 3600000, peakAt: Date.now() + 3600000 })}
+        api={makeApi()}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^חזרה$/ }));
+    expect(routerMock.push).toHaveBeenCalledWith("/bake/feed");
   });
 
   it("shows back button on stage 2+ and it returns to previous stage", () => {
     const stage = getStage(3)!;
     const api = makeApi();
     render(<StageScreen stage={stage} activeBake={makeBake(3)} api={api} />);
-    fireEvent.click(screen.getByRole("button", { name: /חזרה לשלב הקודם/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^חזרה$/ }));
     expect(api.advanceTo).toHaveBeenCalledWith(2);
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/2");
   });
 });
 
 describe("StageScreen — bulk (stage 4) sub-step flow", () => {
-  it("primary always shows 'הבא — עיצוב ראשוני' (folds are optional)", () => {
+  it("primary always shows 'הבא' (folds are optional)", () => {
     const stage = getStage(4)!;
     render(
       <StageScreen stage={stage} activeBake={makeBake(4, { subStep: 0 })} api={makeApi()} />
     );
-    expect(screen.getByRole("button", { name: /הבא — עיצוב ראשוני/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^הבא$/ })).toBeInTheDocument();
   });
 
   it("in-page 'סיימתי קיפול' button advances subStep without leaving the stage", () => {
@@ -171,7 +187,7 @@ describe("StageScreen — bulk (stage 4) sub-step flow", () => {
     render(
       <StageScreen stage={stage} activeBake={makeBake(4, { subStep: 0 })} api={api} />
     );
-    fireEvent.click(screen.getByRole("button", { name: /הבא — עיצוב ראשוני/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^הבא$/ }));
     expect(api.advanceTo).toHaveBeenCalledWith(5);
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/5");
   });
@@ -340,7 +356,7 @@ describe("StageScreen — timer stage", () => {
     const stage = getStage(7)!;
     const api = makeApi();
     render(<StageScreen stage={stage} activeBake={makeBake(7)} api={api} />);
-    const nextBtn = screen.getByRole("button", { name: /הבא —/ });
+    const nextBtn = screen.getByRole("button", { name: /^הבא$/ });
     expect(nextBtn).not.toBeDisabled();
     fireEvent.click(nextBtn);
     expect(api.advanceTo).toHaveBeenCalledWith(8);

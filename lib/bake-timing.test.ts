@@ -6,6 +6,7 @@ import {
   bakeDurationSecs,
   calculateMinReadyAt,
   calculateFeedingWindow,
+  calculateBakeTimeline,
 } from "./bake-timing";
 
 describe("adjustDurationSeconds", () => {
@@ -142,5 +143,44 @@ describe("calculateFeedingWindow", () => {
     const warm = calculateFeedingWindow(targetReady, 30);
     // Warmer → starter peaks faster → feed window is later (closer to target)
     expect(warm.feedStart.getTime()).toBeGreaterThan(cold.feedStart.getTime());
+  });
+});
+
+describe("calculateBakeTimeline", () => {
+  const targetReady = new Date("2025-01-12T14:00:00Z");
+  const temp = 25;
+
+  it("does not include feedAt when starterReady=true", () => {
+    const tl = calculateBakeTimeline(targetReady, temp, true);
+    expect(tl.feedAt).toBeUndefined();
+  });
+
+  it("includes feedAt when starterReady=false", () => {
+    const tl = calculateBakeTimeline(targetReady, temp, false);
+    expect(tl.feedAt).toBeInstanceOf(Date);
+  });
+
+  it("feedAt is the midpoint of the feeding window", () => {
+    const tl = calculateBakeTimeline(targetReady, temp, false);
+    const w = calculateFeedingWindow(targetReady, temp);
+    const expectedMid = (w.feedStart.getTime() + w.feedEnd.getTime()) / 2;
+    expect(tl.feedAt!.getTime()).toBe(expectedMid);
+  });
+
+  it("breadReady equals targetReadyAt", () => {
+    const tl = calculateBakeTimeline(targetReady, temp, true);
+    expect(tl.breadReady.getTime()).toBe(targetReady.getTime());
+  });
+
+  it("ordering: levainStart < bulkStart < ovenStart < breadReady", () => {
+    const tl = calculateBakeTimeline(targetReady, temp, true);
+    expect(tl.levainStart.getTime()).toBeLessThan(tl.bulkStart.getTime());
+    expect(tl.bulkStart.getTime()).toBeLessThan(tl.ovenStart.getTime());
+    expect(tl.ovenStart.getTime()).toBeLessThan(tl.breadReady.getTime());
+  });
+
+  it("feedAt < levainStart when starter not ready", () => {
+    const tl = calculateBakeTimeline(targetReady, temp, false);
+    expect(tl.feedAt!.getTime()).toBeLessThan(tl.levainStart.getTime());
   });
 });
