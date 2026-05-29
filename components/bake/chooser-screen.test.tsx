@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, beforeAll } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ChooserScreen } from "./chooser-screen";
 import { saveRecipe } from "@/lib/storage/recipes";
-import { loadActiveBake, saveActiveBake } from "@/lib/storage/active-bake";
+import { saveActiveBake } from "@/lib/storage/active-bake";
+import { loadPendingRecipe } from "@/lib/storage/pending-plan";
 import { PRESETS } from "@/lib/presets";
 import { routerMock } from "../../vitest.setup";
 
@@ -28,22 +29,22 @@ beforeAll(() => {
   }
 });
 
-/** Tap a recipe card to open the scheduler sheet, then click "התחל בייק". */
-async function tapCardAndConfirm(cardName: string) {
+/** Tap a recipe card (press + release). */
+function tapCard(cardName: string) {
   const btn = screen.getByRole("button", { name: cardName });
   fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
   fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
-  fireEvent.click(await screen.findByRole("button", { name: "התחל בייק" }));
 }
 
 describe("ChooserScreen", () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     routerMock.push.mockClear();
     routerMock.back.mockClear();
   });
 
-  // ── Chooser step ─────────────────────────────────────────────────────────
+  // ── Chooser rendering ──────────────────────────────────────────────────────
 
   it("renders the page title + recipe section heading immediately", () => {
     render(<ChooserScreen />);
@@ -71,81 +72,35 @@ describe("ChooserScreen", () => {
     expect(screen.getAllByText("שלי")).toHaveLength(1);
   });
 
-  it("user recipe count grows with the gallery", async () => {
+  // ── Navigation to planner ────────────────────────────────────────────────
+
+  it("tapping a preset stashes the recipe and navigates to /bake/plan", async () => {
+    render(<ChooserScreen />);
+    const country = PRESETS[0]!;
+    tapCard(country.name);
+
+    await waitFor(() => {
+      expect(routerMock.push).toHaveBeenCalledWith("/bake/plan");
+    });
+    expect(loadPendingRecipe()?.name).toBe(country.name);
+  });
+
+  it("tapping a user recipe stashes that recipe", async () => {
     saveRecipe(sampleRecipeInput);
-    saveRecipe({ ...sampleRecipeInput, name: "אחר" });
     render(<ChooserScreen />);
-    expect(await screen.findByText("שיפון מותאם")).toBeInTheDocument();
-    expect(screen.getByText("אחר")).toBeInTheDocument();
-  });
-
-  it("tapping a preset opens the scheduler sheet (does NOT navigate yet)", async () => {
-    render(<ChooserScreen />);
-    const country = PRESETS[0]!;
-    const btn = screen.getByRole("button", { name: country.name });
-    fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
-    fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
-
-    expect(await screen.findByText("תכנון הבייק")).toBeInTheDocument();
-    expect(routerMock.push).not.toHaveBeenCalled();
-  });
-
-  it("confirming the sheet starts an active bake and navigates", async () => {
-    render(<ChooserScreen />);
-    const country = PRESETS[0]!;
-    await tapCardAndConfirm(country.name);
+    const card = await screen.findByText("שיפון מותאם");
+    fireEvent.pointerDown(card, { clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(card, { clientX: 0, clientY: 0 });
 
     await waitFor(() => {
-      expect(loadActiveBake()?.recipe.name).toBe(country.name);
+      expect(routerMock.push).toHaveBeenCalledWith("/bake/plan");
     });
-    expect(routerMock.push).toHaveBeenCalledWith(
-      expect.stringMatching(/^\/bake\/(stage\/1|feed)$/),
-    );
+    expect(loadPendingRecipe()?.name).toBe("שיפון מותאם");
   });
 
-  it("the scheduler sheet renders the BakingMethodSelector with closed-vessel as default", async () => {
-    render(<ChooserScreen />);
-    const country = PRESETS[0]!;
-    const btn = screen.getByRole("button", { name: country.name });
-    fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
-    fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+  // ── Replace-active-bake flow ───────────────────────────────────────────────
 
-    await screen.findByText("תכנון הבייק");
-    expect(screen.getByText("באיזה כלי תאפה?")).toBeInTheDocument();
-    const methodGroup = screen.getByRole("radiogroup", { name: "באיזה כלי תאפה?" });
-    const methodRadios = Array.from(methodGroup.querySelectorAll('[role="radio"]'));
-    expect(methodRadios).toHaveLength(3);
-    const checked = methodRadios.find((r) => r.getAttribute("aria-checked") === "true");
-    expect(checked).toHaveTextContent("סיר/כלי סגור");
-  });
-
-  it("default bake start writes bakingMethod='closed-vessel' to the active bake", async () => {
-    render(<ChooserScreen />);
-    const country = PRESETS[0]!;
-    await tapCardAndConfirm(country.name);
-
-    await waitFor(() => {
-      expect(loadActiveBake()?.bakingMethod).toBe("closed-vessel");
-    });
-  });
-
-  it("picking a different method in the sheet persists it on the active bake", async () => {
-    render(<ChooserScreen />);
-    const country = PRESETS[0]!;
-    const btn = screen.getByRole("button", { name: country.name });
-    fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
-    fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
-
-    await screen.findByText("תכנון הבייק");
-    fireEvent.click(screen.getByText("אפייה פתוחה + תבנית אדים"));
-    fireEvent.click(screen.getByRole("button", { name: "התחל בייק" }));
-
-    await waitFor(() => {
-      expect(loadActiveBake()?.bakingMethod).toBe("open-with-steam");
-    });
-  });
-
-  it("tapping a card with an existing active bake opens the abandon dialog", async () => {
+  it("tapping a card with an existing active bake opens the abandon dialog (no nav)", async () => {
     const seededRecipe = saveRecipe(sampleRecipeInput);
     saveActiveBake({
       id: "existing",
@@ -167,10 +122,7 @@ describe("ChooserScreen", () => {
     await waitFor(() => {
       expect(screen.getByText(PRESETS[0]!.name)).toBeInTheDocument();
     });
-    const country = PRESETS[0]!;
-    const btn = screen.getByRole("button", { name: country.name });
-    fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
-    fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+    tapCard(PRESETS[0]!.name);
 
     expect(routerMock.push).not.toHaveBeenCalled();
     expect(await screen.findByText("להחליף בייק?")).toBeInTheDocument();
@@ -178,7 +130,7 @@ describe("ChooserScreen", () => {
     expect(dialog?.textContent).toContain("שיפון מותאם");
   });
 
-  it("confirming abandon shows scheduler sheet, then starting navigates", async () => {
+  it("confirming abandon stashes the new recipe and navigates to /bake/plan", async () => {
     const seededRecipe = saveRecipe(sampleRecipeInput);
     saveActiveBake({
       id: "existing",
@@ -202,19 +154,13 @@ describe("ChooserScreen", () => {
       expect(screen.getByText(country.name)).toBeInTheDocument();
     });
 
-    fireEvent.pointerDown(screen.getByRole("button", { name: country.name }), { clientX: 0, clientY: 0 });
-    fireEvent.pointerUp(screen.getByRole("button", { name: country.name }), { clientX: 0, clientY: 0 });
+    tapCard(country.name);
     fireEvent.click(await screen.findByRole("button", { name: "כן, להחליף" }));
 
-    await screen.findByText("תכנון הבייק");
-    fireEvent.click(screen.getByRole("button", { name: "התחל בייק" }));
-
     await waitFor(() => {
-      expect(loadActiveBake()?.recipe.name).toBe(country.name);
+      expect(routerMock.push).toHaveBeenCalledWith("/bake/plan");
     });
-    expect(routerMock.push).toHaveBeenCalledWith(
-      expect.stringMatching(/^\/bake\/(stage\/1|feed)$/),
-    );
+    expect(loadPendingRecipe()?.name).toBe(country.name);
   });
 
   it("cancelling abandon keeps the existing bake and does NOT navigate", async () => {
@@ -241,11 +187,10 @@ describe("ChooserScreen", () => {
       expect(screen.getByText(country.name)).toBeInTheDocument();
     });
 
-    fireEvent.pointerDown(screen.getByRole("button", { name: country.name }), { clientX: 0, clientY: 0 });
-    fireEvent.pointerUp(screen.getByRole("button", { name: country.name }), { clientX: 0, clientY: 0 });
+    tapCard(country.name);
     fireEvent.click(await screen.findByRole("button", { name: "ביטול" }));
 
-    expect(loadActiveBake()?.id).toBe("existing");
     expect(routerMock.push).not.toHaveBeenCalled();
+    expect(loadPendingRecipe()).toBeNull();
   });
 });
