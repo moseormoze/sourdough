@@ -1,6 +1,11 @@
 import { cn } from "@/lib/cn";
 import { startOfDay } from "@/lib/hooks/use-date-time-picker";
-import { durationLabel, type BakeStep, type BakeStepKey } from "@/lib/bake-timing";
+import {
+  durationLabel,
+  durationRangeLabel,
+  type BakeStep,
+  type BakeStepKey,
+} from "@/lib/bake-timing";
 import { strings } from "@/lib/strings";
 
 // ---------------------------------------------------------------------------
@@ -19,10 +24,8 @@ const TIME_FMT = new Intl.DateTimeFormat("he-IL", {
   hour12: false,
 });
 
-// The step whose trailing wait is the overnight cold retard — drawn dashed + 🌙.
-const NIGHT_STEP: BakeStepKey = "shapeRetard";
-// Steps whose wait text is the (temp-adjusted) duration rather than fixed copy.
-const DURATION_WAIT_KEYS = new Set<BakeStepKey>(["levain", "bulk"]);
+// The cold-retard step — drawn dashed + 🌙 (it's the part that spans the night).
+const NIGHT_STEP: BakeStepKey = "retard";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -43,8 +46,11 @@ function waitText(step: BakeStep): string {
   const meta = strings.bakeScheduler.timelineSteps[step.key];
   const fixed = "desc" in meta ? meta.desc : undefined;
 
-  if (step.key === "levain") return durationLabel(step.durationSecs);
-  if (step.key === "bulk") return `${durationLabel(step.durationSecs)} · ${fixed}`;
+  // Biology-driven steps show an honest range; the retard shows its exact set value.
+  if (step.key === "levain") return durationRangeLabel(step.durationSecs);
+  if (step.key === "feed" || step.key === "bulk")
+    return `${durationRangeLabel(step.durationSecs)} · ${fixed}`;
+  if (step.key === "retard") return durationLabel(step.durationSecs);
   return fixed ?? "";
 }
 
@@ -53,12 +59,21 @@ function waitText(step: BakeStep): string {
 // Nodes are the actions you take; the line between them is the waiting.
 // ---------------------------------------------------------------------------
 
+export interface EditableRetard {
+  hours: number;
+  min: number;
+  max: number;
+  onChange: (hours: number) => void;
+}
+
 export interface BakeTimelineProps {
   steps: BakeStep[];
   now: Date;
+  /** When provided, the retard row shows an inline slider to tune its length. */
+  editableRetard?: EditableRetard;
 }
 
-export function BakeTimeline({ steps, now }: BakeTimelineProps) {
+export function BakeTimeline({ steps, now, editableRetard }: BakeTimelineProps) {
   const s = strings.bakeScheduler;
 
   return (
@@ -128,6 +143,29 @@ export function BakeTimeline({ steps, now }: BakeTimelineProps) {
                     {isNight && <span className="me-1">🌙</span>}
                     {wait}
                   </p>
+                )}
+
+                {step.key === "retard" && editableRetard && (
+                  <div className="mt-2.5">
+                    <input
+                      type="range"
+                      min={editableRetard.min}
+                      max={editableRetard.max}
+                      step={1}
+                      value={editableRetard.hours}
+                      onChange={(e) => editableRetard.onChange(Number(e.target.value))}
+                      aria-label={s.retardSliderLabel}
+                      className="w-full accent-accent"
+                    />
+                    <div className="flex justify-between text-tiny text-ink-3">
+                      <span>
+                        <span dir="ltr" className="num">{editableRetard.min}</span> שעות
+                      </span>
+                      <span>
+                        <span dir="ltr" className="num">{editableRetard.max}</span> שעות
+                      </span>
+                    </div>
+                  </div>
                 )}
               </div>
             </li>

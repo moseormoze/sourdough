@@ -3,12 +3,14 @@ import {
   adjustDurationSeconds,
   tempAdjustedDurationLabel,
   durationLabel,
+  durationRangeLabel,
   BASE_TEMP_C,
   bakeDurationSecs,
   calculateMinReadyAt,
   calculateFeedingWindow,
   calculateBakeSteps,
   COOL_RECOMMENDATION_SECS,
+  earliestReadyAt,
 } from "./bake-timing";
 
 describe("adjustDurationSeconds", () => {
@@ -224,6 +226,59 @@ describe("calculateBakeSteps", () => {
     const levain = byKey(steps, "levain")!;
     expect(targetReady.getTime() - levain.startAt.getTime()).toBe(
       bakeDurationSecs(temp) * 1000,
+    );
+  });
+
+  it("has a distinct editable 'retard' step defaulting to 12h", () => {
+    const steps = calculateBakeSteps(targetReady, temp, true);
+    const retard = byKey(steps, "retard")!;
+    expect(retard).toBeDefined();
+    expect(retard.durationSecs).toBe(12 * 3600);
+  });
+
+  it("a longer retard pushes levain earlier and lengthens the total", () => {
+    const base = calculateBakeSteps(targetReady, temp, true, 12 * 3600);
+    const longer = calculateBakeSteps(targetReady, temp, true, 24 * 3600);
+    const baseLevain = base.find((s) => s.key === "levain")!;
+    const longLevain = longer.find((s) => s.key === "levain")!;
+    // ready time is fixed, so a 12h-longer retard moves the start 12h earlier
+    expect(baseLevain.startAt.getTime() - longLevain.startAt.getTime()).toBe(
+      12 * 3600 * 1000,
+    );
+    expect(longer.find((s) => s.key === "retard")!.durationSecs).toBe(24 * 3600);
+  });
+
+  it("bakeDurationSecs grows with a longer retard", () => {
+    expect(bakeDurationSecs(temp, 24 * 3600)).toBe(
+      bakeDurationSecs(temp, 12 * 3600) + 12 * 3600,
+    );
+  });
+});
+
+describe("durationRangeLabel", () => {
+  it("brackets the estimate at the top of the range", () => {
+    expect(durationRangeLabel(9 * 3600)).toBe("בין 7 ל-9 שעות");
+    expect(durationRangeLabel(4 * 3600)).toBe("בין 3 ל-4 שעות");
+  });
+});
+
+describe("earliestReadyAt", () => {
+  const now = new Date("2025-01-10T15:00:00");
+
+  it("is bakeDurationSecs ahead of now when the starter is ready", () => {
+    const e = earliestReadyAt(25, now, true, 12 * 3600);
+    expect(e.getTime() - now.getTime()).toBe(bakeDurationSecs(25, 12 * 3600) * 1000);
+  });
+
+  it("is further ahead when the starter isn't ready (adds the peak)", () => {
+    expect(earliestReadyAt(25, now, false).getTime()).toBeGreaterThan(
+      earliestReadyAt(25, now, true).getTime(),
+    );
+  });
+
+  it("is further ahead with a longer retard", () => {
+    expect(earliestReadyAt(25, now, true, 24 * 3600).getTime()).toBeGreaterThan(
+      earliestReadyAt(25, now, true, 12 * 3600).getTime(),
     );
   });
 });
