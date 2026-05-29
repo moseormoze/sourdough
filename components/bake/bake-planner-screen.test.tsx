@@ -9,7 +9,7 @@ const s = strings.bakeScheduler;
 const baseRecipe: Recipe = {
   id: "test-recipe-1",
   name: "לחם כפרי",
-  flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+  flour: { white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
   hydration: 75,
   salt: 2,
   levain: 20,

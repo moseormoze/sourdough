@@ -45,6 +45,8 @@ function formValuesToInput(values: RecipeFormValues, recipeId?: string): RecipeI
       white: values.flour.white === "" ? 0 : values.flour.white,
       wholeWheat: values.flour.wholeWheat === "" ? 0 : values.flour.wholeWheat,
       rye: values.flour.rye === "" ? 0 : values.flour.rye,
+      speltWhite: values.flour.speltWhite === "" ? 0 : values.flour.speltWhite,
+      speltWhole: values.flour.speltWhole === "" ? 0 : values.flour.speltWhole,
       other: values.flour.other === "" ? 0 : values.flour.other,
     },
     hydration: values.hydration === "" ? 0 : values.hydration,

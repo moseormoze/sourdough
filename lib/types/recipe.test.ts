@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { RecipeSchema, RecipeInputSchema } from "./recipe";
+import { RecipeSchema, RecipeInputSchema, FlourSchema } from "./recipe";
 
 const baseRecipe = {
   id: "r1",
@@ -85,5 +85,48 @@ describe("RecipeInputSchema — flourWeightGrams", () => {
     expect(() =>
       RecipeInputSchema.parse({ ...baseInput, flourWeightGrams: 50 })
     ).toThrow();
+  });
+});
+
+describe("FlourSchema — spelt fields + migration", () => {
+  it("parses a legacy flour ({white,wholeWheat,rye,other:0}) with spelt defaulting to 0", () => {
+    const parsed = FlourSchema.parse({ white: 100, wholeWheat: 0, rye: 0, other: 0 });
+    expect(parsed.speltWhite).toBe(0);
+    expect(parsed.speltWhole).toBe(0);
+  });
+
+  it("parses a legacy flour with no spelt and no other keys, defaulting both to 0", () => {
+    const parsed = FlourSchema.parse({ white: 100, wholeWheat: 0, rye: 0 });
+    expect(parsed.speltWhite).toBe(0);
+    expect(parsed.speltWhole).toBe(0);
+    expect(parsed.other).toBe(0);
+  });
+
+  it("accepts a new flour using spelt fields that sums to 100", () => {
+    const parsed = FlourSchema.parse({
+      white: 50,
+      wholeWheat: 0,
+      rye: 0,
+      speltWhite: 0,
+      speltWhole: 50,
+    });
+    expect(parsed.speltWhole).toBe(50);
+  });
+
+  it("rejects when the five fields (+other) do not sum to 100", () => {
+    expect(() =>
+      FlourSchema.parse({ white: 50, wholeWheat: 0, rye: 0, speltWhite: 0, speltWhole: 40 })
+    ).toThrow();
+  });
+
+  it("sums all five fields plus other toward 100", () => {
+    const parsed = FlourSchema.parse({
+      white: 20,
+      wholeWheat: 20,
+      rye: 20,
+      speltWhite: 20,
+      speltWhole: 20,
+    });
+    expect(parsed.white).toBe(20);
   });
 });

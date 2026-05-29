@@ -16,6 +16,8 @@ export interface RecipeFormValues {
     white: number | "";
     wholeWheat: number | "";
     rye: number | "";
+    speltWhite: number | "";
+    speltWhole: number | "";
     other: number | "";
   };
   flourWeightGrams: number | "";
@@ -40,7 +42,7 @@ export interface RecipeFormErrors {
 export function emptyRecipeFormValues(): RecipeFormValues {
   return {
     name: "",
-    flour: { white: "", wholeWheat: "", rye: "", other: "" },
+    flour: { white: "", wholeWheat: "", rye: "", speltWhite: "", speltWhole: "", other: "" },
     flourWeightGrams: 500,
     hydration: "",
     salt: "",
@@ -52,7 +54,14 @@ export function emptyRecipeFormValues(): RecipeFormValues {
 
 export function flourTotal(flour: RecipeFormValues["flour"]): number {
   const v = (x: number | "") => (typeof x === "number" ? x : 0);
-  return v(flour.white) + v(flour.wholeWheat) + v(flour.rye) + v(flour.other);
+  return (
+    v(flour.white) +
+    v(flour.wholeWheat) +
+    v(flour.rye) +
+    v(flour.speltWhite) +
+    v(flour.speltWhole) +
+    v(flour.other)
+  );
 }
 
 function checkRange(

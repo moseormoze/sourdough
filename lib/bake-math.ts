@@ -2,8 +2,13 @@ import type { Flour, Recipe } from "./types/recipe";
 
 export type FlourType = keyof Flour;
 
+/** Flour types shown in the levain/mix breakdown. Excludes the legacy `other`
+ * bucket (never authored, always 0) — its label was retired with spelt. */
+const FLOUR_TYPES_ORDER = ["white", "wholeWheat", "rye", "speltWhite", "speltWhole"] as const;
+export type DisplayFlourType = (typeof FLOUR_TYPES_ORDER)[number];
+
 export interface FlourBreakdownEntry {
-  type: FlourType;
+  type: DisplayFlourType;
   grams: number;
 }
 
@@ -27,7 +32,6 @@ export interface BakeQuantities {
 }
 
 const SALT_RESERVE_WATER_GRAMS = 20;
-const FLOUR_TYPES_ORDER: FlourType[] = ["white", "wholeWheat", "rye", "other"];
 
 function breakdownByBlend(totalGrams: number, blend: Flour): FlourBreakdownEntry[] {
   const entries = FLOUR_TYPES_ORDER.map((type) => ({

@@ -20,7 +20,18 @@ export function recommendFor(flour: Flour): Recommendation {
   const white = num(flour.white);
   const wholeWheat = num(flour.wholeWheat);
   const rye = num(flour.rye);
+  const speltWhite = num(flour.speltWhite);
+  const speltWhole = num(flour.speltWhole);
 
+  // Spelt rules come first so a 50/50 white+spelt blend is caught here and not
+  // swallowed by the white >= 50 rule below. Whole spelt absorbs fast but holds
+  // poorly → lower hydration than whole wheat; low levain tames its quick ferment.
+  if (speltWhole >= 30) {
+    return { hydration: 76, salt: 2.2, levain: 18 };
+  }
+  if (speltWhite >= 50) {
+    return { hydration: 73, salt: 2.0, levain: 18 };
+  }
   if (white >= 80) {
     return { hydration: 72, salt: 2.0, levain: 20 };
   }

@@ -8,7 +8,7 @@ import type { RecipeFormValues } from "@/lib/validate-recipe";
 
 const validValues: RecipeFormValues = {
   name: "כפרי",
-  flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+  flour: { white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
   flourWeightGrams: 500,
   hydration: 75,
   salt: 2,
@@ -133,7 +133,7 @@ describe("RecipeFormScreen", () => {
   it("save in edit mode updates the existing recipe", () => {
     const created = saveRecipe({
       name: "ישן",
-      flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+      flour: { white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
       hydration: 75,
       salt: 2,
       levain: 20,
@@ -192,7 +192,7 @@ describe("RecipeFormScreen", () => {
   it("delete flow: button opens dialog → confirm removes recipe + navigates", () => {
     const created = saveRecipe({
       name: "ישן",
-      flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+      flour: { white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
       hydration: 75,
       salt: 2,
       levain: 20,

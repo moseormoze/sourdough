@@ -8,7 +8,7 @@ import {
 
 const valid = () => ({
   name: "כפרי",
-  flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+  flour: { white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
   flourWeightGrams: 500,
   hydration: 75,
   salt: 2,
@@ -31,7 +31,7 @@ describe("validateRecipe", () => {
   it("flags flour sum < 100 with current total in message", () => {
     const errors = validateRecipe({
       ...valid(),
-      flour: { white: 70, wholeWheat: 20, rye: 0, other: 0 },
+      flour: { white: 70, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
     });
     expect(errors.flour).toContain("90");
   });
@@ -39,7 +39,7 @@ describe("validateRecipe", () => {
   it("flags flour sum > 100", () => {
     const errors = validateRecipe({
       ...valid(),
-      flour: { white: 80, wholeWheat: 20, rye: 20, other: 0 },
+      flour: { white: 80, wholeWheat: 20, rye: 20, speltWhite: 0, speltWhole: 0, other: 0 },
     });
     expect(errors.flour).toBeTruthy();
   });
@@ -88,9 +88,15 @@ describe("validateRecipe", () => {
     expect(empty.name).toBe("");
   });
 
-  it("flourTotal sums the four flour fields, treating '' as 0", () => {
-    expect(flourTotal({ white: 80, wholeWheat: 20, rye: 0, other: 0 })).toBe(100);
-    expect(flourTotal({ white: "", wholeWheat: 20, rye: 0, other: 0 })).toBe(20);
-    expect(flourTotal({ white: 50, wholeWheat: 50, rye: 50, other: "" })).toBe(150);
+  it("flourTotal sums all five flour fields (+other), treating '' as 0", () => {
+    expect(
+      flourTotal({ white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 })
+    ).toBe(100);
+    expect(
+      flourTotal({ white: "", wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 })
+    ).toBe(20);
+    expect(
+      flourTotal({ white: 50, wholeWheat: 0, rye: 0, speltWhite: 30, speltWhole: 20, other: "" })
+    ).toBe(100);
   });
 });

@@ -3,19 +3,42 @@ import { PRESETS, getPreset } from "./presets";
 import { RecipeInputSchema } from "@/lib/types/recipe";
 
 describe("presets", () => {
-  it("ships exactly 6 built-in presets", () => {
-    expect(PRESETS).toHaveLength(6);
+  it("ships exactly 7 built-in presets", () => {
+    expect(PRESETS).toHaveLength(7);
   });
 
   it("includes all expected preset ids", () => {
     const ids = PRESETS.map((p) => p.id).sort();
-    expect(ids).toEqual(["beginner", "country", "rye50", "wheat70", "white", "whole100"]);
+    expect(ids).toEqual([
+      "country",
+      "country-rye",
+      "rye50",
+      "spelt-white",
+      "spelt50",
+      "wheat70",
+      "white",
+    ]);
+  });
+
+  it("no longer ships the retired 'whole100' preset", () => {
+    expect(getPreset("whole100")).toBeNull();
+    expect(PRESETS.some((p) => p.id === "whole100")).toBe(false);
+  });
+
+  it("keeps 'country' first (tests index PRESETS[0])", () => {
+    expect(PRESETS[0]?.id).toBe("country");
   });
 
   it("every preset has flour percentages summing to 100", () => {
     for (const p of PRESETS) {
+      const f = p.data.flour;
       const total =
-        p.data.flour.white + p.data.flour.wholeWheat + p.data.flour.rye + p.data.flour.other;
+        f.white +
+        f.wholeWheat +
+        f.rye +
+        (f.speltWhite ?? 0) +
+        (f.speltWhole ?? 0) +
+        (f.other ?? 0);
       expect(total, `preset ${p.id}`).toBeCloseTo(100, 2);
     }
   });
