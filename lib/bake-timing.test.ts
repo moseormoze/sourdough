@@ -2,11 +2,13 @@ import { describe, it, expect } from "vitest";
 import {
   adjustDurationSeconds,
   tempAdjustedDurationLabel,
+  durationLabel,
   BASE_TEMP_C,
   bakeDurationSecs,
   calculateMinReadyAt,
   calculateFeedingWindow,
-  calculateBakeTimeline,
+  calculateBakeSteps,
+  COOL_RECOMMENDATION_SECS,
 } from "./bake-timing";
 
 describe("adjustDurationSeconds", () => {
@@ -68,11 +70,19 @@ describe("tempAdjustedDurationLabel", () => {
 });
 
 describe("bakeDurationSecs", () => {
-  it("returns roughly 29–30h at 25°C", () => {
+  it("returns roughly 27–30h at 25°C (cooling excluded)", () => {
     const secs = bakeDurationSecs(25);
     const hours = secs / 3600;
-    expect(hours).toBeGreaterThan(28);
-    expect(hours).toBeLessThan(31);
+    expect(hours).toBeGreaterThan(27);
+    expect(hours).toBeLessThan(30);
+  });
+
+  it("excludes the cooling recommendation from the headline duration", () => {
+    // Cooling must not be baked into the active duration.
+    const secs = bakeDurationSecs(BASE_TEMP_C);
+    // Sum of stages at base temp: 10h + 1h + 4h + 12h35m + 45m + 42m = 29h02m
+    expect(secs).toBe((10 + 1 + 4) * 3600 + (12 * 3600 + 35 * 60) + 45 * 60 + 42 * 60);
+    expect(COOL_RECOMMENDATION_SECS).toBe(3600);
   });
 
   it("returns more seconds in a cooler kitchen", () => {
@@ -146,41 +156,74 @@ describe("calculateFeedingWindow", () => {
   });
 });
 
-describe("calculateBakeTimeline", () => {
+describe("durationLabel", () => {
+  it("formats multi-hour durations in hours", () => {
+    expect(durationLabel(9 * 3600)).toBe("כ-9 שעות");
+  });
+
+  it("formats sub-hour durations in minutes", () => {
+    expect(durationLabel(45 * 60)).toBe("כ-45 דקות");
+  });
+});
+
+describe("calculateBakeSteps", () => {
   const targetReady = new Date("2025-01-12T14:00:00Z");
   const temp = 25;
 
-  it("does not include feedAt when starterReady=true", () => {
-    const tl = calculateBakeTimeline(targetReady, temp, true);
-    expect(tl.feedAt).toBeUndefined();
+  function byKey(steps: ReturnType<typeof calculateBakeSteps>, key: string) {
+    return steps.find((s) => s.key === key);
+  }
+
+  it("omits the feed step when starterReady=true", () => {
+    const steps = calculateBakeSteps(targetReady, temp, true);
+    expect(byKey(steps, "feed")).toBeUndefined();
   });
 
-  it("includes feedAt when starterReady=false", () => {
-    const tl = calculateBakeTimeline(targetReady, temp, false);
-    expect(tl.feedAt).toBeInstanceOf(Date);
+  it("includes the feed step when starterReady=false", () => {
+    const steps = calculateBakeSteps(targetReady, temp, false);
+    expect(byKey(steps, "feed")).toBeDefined();
   });
 
-  it("feedAt is the midpoint of the feeding window", () => {
-    const tl = calculateBakeTimeline(targetReady, temp, false);
-    const w = calculateFeedingWindow(targetReady, temp);
-    const expectedMid = (w.feedStart.getTime() + w.feedEnd.getTime()) / 2;
-    expect(tl.feedAt!.getTime()).toBe(expectedMid);
+  it("ends with a zero-duration 'ready' step at the target time", () => {
+    const steps = calculateBakeSteps(targetReady, temp, true);
+    const ready = steps[steps.length - 1]!;
+    expect(ready.key).toBe("ready");
+    expect(ready.durationSecs).toBe(0);
+    expect(ready.startAt.getTime()).toBe(targetReady.getTime());
   });
 
-  it("breadReady equals targetReadyAt", () => {
-    const tl = calculateBakeTimeline(targetReady, temp, true);
-    expect(tl.breadReady.getTime()).toBe(targetReady.getTime());
+  it("separates preheat, bake, and ready into distinct steps", () => {
+    const steps = calculateBakeSteps(targetReady, temp, true);
+    expect(byKey(steps, "preheat")).toBeDefined();
+    expect(byKey(steps, "bake")).toBeDefined();
+    expect(byKey(steps, "ready")).toBeDefined();
+    expect(byKey(steps, "preheat")!.durationSecs).toBe(45 * 60);
+    expect(byKey(steps, "bake")!.durationSecs).toBe(42 * 60);
   });
 
-  it("ordering: levainStart < bulkStart < ovenStart < breadReady", () => {
-    const tl = calculateBakeTimeline(targetReady, temp, true);
-    expect(tl.levainStart.getTime()).toBeLessThan(tl.bulkStart.getTime());
-    expect(tl.bulkStart.getTime()).toBeLessThan(tl.ovenStart.getTime());
-    expect(tl.ovenStart.getTime()).toBeLessThan(tl.breadReady.getTime());
+  it("steps are contiguous: each step starts when the previous ends", () => {
+    const steps = calculateBakeSteps(targetReady, temp, true);
+    for (let i = 1; i < steps.length; i++) {
+      const prev = steps[i - 1]!;
+      const expectedStart = prev.startAt.getTime() + prev.durationSecs * 1000;
+      expect(steps[i]!.startAt.getTime()).toBe(expectedStart);
+    }
   });
 
-  it("feedAt < levainStart when starter not ready", () => {
-    const tl = calculateBakeTimeline(targetReady, temp, false);
-    expect(tl.feedAt!.getTime()).toBeLessThan(tl.levainStart.getTime());
+  it("the feed step ends exactly at levain start", () => {
+    const steps = calculateBakeSteps(targetReady, temp, false);
+    const feed = byKey(steps, "feed")!;
+    const levain = byKey(steps, "levain")!;
+    expect(feed.startAt.getTime() + feed.durationSecs * 1000).toBe(
+      levain.startAt.getTime(),
+    );
+  });
+
+  it("levain starts bakeDurationSecs before the target", () => {
+    const steps = calculateBakeSteps(targetReady, temp, true);
+    const levain = byKey(steps, "levain")!;
+    expect(targetReady.getTime() - levain.startAt.getTime()).toBe(
+      bakeDurationSecs(temp) * 1000,
+    );
   });
 });

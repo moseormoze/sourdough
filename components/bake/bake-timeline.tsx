@@ -1,5 +1,5 @@
 import { startOfDay } from "@/lib/hooks/use-date-time-picker";
-import type { BakeTimelinePoints } from "@/lib/bake-timing";
+import { durationLabel, type BakeStep, type BakeStepKey } from "@/lib/bake-timing";
 import { strings } from "@/lib/strings";
 
 // ---------------------------------------------------------------------------
@@ -32,32 +32,53 @@ export function dayPrefix(d: Date, now: Date): string {
   return DAY_FMT.format(d);
 }
 
+/** Steps whose description is the (temp-adjusted) duration rather than fixed copy. */
+const DURATION_DESC_KEYS = new Set<BakeStepKey>(["levain"]);
+
+function stepDescription(step: BakeStep): string {
+  const meta = strings.bakeScheduler.timelineSteps[step.key];
+  const fixedDesc = "desc" in meta ? meta.desc : undefined;
+
+  if (DURATION_DESC_KEYS.has(step.key)) {
+    return durationLabel(step.durationSecs);
+  }
+  if (step.key === "bulk") {
+    return `${durationLabel(step.durationSecs)} · ${fixedDesc}`;
+  }
+  return fixedDesc ?? "";
+}
+
 // ---------------------------------------------------------------------------
 // TimelineRow
 // ---------------------------------------------------------------------------
 
 interface TimelineRowProps {
-  label: string;
-  date: Date;
+  step: BakeStep;
   now: Date;
-  accent?: boolean;
 }
 
-function TimelineRow({ label, date, now, accent = false }: TimelineRowProps) {
+function TimelineRow({ step, now }: TimelineRowProps) {
+  const meta = strings.bakeScheduler.timelineSteps[step.key];
+  const isReady = step.key === "ready";
+  const desc = stepDescription(step);
+
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-start gap-3">
       <div className="flex-1 min-w-0">
-        <p className={`text-body-sm ${accent ? "text-accent font-medium" : "text-ink-2"}`}>
-          {label}
+        <p className={`text-body-sm font-medium ${isReady ? "text-accent" : "text-ink"}`}>
+          {meta.label}
+          {isReady && <span className="ms-1">✓</span>}
         </p>
-        <p className="text-body-sm text-ink-3">{dayPrefix(date, now)}</p>
+        {desc && <p className="text-tiny text-ink-3 mt-0.5">{desc}</p>}
       </div>
-      <p className={`text-label font-semibold shrink-0 ${accent ? "text-accent" : "text-ink"}`}>
-        <span dir="ltr" className="num">
-          {TIME_FMT.format(date)}
-        </span>
-        {accent && <span className="ms-1">✓</span>}
-      </p>
+      <div className="shrink-0 text-end">
+        <p className="text-tiny text-ink-3">{dayPrefix(step.startAt, now)}</p>
+        <p className={`text-label font-semibold ${isReady ? "text-accent" : "text-ink"}`}>
+          <span dir="ltr" className="num">
+            {TIME_FMT.format(step.startAt)}
+          </span>
+        </p>
+      </div>
     </div>
   );
 }
@@ -67,32 +88,34 @@ function TimelineRow({ label, date, now, accent = false }: TimelineRowProps) {
 // ---------------------------------------------------------------------------
 
 export interface BakeTimelineProps {
-  points: BakeTimelinePoints;
+  steps: BakeStep[];
   now: Date;
 }
 
-export function BakeTimeline({ points, now }: BakeTimelineProps) {
+export function BakeTimeline({ steps, now }: BakeTimelineProps) {
   const s = strings.bakeScheduler;
 
   return (
-    <div
-      role="region"
-      aria-label="תוכנית הבייק"
-      className="flex flex-col gap-3"
-    >
-      {points.feedAt && (
-        <TimelineRow label={s.timelineFeedLabel} date={points.feedAt} now={now} />
-      )}
-      <TimelineRow label={s.timelineLevainLabel} date={points.levainStart} now={now} />
-      <TimelineRow label={s.timelineBulkLabel} date={points.bulkStart} now={now} />
-      <TimelineRow label={s.timelineOvenLabel} date={points.ovenStart} now={now} />
-      <div className="h-px bg-line" />
-      <TimelineRow
-        label={s.timelineDoneLabel}
-        date={points.breadReady}
-        now={now}
-        accent
-      />
+    <div role="region" aria-label={s.timelineTitle} className="flex flex-col gap-4">
+      {steps.map((step, i) => {
+        const next = steps[i + 1];
+        return (
+          <div key={step.key} className="flex flex-col gap-4">
+            <TimelineRow step={step} now={now} />
+            {next && (
+              <div
+                className={`h-px ${next.key === "ready" ? "bg-line" : "bg-line/60"}`}
+                aria-hidden
+              />
+            )}
+          </div>
+        );
+      })}
+
+      {/* Cooling — a recommendation after the loaf is out, not part of "ready" */}
+      <div className="rounded-xl bg-bg-2 px-3 py-2.5 mt-1">
+        <p className="text-tiny text-ink-2 leading-relaxed">💡 {s.coolingTip}</p>
+      </div>
     </div>
   );
 }

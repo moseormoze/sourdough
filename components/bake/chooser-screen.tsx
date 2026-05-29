@@ -5,13 +5,12 @@ import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChooserCard } from "./chooser-card";
-import { BakeSchedulerSheet } from "./bake-scheduler-sheet";
 import { ReplaceBakeDialog } from "./replace-bake-dialog";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
+import { savePendingRecipe } from "@/lib/storage/pending-plan";
 import { PRESETS, type Preset } from "@/lib/presets";
 import { listRecipes } from "@/lib/storage/recipes";
 import type { Recipe } from "@/lib/types/recipe";
-import type { BakingMethod } from "@/lib/types/baking-method";
 import { strings } from "@/lib/strings";
 
 function presetToRecipe(preset: Preset): Recipe {
@@ -46,20 +45,19 @@ function summarizeForCard(recipe: { flour: Recipe["flour"]; hydration: number })
 
 export function ChooserScreen() {
   const router = useRouter();
-  const { activeBake, loading: bakeLoading, start, abandon } = useActiveBake();
+  const { activeBake, loading: bakeLoading, abandon } = useActiveBake();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipesLoaded, setRecipesLoaded] = useState(false);
   const [pendingRecipe, setPendingRecipe] = useState<Recipe | null>(null);
-  const [confirmingRecipe, setConfirmingRecipe] = useState<Recipe | null>(null);
 
   useEffect(() => {
     setRecipes(listRecipes());
     setRecipesLoaded(true);
   }, []);
 
-  function beginBake(recipe: Recipe, bakingMethod: BakingMethod, feedAt?: Date, peakAt?: Date) {
-    start(recipe, bakingMethod, feedAt, peakAt);
-    router.push(feedAt ? "/bake/feed" : "/bake/stage/1");
+  function goToPlanner(recipe: Recipe) {
+    savePendingRecipe(recipe);
+    router.push("/bake/plan");
   }
 
   function handleSelect(recipe: Recipe) {
@@ -67,13 +65,13 @@ export function ChooserScreen() {
       setPendingRecipe(recipe);
       return;
     }
-    setConfirmingRecipe(recipe);
+    goToPlanner(recipe);
   }
 
   function handleConfirmAbandon() {
     if (!pendingRecipe) return;
     abandon();
-    setConfirmingRecipe(pendingRecipe);
+    goToPlanner(pendingRecipe);
     setPendingRecipe(null);
   }
 
@@ -126,21 +124,6 @@ export function ChooserScreen() {
         onConfirm={handleConfirmAbandon}
         onCancel={handleCancelAbandon}
       />
-
-      {confirmingRecipe && (
-        <BakeSchedulerSheet
-          recipe={confirmingRecipe}
-          imageUrl={
-            confirmingRecipe.id.startsWith("preset:")
-              ? PRESETS.find((p) => p.id === confirmingRecipe.id.split(":")[1])?.image
-              : undefined
-          }
-          onConfirm={(recipe, method, feedAt, peakAt) => {
-            beginBake(recipe, method, feedAt, peakAt);
-          }}
-          onClose={() => setConfirmingRecipe(null)}
-        />
-      )}
 
       {bakeLoading && null}
     </main>

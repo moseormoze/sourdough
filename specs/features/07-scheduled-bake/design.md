@@ -143,3 +143,30 @@ BakeSchedulerSheet נפתח (bottom sheet, spring entrance §4)
 ## Open Questions
 
 _ריק לפני Tech Lead phase._
+
+---
+
+## Iteration v2 — אחרי QA על ה-sheet (2026-05-29)
+
+ביקורת UX של המשתמש על ה-bottom sheet הובילה לארבעה שינויים. שלושה מומשו; הרביעי (גמישות זמנים) נפתח כ-Discovery נפרד.
+
+### 1. Container: bottom sheet → מסך מלא
+ה-sheet רץ ב-92dvh עם 5 סקשנים — חרג מהתבנית (`design-system`: sheet = peek 56% / full 88% לתשובה מהירה או העמקה אחת). הוחלף ב**מסך מלא** עם route ייעודי.
+
+- **חדש**: `app/bake/plan/page.tsx` — route; קורא recipe מ-`pending-plan` (sessionStorage), בורא bake ב-confirm, מנווט ל-`/bake/feed` או `/bake/stage/1`; אם אין pending recipe → redirect ל-`/bake/new`.
+- **חדש**: `lib/storage/pending-plan.ts` — handoff חולף (sessionStorage) של ה-`Recipe` הנבחר מה-chooser למסך התכנון. Zod-validated.
+- **חדש**: `BakePlannerScreen` — מחליף את `BakeSchedulerSheet` (נמחק). props: `recipe`, `imageUrl?`, `onConfirm(recipe, method, feedAt?, peakAt?)`, `onBack`. sticky footer CTA.
+- **שונה**: `chooser-screen.tsx` — `handleSelect` שומר pending recipe + `router.push("/bake/plan")` במקום לרנדר sheet inline. זרימת "החלף בייק" נשארת ב-chooser.
+
+### 2. שדה טמפרטורה → שאלה + hint עונתי
+"טמפ׳ מטבח" → **"מה הטמפרטורה בחלל?"** + hint: "חורף 20–24° · קיץ 24–27°".
+
+### 3. ציר זמן: תהליך מלא inline + הפרדת אפייה + צינון מחוץ ליעד
+- **כותרת סקשן**: "ציר הזמן של הבייק" + "מתי להתחיל כל שלב".
+- ה-timeline מציג עכשיו את **כל השלבים** inline (לא 4 שורות בלבד) — כל שלב עם המשך. חימום התנור (+כלי), הכנסת הבצק, ולחם מוכן הם **שורות נפרדות**.
+- **צינון יצא מ"לחם מוכן"**: "לחם מוכן" = יציאה מהתנור. הצינון (~שעה) הוא טיפ נגרר, לא חלק מזמן היעד.
+- **מנוע** (`lib/bake-timing.ts`): הוסר `calculateBakeTimeline`/`BakeTimelinePoints`. נוסף `calculateBakeSteps(target, temp, starterReady): BakeStep[]` — רשימת שלבים מסודרת (`feed?`, `levain`, `mix`, `bulk`, `shapeRetard`, `preheat`, `bake`, `ready`) עם `startAt` + `durationSecs`. `bakeDurationSecs` כבר לא כולל צינון. נוסף `COOL_RECOMMENDATION_SECS` + `durationLabel`.
+- **`BakeTimeline`** נבנה מחדש: props `steps: BakeStep[]`, `now: Date`. שורה לכל שלב + טיפ צינון.
+
+### 4. גמישות זמנים בעולם האמיתי — Discovery נפרד
+המשתמש העלה שלעיתים שלבים נופלים באמצע הלילה ושיש גמישות טבעית בזמנים. נפתח כ-Discovery doc נפרד (לא מומש כאן).

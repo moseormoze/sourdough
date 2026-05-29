@@ -27,6 +27,9 @@ function seedActive(recipe: Recipe) {
       timerStartedAt: null,
       timerElapsedSeconds: 0,
       bakingMethod: "closed-vessel",
+      feedAt: null,
+      peakAt: null,
+      feedStagePassed: false,
   });
 }
 

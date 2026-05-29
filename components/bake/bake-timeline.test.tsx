@@ -1,30 +1,22 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
-import { BakeTimeline } from "./bake-timeline";
-import { dayPrefix } from "./bake-timeline";
+import { BakeTimeline, dayPrefix } from "./bake-timeline";
 import { strings } from "@/lib/strings";
-import type { BakeTimelinePoints } from "@/lib/bake-timing";
+import { calculateBakeSteps } from "@/lib/bake-timing";
 
 const s = strings.bakeScheduler;
 
 // Fixed reference: 2026-06-01T10:00:00 local
 const now = new Date("2026-06-01T10:00:00");
 
-const today14h  = new Date("2026-06-01T14:00:00");
+const today14h = new Date("2026-06-01T14:00:00");
 const tomorrow9h = new Date("2026-06-02T09:00:00");
 const dayAfter8h = new Date("2026-06-03T08:00:00");
 
-const basePoints: BakeTimelinePoints = {
-  levainStart: today14h,
-  bulkStart:   new Date("2026-06-02T00:00:00"),
-  ovenStart:   new Date("2026-06-02T07:00:00"),
-  breadReady:  tomorrow9h,
-};
-
-const pointsWithFeed: BakeTimelinePoints = {
-  ...basePoints,
-  feedAt: new Date("2026-06-01T12:00:00"),
-};
+// A realistic target ~40h out so the schedule spans multiple days.
+const target = new Date("2026-06-03T18:00:00");
+const stepsReady = calculateBakeSteps(target, 25, true);
+const stepsNotReady = calculateBakeSteps(target, 25, false);
 
 // ---------------------------------------------------------------------------
 // dayPrefix helper
@@ -49,37 +41,37 @@ describe("dayPrefix", () => {
 // ---------------------------------------------------------------------------
 
 describe("BakeTimeline", () => {
-  it('always renders "לחם מוכן"', () => {
-    render(<BakeTimeline points={basePoints} now={now} />);
-    expect(screen.getByText(s.timelineDoneLabel)).toBeInTheDocument();
+  it("renders the final ready label", () => {
+    render(<BakeTimeline steps={stepsReady} now={now} />);
+    expect(screen.getByText(s.timelineSteps.ready.label)).toBeInTheDocument();
   });
 
-  it('always renders "שאור" and "תסיסה" and "אפייה"', () => {
-    render(<BakeTimeline points={basePoints} now={now} />);
-    expect(screen.getByText(s.timelineLevainLabel)).toBeInTheDocument();
-    expect(screen.getByText(s.timelineBulkLabel)).toBeInTheDocument();
-    expect(screen.getByText(s.timelineOvenLabel)).toBeInTheDocument();
+  it("renders levain, bulk, and the separated preheat + bake-in rows", () => {
+    render(<BakeTimeline steps={stepsReady} now={now} />);
+    expect(screen.getByText(s.timelineSteps.levain.label)).toBeInTheDocument();
+    expect(screen.getByText(s.timelineSteps.bulk.label)).toBeInTheDocument();
+    expect(screen.getByText(s.timelineSteps.preheat.label)).toBeInTheDocument();
+    expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument();
   });
 
-  it('renders "האכלה" row when feedAt is provided', () => {
-    render(<BakeTimeline points={pointsWithFeed} now={now} />);
-    expect(screen.getByText(s.timelineFeedLabel)).toBeInTheDocument();
+  it("renders the feed row when the feed step is present", () => {
+    render(<BakeTimeline steps={stepsNotReady} now={now} />);
+    expect(screen.getByText(s.timelineSteps.feed.label)).toBeInTheDocument();
   });
 
-  it('does NOT render "האכלה" row when feedAt is undefined', () => {
-    render(<BakeTimeline points={basePoints} now={now} />);
-    expect(screen.queryByText(s.timelineFeedLabel)).not.toBeInTheDocument();
+  it("does NOT render the feed row when starter is ready", () => {
+    render(<BakeTimeline steps={stepsReady} now={now} />);
+    expect(screen.queryByText(s.timelineSteps.feed.label)).not.toBeInTheDocument();
   });
 
-  it('shows "היום" for a date on the same calendar day', () => {
-    render(<BakeTimeline points={basePoints} now={now} />);
-    const hits = screen.getAllByText("היום");
-    expect(hits.length).toBeGreaterThan(0);
+  it("always shows the cooling recommendation as a trailing tip", () => {
+    render(<BakeTimeline steps={stepsReady} now={now} />);
+    expect(screen.getByText(new RegExp(s.coolingTip))).toBeInTheDocument();
   });
 
-  it('shows "מחר" for a date on the next calendar day', () => {
-    render(<BakeTimeline points={basePoints} now={now} />);
-    const hits = screen.getAllByText("מחר");
-    expect(hits.length).toBeGreaterThan(0);
+  it("shows the levain step's duration as its description", () => {
+    render(<BakeTimeline steps={stepsReady} now={now} />);
+    // levain ~9h at 25°C
+    expect(screen.getByText("כ-9 שעות")).toBeInTheDocument();
   });
 });
