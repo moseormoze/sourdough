@@ -195,7 +195,7 @@ export const strings = {
       levain: { label: "בניית השאור" },
       mix: { label: "ערבוב", desc: "אוטוליזה + לישה" },
       bulk: { label: "תסיסה ראשונית", desc: "כולל קיפולים" },
-      shapeRetard: { label: "עיצוב + התפחה בקירור", desc: "עיצוב, ואז ~12 שעות בקירור (לילה)" },
+      shapeRetard: { label: "עיצוב הבצק", desc: "~12 שעות בקירור (לילה)" },
       preheat: { label: "חימום התנור והכלי", desc: "כ-45 דקות" },
       bake: { label: "הכנסת הבצק לתנור", desc: "מכוסה 20 דק׳ + חשוף 22 דק׳" },
       ready: { label: "הלחם מוכן" },
