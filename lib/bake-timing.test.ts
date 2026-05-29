@@ -12,7 +12,20 @@ import {
   COOL_RECOMMENDATION_SECS,
   earliestReadyAt,
   starterPeakSecs,
+  flourFactor,
+  RETARD_DEFAULT_SECS,
 } from "./bake-timing";
+import type { Flour } from "@/lib/types/recipe";
+
+const blend = (f: Partial<Flour>): Flour => ({
+  white: 0,
+  wholeWheat: 0,
+  rye: 0,
+  speltWhite: 0,
+  speltWhole: 0,
+  other: 0,
+  ...f,
+});
 
 describe("adjustDurationSeconds", () => {
   it("returns base unchanged at BASE_TEMP_C", () => {
@@ -278,6 +291,59 @@ describe("stage kinds (engine invariant for flour-awareness)", () => {
     // Calibrated at 25°C, so at 25°C it equals the base 9h exactly —
     // distinct from the fermentation stages' 24°C reference.
     expect(starterPeakSecs(25)).toBe(9 * 3600);
+  });
+});
+
+describe("flourFactor (flour-aware fermentation, T2)", () => {
+  it("is 1.0 for 100% white", () => {
+    expect(flourFactor(blend({ white: 100 }))).toBe(1);
+  });
+
+  it("matches the locked science table", () => {
+    expect(flourFactor(blend({ wholeWheat: 100 }))).toBeCloseTo(0.82, 5);
+    expect(flourFactor(blend({ white: 70, rye: 30 }))).toBeCloseTo(0.925, 5);
+    expect(flourFactor(blend({ white: 60, speltWhite: 40 }))).toBeCloseTo(0.98, 5);
+  });
+
+  it("caps the shortening at 20% even for 100% rye", () => {
+    expect(flourFactor(blend({ rye: 100 }))).toBeCloseTo(0.8, 5);
+    expect(flourFactor(blend({ rye: 100 }))).toBeGreaterThanOrEqual(0.8);
+  });
+});
+
+describe("flour-aware durations (T2)", () => {
+  const temp = 25;
+  const dur = (steps: ReturnType<typeof calculateBakeSteps>, key: string) =>
+    steps.find((s) => s.key === key)!.durationSecs;
+  const target = new Date("2025-01-12T14:00:00");
+
+  it("rye/whole shortens levain + bulk vs white, at the same temp", () => {
+    const white = calculateBakeSteps(target, temp, true, RETARD_DEFAULT_SECS, blend({ white: 100 }));
+    const rye = calculateBakeSteps(target, temp, true, RETARD_DEFAULT_SECS, blend({ white: 50, rye: 50 }));
+    expect(dur(rye, "levain")).toBeLessThan(dur(white, "levain"));
+    expect(dur(rye, "bulk")).toBeLessThan(dur(white, "bulk"));
+  });
+
+  it("does NOT change fixed stages", () => {
+    const white = calculateBakeSteps(target, temp, true, RETARD_DEFAULT_SECS, blend({ white: 100 }));
+    const rye = calculateBakeSteps(target, temp, true, RETARD_DEFAULT_SECS, blend({ rye: 100 }));
+    for (const k of ["mix", "shape", "retard", "preheat", "bake"]) {
+      expect(dur(rye, k)).toBe(dur(white, k));
+    }
+  });
+
+  it("does NOT change the starter peak (recipe flour off the starter axis)", () => {
+    // starterPeakSecs takes no flour at all — the feed step's wait is flour-independent.
+    const ryeNotReady = calculateBakeSteps(target, temp, false, RETARD_DEFAULT_SECS, blend({ rye: 100 }));
+    const whiteNotReady = calculateBakeSteps(target, temp, false, RETARD_DEFAULT_SECS, blend({ white: 100 }));
+    expect(dur(ryeNotReady, "feed")).toBe(dur(whiteNotReady, "feed"));
+  });
+
+  it("regression: omitting flour equals 100% white (backward compatible)", () => {
+    const noFlour = calculateBakeSteps(target, temp, true, RETARD_DEFAULT_SECS);
+    const white = calculateBakeSteps(target, temp, true, RETARD_DEFAULT_SECS, blend({ white: 100 }));
+    expect(dur(noFlour, "levain")).toBe(dur(white, "levain"));
+    expect(dur(noFlour, "bulk")).toBe(dur(white, "bulk"));
   });
 });
 

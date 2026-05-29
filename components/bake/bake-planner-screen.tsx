@@ -82,8 +82,8 @@ export function BakePlannerScreen({
   // The picker floor uses the default retard so a freshly-picked time always fits;
   // stretching the retard beyond that is handled by graceful overflow below.
   const minReadyAt = useMemo(
-    () => earliestReadyAt(kitchenTemp, now, starterReady, RETARD_DEFAULT_SECS),
-    [kitchenTemp, now, starterReady],
+    () => earliestReadyAt(kitchenTemp, now, starterReady, RETARD_DEFAULT_SECS, recipe.flour),
+    [kitchenTemp, now, starterReady, recipe.flour],
   );
 
   const {
@@ -108,16 +108,16 @@ export function BakePlannerScreen({
   // the future; once a longer retard would push the start before now, the
   // out-of-oven time slides later instead.
   const effectiveReadyAt = useMemo(() => {
-    const floorForRetard = earliestReadyAt(kitchenTemp, now, starterReady, retardSecs);
+    const floorForRetard = earliestReadyAt(kitchenTemp, now, starterReady, retardSecs, recipe.flour);
     return new Date(Math.max(targetAt.getTime(), floorForRetard.getTime()));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetAt.getTime(), kitchenTemp, now, starterReady, retardSecs]);
+  }, [targetAt.getTime(), kitchenTemp, now, starterReady, retardSecs, recipe.flour]);
 
   const pushedLater = effectiveReadyAt.getTime() > targetAt.getTime() + 60_000;
 
   const steps = useMemo(
-    () => calculateBakeSteps(effectiveReadyAt, kitchenTemp, starterReady, retardSecs),
-    [effectiveReadyAt, kitchenTemp, starterReady, retardSecs],
+    () => calculateBakeSteps(effectiveReadyAt, kitchenTemp, starterReady, retardSecs, recipe.flour),
+    [effectiveReadyAt, kitchenTemp, starterReady, retardSecs, recipe.flour],
   );
 
   const minDateLabel = TIME_FMT.format(minReadyAt) + " " + DAY_FMT.format(minReadyAt);

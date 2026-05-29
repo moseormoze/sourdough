@@ -1,3 +1,5 @@
+import type { Flour } from "@/lib/types/recipe";
+
 // Q10 fermentation rule: every 10°C doubles/halves fermentation speed.
 // Calibrated at BASE_TEMP_C; stages store their base duration at that temp.
 export const BASE_TEMP_C = 24;
@@ -43,10 +45,11 @@ interface StageDef {
   kind: StageKind;
 }
 
-/** Inputs that drive stage durations. Flour is added (optional, neutral) in T2. */
+/** Inputs that drive stage durations. `flour` is optional → neutral when absent. */
 export interface FermentationParams {
   kitchenTempC: number;
   retardSecs: number;
+  flour?: Flour;
 }
 
 interface Modifier {
@@ -59,7 +62,37 @@ const Q10_MODIFIER: Modifier = {
   factor: (p) => Math.pow(2, (BASE_TEMP_C - p.kitchenTempC) / 10),
 };
 
-const MODIFIERS: readonly Modifier[] = [Q10_MODIFIER];
+// How much faster 100% of each flour ferments vs white. Whole grains/rye carry
+// more enzymes, microbes and bran, so they ripen sooner. Weighted by the blend,
+// the total shortening is capped (see flourFactor) to stay safe.
+const FLOUR_SHORTENING: Record<keyof Flour, number> = {
+  white: 0,
+  speltWhite: 0.05,
+  wholeWheat: 0.18,
+  speltWhole: 0.18,
+  rye: 0.25,
+  other: 0,
+};
+const MAX_FLOUR_SHORTENING = 0.2;
+
+/**
+ * Fermentation-speed multiplier from the recipe's flour blend: 1.0 for white,
+ * down to 0.80 for very high rye/whole. Capped so even 100% rye only shaves 20%.
+ */
+export function flourFactor(flour: Flour): number {
+  const weighted = (Object.keys(FLOUR_SHORTENING) as (keyof Flour)[]).reduce(
+    (sum, k) => sum + ((flour[k] ?? 0) / 100) * FLOUR_SHORTENING[k],
+    0,
+  );
+  return 1 - Math.min(MAX_FLOUR_SHORTENING, weighted);
+}
+
+const FLOUR_MODIFIER: Modifier = {
+  appliesTo: ["fermentation"], // recipe flour never touches the starter axis
+  factor: (p) => (p.flour ? flourFactor(p.flour) : 1.0),
+};
+
+const MODIFIERS: readonly Modifier[] = [Q10_MODIFIER, FLOUR_MODIFIER];
 
 // The cold retard is the schedule's shock absorber: the baker can stretch or
 // shrink it to fit the bake around their life, within these bounds.
@@ -101,8 +134,9 @@ function stageSecs(def: StageDef, p: FermentationParams): number {
 export function bakeDurationSecs(
   kitchenTempC: number,
   retardSecs: number = RETARD_DEFAULT_SECS,
+  flour?: Flour,
 ): number {
-  const p: FermentationParams = { kitchenTempC, retardSecs };
+  const p: FermentationParams = { kitchenTempC, retardSecs, flour };
   return SEQUENCE.reduce((sum, def) => sum + stageSecs(def, p), 0);
 }
 
@@ -111,9 +145,10 @@ function levainStartFor(
   targetReadyAt: Date,
   kitchenTempC: number,
   retardSecs: number,
+  flour?: Flour,
 ): Date {
   return new Date(
-    targetReadyAt.getTime() - bakeDurationSecs(kitchenTempC, retardSecs) * 1000,
+    targetReadyAt.getTime() - bakeDurationSecs(kitchenTempC, retardSecs, flour) * 1000,
   );
 }
 
@@ -148,10 +183,12 @@ export function calculateMinReadyAt(
   kitchenTempC: number,
   now: Date = new Date(),
   retardSecs: number = RETARD_DEFAULT_SECS,
+  flour?: Flour,
 ): Date {
   return new Date(
     now.getTime() +
-      (starterPeakSecs(kitchenTempC) + bakeDurationSecs(kitchenTempC, retardSecs)) * 1000,
+      (starterPeakSecs(kitchenTempC) + bakeDurationSecs(kitchenTempC, retardSecs, flour)) *
+        1000,
   );
 }
 
@@ -184,14 +221,15 @@ export function calculateBakeSteps(
   kitchenTempC: number,
   starterReady: boolean,
   retardSecs: number = RETARD_DEFAULT_SECS,
+  flour?: Flour,
 ): BakeStep[] {
-  const levainStart = levainStartFor(targetReadyAt, kitchenTempC, retardSecs);
-  const p: FermentationParams = { kitchenTempC, retardSecs };
+  const levainStart = levainStartFor(targetReadyAt, kitchenTempC, retardSecs, flour);
+  const p: FermentationParams = { kitchenTempC, retardSecs, flour };
 
   const steps: BakeStep[] = [];
 
   if (!starterReady) {
-    const w = calculateFeedingWindow(targetReadyAt, kitchenTempC, retardSecs);
+    const w = calculateFeedingWindow(targetReadyAt, kitchenTempC, retardSecs, flour);
     const feedAt = new Date((w.feedStart.getTime() + w.feedEnd.getTime()) / 2);
     steps.push({
       key: "feed",
@@ -231,8 +269,9 @@ export function calculateFeedingWindow(
   targetReadyAt: Date,
   kitchenTempC: number,
   retardSecs: number = RETARD_DEFAULT_SECS,
+  flour?: Flour,
 ): FeedingWindow {
-  const levainStart = levainStartFor(targetReadyAt, kitchenTempC, retardSecs);
+  const levainStart = levainStartFor(targetReadyAt, kitchenTempC, retardSecs, flour);
   const peakSecs = starterPeakSecs(kitchenTempC);
 
   const peakStart = new Date(levainStart.getTime() - WINDOW_SECS * 1000);
@@ -252,9 +291,10 @@ export function earliestReadyAt(
   now: Date,
   starterReady: boolean,
   retardSecs: number = RETARD_DEFAULT_SECS,
+  flour?: Flour,
 ): Date {
   const lead = starterReady ? 0 : starterPeakSecs(kitchenTempC);
   return new Date(
-    now.getTime() + (lead + bakeDurationSecs(kitchenTempC, retardSecs)) * 1000,
+    now.getTime() + (lead + bakeDurationSecs(kitchenTempC, retardSecs, flour)) * 1000,
   );
 }
