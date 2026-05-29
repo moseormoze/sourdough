@@ -15,7 +15,7 @@ describe("PresetGalleryScreen", () => {
     expect(screen.getByRole("heading", { name: "מאיפה להתחיל?" })).toBeInTheDocument();
   });
 
-  it("renders all 6 preset cards", () => {
+  it("renders all 7 preset cards", () => {
     render(<PresetGalleryScreen />);
     for (const p of PRESETS) {
       expect(screen.getByText(p.name)).toBeInTheDocument();

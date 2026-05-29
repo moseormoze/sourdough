@@ -6,7 +6,7 @@ function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
   return {
     id: "r",
     name: "כפרי",
-    flour: { white: 100, wholeWheat: 0, rye: 0, other: 0 },
+    flour: { white: 100, wholeWheat: 0, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
     flourWeightGrams: 500,
     hydration: 75,
     salt: 2,
@@ -153,7 +153,7 @@ describe("computeBakeQuantities — mix flourBreakdown", () => {
   it("80% white + 20% wholeWheat → two entries summing to mixFlour", () => {
     const q = computeBakeQuantities(
       makeRecipe({
-        flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+        flour: { white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
       })
     );
     const breakdown = q.mixAdditions.flourBreakdown;
@@ -167,7 +167,7 @@ describe("computeBakeQuantities — mix flourBreakdown", () => {
   it("zero-percent flour types are omitted from breakdown", () => {
     const q = computeBakeQuantities(
       makeRecipe({
-        flour: { white: 50, wholeWheat: 0, rye: 50, other: 0 },
+        flour: { white: 50, wholeWheat: 0, rye: 50, speltWhite: 0, speltWhole: 0, other: 0 },
       })
     );
     const types = q.mixAdditions.flourBreakdown.map((e) => e.type);
@@ -177,7 +177,7 @@ describe("computeBakeQuantities — mix flourBreakdown", () => {
   it("three-way blend: rounding drift goes to the largest entry", () => {
     const q = computeBakeQuantities(
       makeRecipe({
-        flour: { white: 33, wholeWheat: 33, rye: 34, other: 0 },
+        flour: { white: 33, wholeWheat: 33, rye: 34, speltWhite: 0, speltWhole: 0, other: 0 },
         flourWeightGrams: 1000,
       })
     );
@@ -190,7 +190,7 @@ describe("computeBakeQuantities — mix flourBreakdown", () => {
   it("all entries are integers", () => {
     const q = computeBakeQuantities(
       makeRecipe({
-        flour: { white: 60, wholeWheat: 30, rye: 10, other: 0 },
+        flour: { white: 60, wholeWheat: 30, rye: 10, speltWhite: 0, speltWhole: 0, other: 0 },
       })
     );
     q.mixAdditions.flourBreakdown.forEach((e) => {
@@ -201,7 +201,7 @@ describe("computeBakeQuantities — mix flourBreakdown", () => {
   it("levainBuild.flourBreakdown follows the recipe blend proportionally", () => {
     const q = computeBakeQuantities(
       makeRecipe({
-        flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+        flour: { white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
       })
     );
     const breakdown = q.levainBuild.flourBreakdown;

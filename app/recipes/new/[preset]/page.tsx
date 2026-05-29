@@ -21,7 +21,14 @@ export default async function Page({ params, searchParams }: PageProps) {
     if (!found) notFound();
     initialValues = {
       name: found.name,
-      flour: { ...found.data.flour },
+      flour: {
+        white: found.data.flour.white,
+        wholeWheat: found.data.flour.wholeWheat,
+        rye: found.data.flour.rye,
+        speltWhite: found.data.flour.speltWhite ?? 0,
+        speltWhole: found.data.flour.speltWhole ?? 0,
+        other: found.data.flour.other ?? 0,
+      },
       flourWeightGrams: found.data.flourWeightGrams ?? 500,
       hydration: found.data.hydration,
       salt: found.data.salt,

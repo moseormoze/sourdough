@@ -7,7 +7,7 @@ import type { Recipe } from "@/lib/types/recipe";
 const sample: Recipe = {
   id: "abc-123",
   name: "כפרי קלאסי",
-  flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+  flour: { white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
   hydration: 75,
   salt: 2,
   levain: 20,
@@ -23,7 +23,7 @@ describe("summarizeRecipe", () => {
     expect(
       summarizeRecipe({
         ...sample,
-        flour: { white: 100, wholeWheat: 0, rye: 0, other: 0 },
+        flour: { white: 100, wholeWheat: 0, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
         hydration: 72,
       })
     ).toBe("100% לבן · 72% הידרציה");
@@ -37,7 +37,7 @@ describe("summarizeRecipe", () => {
     expect(
       summarizeRecipe({
         ...sample,
-        flour: { white: 50, wholeWheat: 0, rye: 50, other: 0 },
+        flour: { white: 50, wholeWheat: 0, rye: 50, speltWhite: 0, speltWhole: 0, other: 0 },
         hydration: 78,
       })
     ).toBe("50% שיפון · 78% הידרציה");

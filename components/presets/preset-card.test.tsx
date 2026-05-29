@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { PresetCard } from "./preset-card";
-import { PRESETS } from "@/lib/presets";
+import { PRESETS, getPreset } from "@/lib/presets";
 
 const sample = PRESETS[0]!;
 
@@ -56,5 +56,13 @@ describe("PresetCard", () => {
     render(<PresetCard preset={sample} onSelect={onSelect} />);
     fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
     expect(onSelect).toHaveBeenCalledWith(sample);
+  });
+
+  it("flour summary names spelt for a spelt preset", () => {
+    const spelt = getPreset("spelt50")!;
+    render(<PresetCard preset={spelt} onSelect={() => {}} />);
+    // Summary line uniquely pairs the white part with the spelt part
+    // ("50% לבן · 50% כוסמין מלא"); the preset name alone is "50% כוסמין מלא".
+    expect(screen.getByText(/50% לבן · 50% כוסמין מלא/)).toBeInTheDocument();
   });
 });

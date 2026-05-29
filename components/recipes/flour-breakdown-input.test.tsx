@@ -2,15 +2,25 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { FlourBreakdownInput } from "./flour-breakdown-input";
 
-const empty = { white: "" as const, wholeWheat: "" as const, rye: "" as const, other: "" as const };
+const empty = {
+  white: "" as const,
+  wholeWheat: "" as const,
+  rye: "" as const,
+  speltWhite: "" as const,
+  speltWhole: "" as const,
+  other: "" as const,
+};
 
 describe("FlourBreakdownInput", () => {
-  it("renders 4 inputs labeled לבן/מלא/שיפון/אחר", () => {
+  it("renders exactly 5 named inputs (לבן/מלא/שיפון/כוסמין לבן/כוסמין מלא), no אחר", () => {
     render(<FlourBreakdownInput value={empty} onChange={() => {}} />);
     expect(screen.getByLabelText("לבן")).toBeInTheDocument();
     expect(screen.getByLabelText("מלא")).toBeInTheDocument();
     expect(screen.getByLabelText("שיפון")).toBeInTheDocument();
-    expect(screen.getByLabelText("אחר")).toBeInTheDocument();
+    expect(screen.getByLabelText("כוסמין לבן")).toBeInTheDocument();
+    expect(screen.getByLabelText("כוסמין מלא")).toBeInTheDocument();
+    expect(screen.queryByLabelText("אחר")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("spinbutton")).toHaveLength(5);
   });
 
   it("shows live sum 0% when all empty", () => {
@@ -19,10 +29,10 @@ describe("FlourBreakdownInput", () => {
     expect(screen.getByText("0%")).toBeInTheDocument();
   });
 
-  it("shows ✓ when sum exactly 100", () => {
+  it("counts spelt toward the sum and shows ✓ at 100", () => {
     render(
       <FlourBreakdownInput
-        value={{ white: 80, wholeWheat: 20, rye: 0, other: 0 }}
+        value={{ white: 50, wholeWheat: 0, rye: 0, speltWhite: 0, speltWhole: 50, other: "" }}
         onChange={() => {}}
       />
     );
@@ -30,10 +40,10 @@ describe("FlourBreakdownInput", () => {
     expect(screen.getByText("✓")).toBeInTheDocument();
   });
 
-  it("shows 'חסר' diff when sum < 100", () => {
+  it("shows 'חסר' diff when sum < 100 (spelt included)", () => {
     render(
       <FlourBreakdownInput
-        value={{ white: 60, wholeWheat: 20, rye: 0, other: 0 }}
+        value={{ white: 60, wholeWheat: 0, rye: 0, speltWhite: 20, speltWhole: 0, other: "" }}
         onChange={() => {}}
       />
     );
@@ -45,7 +55,7 @@ describe("FlourBreakdownInput", () => {
   it("shows 'עודף' diff when sum > 100", () => {
     render(
       <FlourBreakdownInput
-        value={{ white: 80, wholeWheat: 30, rye: 0, other: 0 }}
+        value={{ white: 80, wholeWheat: 0, rye: 0, speltWhite: 0, speltWhole: 30, other: "" }}
         onChange={() => {}}
       />
     );
@@ -54,11 +64,18 @@ describe("FlourBreakdownInput", () => {
     expect(screen.getByText("10%")).toBeInTheDocument();
   });
 
-  it("calls onChange when a field changes", () => {
+  it("calls onChange with the spelt key when a spelt field changes", () => {
     const onChange = vi.fn();
     render(<FlourBreakdownInput value={empty} onChange={onChange} />);
-    fireEvent.change(screen.getByLabelText("לבן"), { target: { value: "80" } });
-    expect(onChange).toHaveBeenCalledWith({ white: 80, wholeWheat: "", rye: "", other: "" });
+    fireEvent.change(screen.getByLabelText("כוסמין מלא"), { target: { value: "40" } });
+    expect(onChange).toHaveBeenCalledWith({
+      white: "",
+      wholeWheat: "",
+      rye: "",
+      speltWhite: "",
+      speltWhole: 40,
+      other: "",
+    });
   });
 
   it("shows error message when error prop is set", () => {

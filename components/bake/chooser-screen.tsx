@@ -18,7 +18,14 @@ function presetToRecipe(preset: Preset): Recipe {
   return {
     id: `preset:${preset.id}:${now}`,
     name: preset.name,
-    flour: { ...preset.data.flour },
+    flour: {
+      white: preset.data.flour.white,
+      wholeWheat: preset.data.flour.wholeWheat,
+      rye: preset.data.flour.rye,
+      speltWhite: preset.data.flour.speltWhite ?? 0,
+      speltWhole: preset.data.flour.speltWhole ?? 0,
+      other: preset.data.flour.other ?? 0,
+    },
     flourWeightGrams: preset.data.flourWeightGrams ?? 500,
     hydration: preset.data.hydration,
     salt: preset.data.salt,
@@ -30,15 +37,29 @@ function presetToRecipe(preset: Preset): Recipe {
   };
 }
 
-function summarizeForCard(recipe: { flour: Recipe["flour"]; hydration: number }): string {
-  const { flour } = recipe;
+type SummaryFlour = {
+  white: number;
+  wholeWheat: number;
+  rye: number;
+  speltWhite?: number;
+  speltWhole?: number;
+};
+
+function summarizeForCard(recipe: { flour: SummaryFlour; hydration: number }): string {
+  const { white, wholeWheat, rye } = recipe.flour;
+  const speltWhite = recipe.flour.speltWhite ?? 0;
+  const speltWhole = recipe.flour.speltWhole ?? 0;
   const parts: string[] = [];
-  if (flour.white >= 100) parts.push("100% לבן");
-  else if (flour.wholeWheat >= 100) parts.push("100% מלא");
-  else if (flour.rye >= 100) parts.push("100% שיפון");
-  else if (flour.wholeWheat > 0) parts.push(`${flour.wholeWheat}% מלא`);
-  else if (flour.rye > 0) parts.push(`${flour.rye}% שיפון`);
-  else if (flour.white > 0) parts.push(`${flour.white}% לבן`);
+  if (white >= 100) parts.push("100% לבן");
+  else if (wholeWheat >= 100) parts.push("100% מלא");
+  else if (rye >= 100) parts.push("100% שיפון");
+  else if (speltWhole >= 100) parts.push("100% כוסמין מלא");
+  else if (speltWhite >= 100) parts.push("100% כוסמין לבן");
+  else if (wholeWheat > 0) parts.push(`${wholeWheat}% מלא`);
+  else if (rye > 0) parts.push(`${rye}% שיפון`);
+  else if (speltWhole > 0) parts.push(`${speltWhole}% כוסמין מלא`);
+  else if (speltWhite > 0) parts.push(`${speltWhite}% כוסמין לבן`);
+  else if (white > 0) parts.push(`${white}% לבן`);
   parts.push(`${recipe.hydration}% הידרציה`);
   return parts.join(" · ");
 }
