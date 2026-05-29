@@ -11,6 +11,7 @@ import {
   calculateBakeSteps,
   COOL_RECOMMENDATION_SECS,
   earliestReadyAt,
+  starterPeakSecs,
 } from "./bake-timing";
 
 describe("adjustDurationSeconds", () => {
@@ -252,6 +253,31 @@ describe("calculateBakeSteps", () => {
     expect(bakeDurationSecs(temp, 24 * 3600)).toBe(
       bakeDurationSecs(temp, 12 * 3600) + 12 * 3600,
     );
+  });
+});
+
+describe("stage kinds (engine invariant for flour-awareness)", () => {
+  const target = new Date("2025-01-12T14:00:00");
+  const dur = (steps: ReturnType<typeof calculateBakeSteps>, key: string) =>
+    steps.find((s) => s.key === key)!.durationSecs;
+
+  it("fixed stages are temperature-independent; fermentation stages scale", () => {
+    const cold = calculateBakeSteps(target, 18, true);
+    const warm = calculateBakeSteps(target, 30, true);
+
+    // fixed stages: identical across temps
+    for (const k of ["mix", "shape", "retard", "preheat", "bake"]) {
+      expect(dur(cold, k)).toBe(dur(warm, k));
+    }
+    // fermentation stages: cooler kitchen = longer
+    expect(dur(cold, "levain")).toBeGreaterThan(dur(warm, "levain"));
+    expect(dur(cold, "bulk")).toBeGreaterThan(dur(warm, "bulk"));
+  });
+
+  it("the starter peak is its own axis (its own calibration, not BASE_TEMP_C)", () => {
+    // Calibrated at 25°C, so at 25°C it equals the base 9h exactly —
+    // distinct from the fermentation stages' 24°C reference.
+    expect(starterPeakSecs(25)).toBe(9 * 3600);
   });
 });
 
