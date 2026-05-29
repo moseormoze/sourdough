@@ -69,9 +69,23 @@ describe("BakeTimeline", () => {
     expect(screen.getByText(new RegExp(s.coolingTip))).toBeInTheDocument();
   });
 
-  it("shows the levain step's duration as its description", () => {
+  it("shows the levain step's duration as an honest range", () => {
     render(<BakeTimeline steps={stepsReady} now={now} />);
-    // levain ~9h at 25°C
-    expect(screen.getByText("כ-9 שעות")).toBeInTheDocument();
+    // levain ~9h at 25°C → "בין 7 ל-9 שעות"
+    expect(screen.getByText("בין 7 ל-9 שעות")).toBeInTheDocument();
+  });
+
+  it("renders the inline retard slider when editableRetard is provided", () => {
+    const onChange = () => {};
+    render(
+      <BakeTimeline
+        steps={stepsReady}
+        now={now}
+        editableRetard={{ hours: 12, min: 6, max: 72, onChange }}
+      />,
+    );
+    expect(
+      screen.getByRole("slider", { name: strings.bakeScheduler.retardSliderLabel }),
+    ).toHaveValue("12");
   });
 });

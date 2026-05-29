@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,11 @@ import {
   MAX_HOUR,
 } from "@/lib/hooks/use-date-time-picker";
 import {
-  bakeDurationSecs,
-  calculateMinReadyAt,
   calculateBakeSteps,
-  type BakeStep,
+  earliestReadyAt,
+  RETARD_DEFAULT_SECS,
+  RETARD_MIN_SECS,
+  RETARD_MAX_SECS,
 } from "@/lib/bake-timing";
 import { strings } from "@/lib/strings";
 import { DEFAULT_BAKING_METHOD, type BakingMethod } from "@/lib/types/baking-method";
@@ -73,15 +74,17 @@ export function BakePlannerScreen({
   const [starterReady, setStarterReady] = useState(true);
   const [temp, setTemp] = useState<number | "">(recipe.kitchenTemp);
   const [bakingMethod, setBakingMethod] = useState<BakingMethod>(DEFAULT_BAKING_METHOD);
+  const [retardHours, setRetardHours] = useState(RETARD_DEFAULT_SECS / 3600);
 
   const kitchenTemp = typeof temp === "number" ? temp : recipe.kitchenTemp;
+  const retardSecs = retardHours * 3600;
 
-  const minReadyAt = useMemo(() => {
-    if (starterReady) {
-      return new Date(now.getTime() + bakeDurationSecs(kitchenTemp) * 1000);
-    }
-    return calculateMinReadyAt(kitchenTemp, now);
-  }, [starterReady, kitchenTemp, now]);
+  // The picker floor uses the default retard so a freshly-picked time always fits;
+  // stretching the retard beyond that is handled by graceful overflow below.
+  const minReadyAt = useMemo(
+    () => earliestReadyAt(kitchenTemp, now, starterReady, RETARD_DEFAULT_SECS),
+    [kitchenTemp, now, starterReady],
+  );
 
   const {
     availableDays,
@@ -95,18 +98,34 @@ export function BakePlannerScreen({
     totalProcessHours,
   } = useDateTimePicker({ minReadyAt, now });
 
-  const steps = useMemo<BakeStep[] | null>(() => {
-    if (!isValid) return null;
-    return calculateBakeSteps(targetAt, kitchenTemp, starterReady);
+  // Reset to the earliest slot when the starter readiness (and thus the floor) changes.
+  useEffect(() => {
+    handleDaySelect(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetAt.getTime(), kitchenTemp, starterReady, isValid]);
+  }, [starterReady]);
 
-  const minDateLabel =
-    TIME_FMT.format(minReadyAt) + " " + DAY_FMT.format(minReadyAt);
+  // Graceful overflow: keep the chosen out-of-oven time while the start stays in
+  // the future; once a longer retard would push the start before now, the
+  // out-of-oven time slides later instead.
+  const effectiveReadyAt = useMemo(() => {
+    const floorForRetard = earliestReadyAt(kitchenTemp, now, starterReady, retardSecs);
+    return new Date(Math.max(targetAt.getTime(), floorForRetard.getTime()));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetAt.getTime(), kitchenTemp, now, starterReady, retardSecs]);
+
+  const pushedLater = effectiveReadyAt.getTime() > targetAt.getTime() + 60_000;
+
+  const steps = useMemo(
+    () => calculateBakeSteps(effectiveReadyAt, kitchenTemp, starterReady, retardSecs),
+    [effectiveReadyAt, kitchenTemp, starterReady, retardSecs],
+  );
+
+  const minDateLabel = TIME_FMT.format(minReadyAt) + " " + DAY_FMT.format(minReadyAt);
+  const effectiveLabel = `${TIME_FMT.format(effectiveReadyAt)} · ${dayLabel(effectiveReadyAt, now)}`;
 
   function handleConfirm() {
-    const feedAt = steps?.find((step) => step.key === "feed")?.startAt;
-    const peakAt = steps?.find((step) => step.key === "levain")?.startAt;
+    const feedAt = steps.find((step) => step.key === "feed")?.startAt;
+    const peakAt = steps.find((step) => step.key === "levain")?.startAt;
     onConfirm({ ...recipe, kitchenTemp }, bakingMethod, feedAt, peakAt);
   }
 
@@ -151,15 +170,19 @@ export function BakePlannerScreen({
           />
         </section>
 
+        {/* Temperature */}
+        <div className="mb-2">
+          <TempInput label={s.tempQuestion} value={temp} onChange={(v) => setTemp(v)} />
+        </div>
+        <p className="text-tiny text-ink-3 mb-6">{s.tempHint}</p>
+
         <div className="h-px bg-line mb-6" />
 
-        {/* Target bread-ready time */}
+        {/* The single anchor: when should the loaf come out of the oven? */}
         <div className="flex flex-col gap-3 mb-6">
           <div>
             <p className="text-label text-ink-2">{s.readyQuestion}</p>
-            <p className="text-body-sm text-ink-3 mt-0.5">
-              {s.contextLine(totalProcessHours)}
-            </p>
+            <p className="text-body-sm text-ink-3 mt-0.5">{s.contextLine(totalProcessHours)}</p>
           </div>
 
           {/* Day pills */}
@@ -186,9 +209,7 @@ export function BakePlannerScreen({
                   {dayLabel(day, now)}
                 </button>
                 {idx === 0 && (
-                  <span className="text-xs text-ink-3 whitespace-nowrap">
-                    {s.earliest}
-                  </span>
+                  <span className="text-xs text-ink-3 whitespace-nowrap">{s.earliest}</span>
                 )}
               </div>
             ))}
@@ -224,16 +245,6 @@ export function BakePlannerScreen({
           </div>
         </div>
 
-        {/* Temperature */}
-        <div className="mb-2">
-          <TempInput
-            label={s.tempQuestion}
-            value={temp}
-            onChange={(v) => setTemp(v)}
-          />
-        </div>
-        <p className="text-tiny text-ink-3 mb-6">{s.tempHint}</p>
-
         {/* Validation message */}
         {!isValid && (
           <p className="text-body-sm text-warn mb-6" role="alert">
@@ -241,14 +252,29 @@ export function BakePlannerScreen({
           </p>
         )}
 
-        {/* Timeline */}
-        {steps && (
+        {/* Timeline — with the inline, bounded retard slider */}
+        {isValid && (
           <section className="mb-6">
             <div className="mb-4">
               <h2 className="text-heading text-ink">{s.timelineTitle}</h2>
               <p className="text-body-sm text-ink-3 mt-0.5">{s.timelineSubtitle}</p>
             </div>
-            <BakeTimeline key={targetAt.getTime()} steps={steps} now={now} />
+            <BakeTimeline
+              steps={steps}
+              now={now}
+              editableRetard={{
+                hours: retardHours,
+                min: RETARD_MIN_SECS / 3600,
+                max: RETARD_MAX_SECS / 3600,
+                onChange: setRetardHours,
+              }}
+            />
+            {pushedLater && (
+              <p className="text-body-sm text-warn mt-4" role="status">
+                {s.retardOverflowNote(effectiveLabel)}
+              </p>
+            )}
+            <p className="text-tiny text-ink-3 mt-4">{s.timelineEstimateNote}</p>
           </section>
         )}
 

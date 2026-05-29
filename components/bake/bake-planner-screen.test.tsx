@@ -53,6 +53,25 @@ describe("BakePlannerScreen", () => {
     expect(screen.getByText(s.tempHint)).toBeInTheDocument();
   });
 
+  it("asks the single out-of-oven question", () => {
+    renderScreen();
+    expect(screen.getByText(s.readyQuestion)).toBeInTheDocument();
+  });
+
+  it("renders the inline retard slider (default 12h) + the estimate note", () => {
+    renderScreen();
+    const slider = screen.getByRole("slider", { name: s.retardSliderLabel });
+    expect(slider).toHaveValue("12");
+    expect(screen.getByText(s.timelineEstimateNote)).toBeInTheDocument();
+  });
+
+  it("the retard slider can be changed", () => {
+    renderScreen();
+    const slider = screen.getByRole("slider", { name: s.retardSliderLabel });
+    fireEvent.change(slider, { target: { value: "24" } });
+    expect(slider).toHaveValue("24");
+  });
+
   it("defaults starterReady=true ('כן' active) and hides the feed row", () => {
     renderScreen();
     expect(screen.getByRole("radio", { name: s.starterYes })).toHaveAttribute(

@@ -180,22 +180,28 @@ export const strings = {
     starterLabel: "הסטארטר כבר בשיא?",
     starterYes: "כן",
     starterNo: "לא",
-    readyQuestion: "מתי הלחם צריך להיות מוכן?",
+    readyQuestion: "מתי שהלחם ייצא מהתנור?",
     earliest: "הכי מוקדם",
     tempQuestion: "מה הטמפרטורה בחלל?",
     tempHint: "חורף 20–24° · קיץ 24–27°",
     contextLine: (hours: number) => `הבייק ייקח כ-${hours} שעות`,
+    // Inline retard editing on the timeline
+    retardSliderLabel: "אורך ההתפחה בקירור",
+    retardOverflowNote: (label: string) =>
+      `כדי להספיק התפחה כזו, הלחם ייצא ב-${label}`,
     // Timeline
     timelineTitle: "ציר הזמן של הבייק",
     timelineSubtitle: "מתי להתחיל כל שלב",
+    timelineEstimateNote: "⏱ זמנים משוערים — עשויים להשתנות לפי הטמפרטורה והסטארטר",
     coolingTip: "מומלץ לצנן כ-שעה לפני חיתוך — חיתוך חם הורס את הפירור",
     // Per-step copy (key matches BakeStepKey). desc may be omitted when computed from duration.
     timelineSteps: {
       feed: { label: "האכלת הסטארטר", desc: "עד שהסטארטר מגיע לשיא" },
       levain: { label: "בניית השאור" },
-      mix: { label: "ערבוב", desc: "אוטוליזה + לישה" },
+      mix: { label: "ערבוב", desc: "אוטוליזה 45 דק׳ + לישה 15 דק׳" },
       bulk: { label: "תסיסה ראשונית", desc: "כולל קיפולים" },
-      shapeRetard: { label: "עיצוב הבצק", desc: "~12 שעות בקירור (לילה)" },
+      shape: { label: "עיצוב הבצק", desc: "עיצוב + מנוחת ביניים · כ-35 דק׳" },
+      retard: { label: "התפחה בקירור", desc: "בלילה" },
       preheat: { label: "חימום התנור והכלי", desc: "כ-45 דקות" },
       bake: { label: "הכנסת הבצק לתנור", desc: "מכוסה 20 דק׳ + חשוף 22 דק׳" },
       ready: { label: "הלחם מוכן" },
