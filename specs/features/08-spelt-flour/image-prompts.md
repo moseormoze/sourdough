@@ -1,14 +1,8 @@
 # Image prompts — 3 new preset photos (T6)
 
-> **Status:** the 3 files in `public/presets/` are **temporary placeholders** copied
-> from the nearest-style existing photos. Replace with real generated images
-> before merge (design AC: "תמונה תקפה לכל פריסט").
->
-> | file | placeholder source | style anchor to attach |
-> |---|---|---|
-> | `spelt-white.png` | `white.png` | `white.png` |
-> | `country-rye.png` | `country.png` | `country.png` |
-> | `spelt50.png` | `rye50.png` | `wheat70.png` |
+> **Status:** ✅ real generated images are now in `public/presets/`
+> (`spelt-white.png`, `country-rye.png`, `spelt50.png`). The prompts below are
+> kept as the record of how they were produced, for future re-generation.
 
 These follow the **exact prompt template** used for the existing preset photos:
 two opening lines (generic composition + loaf-specific), a single attached
