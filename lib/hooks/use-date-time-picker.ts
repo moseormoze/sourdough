@@ -23,7 +23,7 @@ export function addDays(d: Date, n: number): Date {
 }
 
 /** Returns up to `count` days starting from the day of `minAt`. */
-export function getAvailableDays(minAt: Date, count = 6): Date[] {
+export function getAvailableDays(minAt: Date, count = 8): Date[] {
   const base = startOfDay(minAt);
   return Array.from({ length: count }, (_, i) => addDays(base, i));
 }
@@ -60,6 +60,8 @@ interface UseDateTimePickerResult {
   minHour: number;
   handleDaySelect: (idx: number) => void;
   adjustHour: (delta: number) => void;
+  /** Jump to an exact day + hour (used by presets). No-op if day not in availableDays. */
+  jumpTo: (day: Date, hour: number) => void;
   targetAt: Date;
   isValid: boolean;
   totalProcessHours: number;
@@ -100,6 +102,15 @@ export function useDateTimePicker(opts: UseDateTimePickerOptions): UseDateTimePi
     });
   }
 
+  function jumpTo(day: Date, hour: number) {
+    const idx = availableDays.findIndex(
+      (d) => startOfDay(d).getTime() === startOfDay(day).getTime(),
+    );
+    if (idx === -1) return;
+    setDayIdx(idx);
+    setHour(hour);
+  }
+
   return {
     availableDays,
     dayIdx,
@@ -108,6 +119,7 @@ export function useDateTimePicker(opts: UseDateTimePickerOptions): UseDateTimePi
     minHour,
     handleDaySelect,
     adjustHour,
+    jumpTo,
     targetAt,
     isValid,
     totalProcessHours,

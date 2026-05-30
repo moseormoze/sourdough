@@ -11,10 +11,12 @@ import { BakingMethodSelector } from "./baking-method-selector";
 import {
   useDateTimePicker,
   startOfDay,
+  addDays,
   MAX_HOUR,
 } from "@/lib/hooks/use-date-time-picker";
 import {
   calculateBakeSteps,
+  bakeDurationSecs,
   earliestReadyAt,
   RETARD_DEFAULT_SECS,
   RETARD_MIN_SECS,
@@ -29,6 +31,37 @@ export interface BakePlannerScreenProps {
   imageUrl?: string;
   onConfirm: (recipe: Recipe, bakingMethod: BakingMethod, feedAt?: Date, peakAt?: Date) => void;
   onBack: () => void;
+}
+
+// ---------------------------------------------------------------------------
+// Presets
+// ---------------------------------------------------------------------------
+
+interface BakingPreset {
+  key: string;
+  label: string;
+  targetDate: Date;
+  targetHour: number;
+}
+
+function buildPresets(now: Date, labels: typeof strings.bakeScheduler.presets): BakingPreset[] {
+  const setH = (d: Date, h: number): Date => {
+    const out = new Date(d);
+    out.setHours(h, 0, 0, 0);
+    return out;
+  };
+  const nextWeekday = (wd: number, hour: number): Date => {
+    const base = startOfDay(now);
+    let diff = (wd - base.getDay() + 7) % 7;
+    if (diff === 0 && setH(base, hour) <= now) diff = 7;
+    return setH(addDays(base, diff), hour);
+  };
+  return [
+    { key: "tonight",          label: labels.tonight,        targetDate: setH(startOfDay(now), 20),        targetHour: 20 },
+    { key: "tomorrow-morning", label: labels.tomorrowMorning, targetDate: setH(addDays(startOfDay(now), 1), 8), targetHour: 8 },
+    { key: "friday-evening",   label: labels.fridayEvening,  targetDate: nextWeekday(5, 18),               targetHour: 18 },
+    { key: "saturday-morning", label: labels.saturdayMorning, targetDate: nextWeekday(6, 9),               targetHour: 9 },
+  ];
 }
 
 // ---------------------------------------------------------------------------
@@ -75,15 +108,22 @@ export function BakePlannerScreen({
   const [temp, setTemp] = useState<number | "">(recipe.kitchenTemp);
   const [bakingMethod, setBakingMethod] = useState<BakingMethod>(DEFAULT_BAKING_METHOD);
   const [retardHours, setRetardHours] = useState(RETARD_DEFAULT_SECS / 3600);
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+  const [direction, setDirection] = useState<"end" | "start">("end");
+
+  const presets = useMemo(() => buildPresets(now, s.presets), [now, s.presets]);
 
   const kitchenTemp = typeof temp === "number" ? temp : recipe.kitchenTemp;
   const retardSecs = retardHours * 3600;
 
-  // The picker floor uses the default retard so a freshly-picked time always fits;
-  // stretching the retard beyond that is handled by graceful overflow below.
+  // In "end" mode: floor = earliest the loaf can be ready (backward planning).
+  // In "start" mode: floor = now + 30 min (earliest the baker can start levain).
   const minReadyAt = useMemo(
-    () => earliestReadyAt(kitchenTemp, now, starterReady, RETARD_DEFAULT_SECS, recipe.flour),
-    [kitchenTemp, now, starterReady, recipe.flour],
+    () =>
+      direction === "end"
+        ? earliestReadyAt(kitchenTemp, now, starterReady, RETARD_DEFAULT_SECS, recipe.flour)
+        : new Date(now.getTime() + 30 * 60 * 1000),
+    [direction, kitchenTemp, now, starterReady, recipe.flour],
   );
 
   const {
@@ -93,10 +133,26 @@ export function BakePlannerScreen({
     minHour,
     handleDaySelect,
     adjustHour,
+    jumpTo,
     targetAt,
     isValid,
     totalProcessHours,
   } = useDateTimePicker({ minReadyAt, now });
+
+  function applyPreset(preset: BakingPreset) {
+    jumpTo(preset.targetDate, preset.targetHour);
+    setSelectedPreset(preset.key);
+  }
+
+  function handleDaySelectAndClear(idx: number) {
+    handleDaySelect(idx);
+    setSelectedPreset(null);
+  }
+
+  function adjustHourAndClear(delta: number) {
+    adjustHour(delta);
+    setSelectedPreset(null);
+  }
 
   // Reset to the earliest slot when the starter readiness (and thus the floor) changes.
   useEffect(() => {
@@ -104,16 +160,21 @@ export function BakePlannerScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [starterReady]);
 
-  // Graceful overflow: keep the chosen out-of-oven time while the start stays in
-  // the future; once a longer retard would push the start before now, the
-  // out-of-oven time slides later instead.
+  // "end" mode: targetAt is the desired ready time — apply graceful overflow.
+  // "start" mode: targetAt is the levain-start time — compute readyAt forward.
   const effectiveReadyAt = useMemo(() => {
+    if (direction === "start") {
+      return new Date(
+        targetAt.getTime() + bakeDurationSecs(kitchenTemp, retardSecs, recipe.flour) * 1000,
+      );
+    }
     const floorForRetard = earliestReadyAt(kitchenTemp, now, starterReady, retardSecs, recipe.flour);
     return new Date(Math.max(targetAt.getTime(), floorForRetard.getTime()));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetAt.getTime(), kitchenTemp, now, starterReady, retardSecs, recipe.flour]);
+  }, [direction, targetAt.getTime(), kitchenTemp, now, starterReady, retardSecs, recipe.flour]);
 
-  const pushedLater = effectiveReadyAt.getTime() > targetAt.getTime() + 60_000;
+  const pushedLater =
+    direction === "end" && effectiveReadyAt.getTime() > targetAt.getTime() + 60_000;
 
   const steps = useMemo(
     () => calculateBakeSteps(effectiveReadyAt, kitchenTemp, starterReady, retardSecs, recipe.flour),
@@ -122,6 +183,9 @@ export function BakePlannerScreen({
 
   const minDateLabel = TIME_FMT.format(minReadyAt) + " " + DAY_FMT.format(minReadyAt);
   const effectiveLabel = `${TIME_FMT.format(effectiveReadyAt)} · ${dayLabel(effectiveReadyAt, now)}`;
+  const startModeTotalHours = Math.round(
+    bakeDurationSecs(kitchenTemp, retardSecs, recipe.flour) / 3600,
+  );
 
   function handleConfirm() {
     const feedAt = steps.find((step) => step.key === "feed")?.startAt;
@@ -161,6 +225,12 @@ export function BakePlannerScreen({
 
         <div className="h-px bg-line mb-6" />
 
+        {/* Planning framing */}
+        <section className="mb-6">
+          <h1 className="text-heading text-ink">{s.planningTitle}</h1>
+          <p className="text-body-sm text-ink-3 mt-1">{s.planningSubtitle}</p>
+        </section>
+
         {/* Starter readiness */}
         <section className="mb-6">
           <StarterToggle
@@ -174,15 +244,76 @@ export function BakePlannerScreen({
         <div className="mb-2">
           <TempInput label={s.tempQuestion} value={temp} onChange={(v) => setTemp(v)} />
         </div>
-        <p className="text-tiny text-ink-3 mb-6">{s.tempHint}</p>
+        <p className="text-tiny text-ink-3 mb-1">{s.tempHint}</p>
+        <p className="text-tiny text-ink-2 mb-6">{s.tempImportantHint}</p>
 
         <div className="h-px bg-line mb-6" />
 
-        {/* The single anchor: when should the loaf come out of the oven? */}
+        {/* Presets */}
+        <div
+          className="flex gap-2 overflow-x-auto pb-1 -mx-5 px-5 scrollbar-none mb-4"
+          style={{ scrollbarWidth: "none" }}
+        >
+          {presets.map((preset) => {
+            const disabled = preset.targetDate < minReadyAt;
+            const active = selectedPreset === preset.key;
+            return (
+              <button
+                key={preset.key}
+                type="button"
+                disabled={disabled}
+                onClick={() => applyPreset(preset)}
+                className={`pressable flex-shrink-0 rounded-full px-4 py-2 text-body-sm font-medium
+                  border-[1.5px] transition-colors duration-fast ease-out
+                  disabled:opacity-35 disabled:cursor-default
+                  ${active
+                    ? "border-accent bg-accent-bg text-accent"
+                    : "border-line bg-transparent text-ink-2"
+                  }`}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Direction toggle: start vs end */}
+        <div role="radiogroup" className="flex gap-2 mb-6">
+          {(["end", "start"] as const).map((dir) => {
+            const label = dir === "end" ? s.directionEnd : s.directionStart;
+            const active = direction === dir;
+            return (
+              <button
+                key={dir}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => { setDirection(dir); setSelectedPreset(null); }}
+                onPointerDown={() => { setDirection(dir); setSelectedPreset(null); }}
+                className={`pressable flex-1 rounded-lg px-4 py-2.5 text-body font-medium
+                  border-[1.5px] transition-colors duration-fast ease-out
+                  ${active
+                    ? "border-accent bg-accent-bg text-accent"
+                    : "border-line bg-transparent text-ink-2"
+                  }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* The anchor picker */}
         <div className="flex flex-col gap-3 mb-6">
           <div>
-            <p className="text-label text-ink-2">{s.readyQuestion}</p>
-            <p className="text-body-sm text-ink-3 mt-0.5">{s.contextLine(totalProcessHours)}</p>
+            <p className="text-label text-ink-2">
+              {direction === "end" ? s.readyQuestion : s.readyQuestionStart}
+            </p>
+            <p className="text-body-sm text-ink-3 mt-0.5">
+              {direction === "end"
+                ? s.contextLine(totalProcessHours)
+                : s.contextLineStart(startModeTotalHours)}
+            </p>
           </div>
 
           {/* Day pills */}
@@ -197,7 +328,7 @@ export function BakePlannerScreen({
               >
                 <button
                   type="button"
-                  onClick={() => handleDaySelect(idx)}
+                  onClick={() => handleDaySelectAndClear(idx)}
                   className={`pressable rounded-full px-4 py-2 text-body font-medium
                     border transition-colors duration-fast ease-out
                     ${
@@ -220,7 +351,7 @@ export function BakePlannerScreen({
             <button
               type="button"
               aria-label="פחות שעה"
-              onClick={() => adjustHour(-1)}
+              onClick={() => adjustHourAndClear(-1)}
               disabled={effectiveHour <= minHour}
               className="pressable min-h-touch min-w-touch flex items-center justify-center
                          text-ink-2 hover:text-ink disabled:opacity-40"
@@ -235,7 +366,7 @@ export function BakePlannerScreen({
             <button
               type="button"
               aria-label="עוד שעה"
-              onClick={() => adjustHour(1)}
+              onClick={() => adjustHourAndClear(1)}
               disabled={effectiveHour >= MAX_HOUR}
               className="pressable min-h-touch min-w-touch flex items-center justify-center
                          text-ink-2 hover:text-ink disabled:opacity-40"
@@ -272,6 +403,11 @@ export function BakePlannerScreen({
             {pushedLater && (
               <p className="text-body-sm text-warn mt-4" role="status">
                 {s.retardOverflowNote(effectiveLabel)}
+              </p>
+            )}
+            {direction === "start" && (
+              <p className="text-body-sm text-accent font-medium mt-4" data-testid="ready-result">
+                {s.readyResultLabel(effectiveLabel)}
               </p>
             )}
             <p className="text-tiny text-ink-3 mt-4">{s.timelineEstimateNote}</p>

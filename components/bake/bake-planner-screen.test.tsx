@@ -41,6 +41,17 @@ describe("BakePlannerScreen", () => {
     expect(screen.getByText(baseRecipe.name)).toBeInTheDocument();
   });
 
+  it("renders the planning framing title and subtitle", () => {
+    renderScreen();
+    expect(screen.getByRole("heading", { name: s.planningTitle })).toBeInTheDocument();
+    expect(screen.getByText(s.planningSubtitle)).toBeInTheDocument();
+  });
+
+  it("renders the temperature importance hint", () => {
+    renderScreen();
+    expect(screen.getByText(s.tempImportantHint)).toBeInTheDocument();
+  });
+
   it("renders the timeline section title and subtitle", () => {
     renderScreen();
     expect(screen.getByText(s.timelineTitle)).toBeInTheDocument();
@@ -96,6 +107,47 @@ describe("BakePlannerScreen", () => {
     expect(screen.getByText(s.timelineSteps.preheat.label)).toBeInTheDocument();
     expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument();
     expect(screen.getByText(new RegExp(s.coolingTip))).toBeInTheDocument();
+  });
+
+  it("renders the direction toggle with 'לסיים' selected by default", () => {
+    renderScreen();
+    const endBtn = screen.getByRole("radio", { name: s.directionEnd });
+    const startBtn = screen.getByRole("radio", { name: s.directionStart });
+    expect(endBtn).toHaveAttribute("aria-checked", "true");
+    expect(startBtn).toHaveAttribute("aria-checked", "false");
+  });
+
+  it("switching to 'להתחיל' changes the question label", async () => {
+    renderScreen();
+    const startBtn = screen.getByRole("radio", { name: s.directionStart });
+    fireEvent.pointerDown(startBtn);
+    fireEvent.pointerUp(startBtn);
+    await waitFor(() => {
+      expect(screen.getByText(s.readyQuestionStart)).toBeInTheDocument();
+    });
+  });
+
+  it("in start mode shows the computed ready-at result below the timeline", async () => {
+    renderScreen();
+    fireEvent.pointerDown(screen.getByRole("radio", { name: s.directionStart }));
+    fireEvent.pointerUp(screen.getByRole("radio", { name: s.directionStart }));
+    await waitFor(() => {
+      expect(screen.getByTestId("ready-result")).toBeInTheDocument();
+    });
+  });
+
+  it("renders all four preset pills", () => {
+    renderScreen();
+    const p = strings.bakeScheduler.presets;
+    expect(screen.getByRole("button", { name: p.tonight })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: p.tomorrowMorning })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: p.fridayEvening })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: p.saturdayMorning })).toBeInTheDocument();
+  });
+
+  it("הערב preset is always disabled (minReadyAt > tonight 20:00)", () => {
+    renderScreen();
+    expect(screen.getByRole("button", { name: strings.bakeScheduler.presets.tonight })).toBeDisabled();
   });
 
   it("back button calls onBack", () => {
