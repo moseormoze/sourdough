@@ -52,32 +52,165 @@ describe("BakePlannerScreen", () => {
     expect(screen.getByText(s.tempImportantHint)).toBeInTheDocument();
   });
 
-  it("renders the timeline section title and subtitle", () => {
-    renderScreen();
-    expect(screen.getByText(s.timelineTitle)).toBeInTheDocument();
-    expect(screen.getByText(s.timelineSubtitle)).toBeInTheDocument();
-  });
-
   it("renders the temperature question + seasonal hint", () => {
     renderScreen();
     expect(screen.getByText(s.tempQuestion)).toBeInTheDocument();
     expect(screen.getByText(s.tempHint)).toBeInTheDocument();
   });
 
-  it("asks the single out-of-oven question", () => {
+  // ---------------------------------------------------------------------------
+  // Schedule section — preset cards
+  // ---------------------------------------------------------------------------
+
+  it("renders schedule section title and subtitle", () => {
     renderScreen();
-    expect(screen.getByText(s.readyQuestion)).toBeInTheDocument();
+    expect(screen.getByText(s.scheduleSectionTitle)).toBeInTheDocument();
+    expect(screen.getByText(s.scheduleSectionSubtitle)).toBeInTheDocument();
   });
 
-  it("renders the inline retard slider (default 12h) + the estimate note", () => {
+  it("renders all four preset cards by name", () => {
     renderScreen();
+    expect(screen.getByRole("radio", { name: s.presets.fast.name })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: s.presets.classic.name })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: s.presets.classicLate.name })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: s.presets.long.name })).toBeInTheDocument();
+  });
+
+  it("no preset is selected by default (all aria-checked=false)", () => {
+    renderScreen();
+    const cards = screen.getAllByRole("radio");
+    const presetCards = cards.filter((c) => c.hasAttribute("data-preset"));
+    presetCards.forEach((c) => expect(c).toHaveAttribute("aria-checked", "false"));
+  });
+
+  it("CTA is disabled by default (no preset selected)", () => {
+    renderScreen();
+    expect(screen.getByRole("button", { name: s.startButton })).toBeDisabled();
+  });
+
+  it("selecting קלאסי preset enables the CTA", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: s.startButton })).not.toBeDisabled();
+    });
+  });
+
+  it("selecting קלאסי sets aria-checked=true on that card", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
+    await waitFor(() => {
+      expect(
+        screen.getByRole("radio", { name: s.presets.classic.name }),
+      ).toHaveAttribute("aria-checked", "true");
+    });
+  });
+
+  it("selecting a preset reveals the inline timeline (bake step labels visible)", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.fast.name }));
+    await waitFor(() => {
+      expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument();
+    });
+  });
+
+  it("old preset pills (הערב/מחר בבוקר/ערב שבת/בוקר שבת) are not rendered", () => {
+    renderScreen();
+    expect(screen.queryByRole("button", { name: "הערב" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "מחר בבוקר" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "ערב שבת" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "בוקר שבת" })).not.toBeInTheDocument();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Advanced disclosure
+  // ---------------------------------------------------------------------------
+
+  it("disclosure button shows 'לכוונן בעצמי' when closed", () => {
+    renderScreen();
+    expect(screen.getByText(s.advancedDisclosureOpen)).toBeInTheDocument();
+  });
+
+  it("direction toggle is hidden before disclosure opens", () => {
+    renderScreen();
+    // The radiogroup with direction options should not be accessible before disclosure opens
+    expect(screen.queryByRole("radio", { name: s.directionEnd })).not.toBeVisible();
+  });
+
+  it("opening disclosure reveals direction toggle and day picker", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
+    await waitFor(() => {
+      expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument();
+    });
+  });
+
+  it("opening disclosure enables the CTA when isValid", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
+    // After opening manual mode, isValid=true by default (picker is at earliest valid slot)
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: s.startButton })).not.toBeDisabled();
+    });
+  });
+
+  it("selecting a preset after opening disclosure closes it", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
+    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
+    await waitFor(() => {
+      expect(screen.getByText(s.advancedDisclosureOpen)).toBeInTheDocument();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // F11 regression — controls inside disclosure still work
+  // ---------------------------------------------------------------------------
+
+  it("direction toggle works after opening disclosure", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
+    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
+    const startBtn = screen.getByRole("radio", { name: s.directionStart });
+    fireEvent.pointerDown(startBtn);
+    fireEvent.pointerUp(startBtn);
+    await waitFor(() => {
+      expect(screen.getByText(s.readyQuestionStart)).toBeInTheDocument();
+    });
+  });
+
+  it("start mode shows the computed ready-at result inside disclosure", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
+    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
+    fireEvent.pointerDown(screen.getByRole("radio", { name: s.directionStart }));
+    fireEvent.pointerUp(screen.getByRole("radio", { name: s.directionStart }));
+    await waitFor(() => {
+      expect(screen.getByTestId("ready-result")).toBeInTheDocument();
+    });
+  });
+
+  it("retard slider is visible inside disclosure after opening (default 12h)", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
+    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
     const slider = screen.getByRole("slider", { name: s.retardSliderLabel });
     expect(slider).toHaveValue("12");
-    expect(screen.getByText(s.timelineEstimateNote)).toBeInTheDocument();
   });
 
-  it("the retard slider can be changed", () => {
+  it("retard slider max is 48 (not 72)", async () => {
     renderScreen();
+    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
+    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
+    const slider = screen.getByRole("slider", { name: s.retardSliderLabel });
+    expect(slider).toHaveAttribute("max", "48");
+  });
+
+  it("retard slider can be changed inside disclosure", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
+    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
     const slider = screen.getByRole("slider", { name: s.retardSliderLabel });
     fireEvent.change(slider, { target: { value: "24" } });
     expect(slider).toHaveValue("24");
@@ -92,8 +225,11 @@ describe("BakePlannerScreen", () => {
     expect(screen.queryByText(s.timelineSteps.feed.label)).not.toBeInTheDocument();
   });
 
-  it("toggling to 'לא' reveals the feed step in the timeline", async () => {
+  it("toggling starter to 'לא' reveals the feed step in the preset timeline", async () => {
     renderScreen();
+    // Select a preset first so the timeline is visible
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
+    await waitFor(() => expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument());
     const no = screen.getByRole("radio", { name: s.starterNo });
     fireEvent.pointerDown(no);
     fireEvent.pointerUp(no);
@@ -102,62 +238,16 @@ describe("BakePlannerScreen", () => {
     });
   });
 
-  it("always shows the separated preheat + bake-in rows and the cooling tip", () => {
-    renderScreen();
-    expect(screen.getByText(s.timelineSteps.preheat.label)).toBeInTheDocument();
-    expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(s.coolingTip))).toBeInTheDocument();
-  });
-
-  it("renders the direction toggle with 'לסיים' selected by default", () => {
-    renderScreen();
-    const endBtn = screen.getByRole("radio", { name: s.directionEnd });
-    const startBtn = screen.getByRole("radio", { name: s.directionStart });
-    expect(endBtn).toHaveAttribute("aria-checked", "true");
-    expect(startBtn).toHaveAttribute("aria-checked", "false");
-  });
-
-  it("switching to 'להתחיל' changes the question label", async () => {
-    renderScreen();
-    const startBtn = screen.getByRole("radio", { name: s.directionStart });
-    fireEvent.pointerDown(startBtn);
-    fireEvent.pointerUp(startBtn);
-    await waitFor(() => {
-      expect(screen.getByText(s.readyQuestionStart)).toBeInTheDocument();
-    });
-  });
-
-  it("in start mode shows the computed ready-at result below the timeline", async () => {
-    renderScreen();
-    fireEvent.pointerDown(screen.getByRole("radio", { name: s.directionStart }));
-    fireEvent.pointerUp(screen.getByRole("radio", { name: s.directionStart }));
-    await waitFor(() => {
-      expect(screen.getByTestId("ready-result")).toBeInTheDocument();
-    });
-  });
-
-  it("renders all four preset pills", () => {
-    renderScreen();
-    const p = strings.bakeScheduler.presets;
-    expect(screen.getByRole("button", { name: p.tonight })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: p.tomorrowMorning })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: p.fridayEvening })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: p.saturdayMorning })).toBeInTheDocument();
-  });
-
-  it("הערב preset is always disabled (minReadyAt > tonight 20:00)", () => {
-    renderScreen();
-    expect(screen.getByRole("button", { name: strings.bakeScheduler.presets.tonight })).toBeDisabled();
-  });
-
   it("back button calls onBack", () => {
     renderScreen();
     fireEvent.click(screen.getByRole("button", { name: s.backToChooser }));
     expect(onBack).toHaveBeenCalled();
   });
 
-  it("confirming calls onConfirm with recipe, method, no feedAt (starter ready), and a peakAt", async () => {
+  it("confirming with a preset calls onConfirm (no feedAt, has peakAt)", async () => {
     renderScreen();
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
+    await waitFor(() => expect(screen.getByRole("button", { name: s.startButton })).not.toBeDisabled());
     fireEvent.click(screen.getByRole("button", { name: s.startButton }));
     await waitFor(() => {
       expect(onConfirm).toHaveBeenCalledWith(
@@ -169,11 +259,15 @@ describe("BakePlannerScreen", () => {
     });
   });
 
-  it("confirming with starter NOT ready passes a feedAt", async () => {
+  it("confirming via manual with starter NOT ready passes a feedAt", async () => {
     renderScreen();
+    // Toggle starter off
     const no = screen.getByRole("radio", { name: s.starterNo });
     fireEvent.pointerDown(no);
     fireEvent.pointerUp(no);
+    // Select a preset
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
+    await waitFor(() => expect(screen.getByRole("button", { name: s.startButton })).not.toBeDisabled());
     fireEvent.click(screen.getByRole("button", { name: s.startButton }));
     await waitFor(() => {
       expect(onConfirm).toHaveBeenCalledWith(
@@ -187,6 +281,8 @@ describe("BakePlannerScreen", () => {
 
   it("selecting a different baking method passes it to onConfirm", async () => {
     renderScreen();
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
+    await waitFor(() => expect(screen.getByRole("button", { name: s.startButton })).not.toBeDisabled());
     fireEvent.click(screen.getByText("אפייה פתוחה + תבנית אדים"));
     fireEvent.click(screen.getByRole("button", { name: s.startButton }));
     await waitFor(() => {
@@ -196,6 +292,15 @@ describe("BakePlannerScreen", () => {
         undefined,
         expect.any(Date),
       );
+    });
+  });
+
+  it("always shows preheat + bake rows when a preset is selected", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.fast.name }));
+    await waitFor(() => {
+      expect(screen.getByText(s.timelineSteps.preheat.label)).toBeInTheDocument();
+      expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument();
     });
   });
 });

@@ -14,6 +14,7 @@ import {
   starterPeakSecs,
   flourFactor,
   RETARD_DEFAULT_SECS,
+  RETARD_MAX_SECS,
 } from "./bake-timing";
 import type { Flour } from "@/lib/types/recipe";
 
@@ -351,6 +352,12 @@ describe("durationRangeLabel", () => {
   it("brackets the estimate at the top of the range", () => {
     expect(durationRangeLabel(9 * 3600)).toBe("בין 7 ל-9 שעות");
     expect(durationRangeLabel(4 * 3600)).toBe("בין 3 ל-4 שעות");
+  });
+});
+
+describe("RETARD_MAX_SECS", () => {
+  it("is capped at 48h (not 72h)", () => {
+    expect(RETARD_MAX_SECS).toBe(48 * 3600);
   });
 });
 
