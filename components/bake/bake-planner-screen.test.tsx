@@ -41,6 +41,17 @@ describe("BakePlannerScreen", () => {
     expect(screen.getByText(baseRecipe.name)).toBeInTheDocument();
   });
 
+  it("renders the planning framing title and subtitle", () => {
+    renderScreen();
+    expect(screen.getByRole("heading", { name: s.planningTitle })).toBeInTheDocument();
+    expect(screen.getByText(s.planningSubtitle)).toBeInTheDocument();
+  });
+
+  it("renders the temperature importance hint", () => {
+    renderScreen();
+    expect(screen.getByText(s.tempImportantHint)).toBeInTheDocument();
+  });
+
   it("renders the timeline section title and subtitle", () => {
     renderScreen();
     expect(screen.getByText(s.timelineTitle)).toBeInTheDocument();

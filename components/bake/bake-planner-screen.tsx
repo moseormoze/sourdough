@@ -161,6 +161,12 @@ export function BakePlannerScreen({
 
         <div className="h-px bg-line mb-6" />
 
+        {/* Planning framing */}
+        <section className="mb-6">
+          <h1 className="text-heading text-ink">{s.planningTitle}</h1>
+          <p className="text-body-sm text-ink-3 mt-1">{s.planningSubtitle}</p>
+        </section>
+
         {/* Starter readiness */}
         <section className="mb-6">
           <StarterToggle
@@ -174,7 +180,8 @@ export function BakePlannerScreen({
         <div className="mb-2">
           <TempInput label={s.tempQuestion} value={temp} onChange={(v) => setTemp(v)} />
         </div>
-        <p className="text-tiny text-ink-3 mb-6">{s.tempHint}</p>
+        <p className="text-tiny text-ink-3 mb-1">{s.tempHint}</p>
+        <p className="text-tiny text-ink-2 mb-6">{s.tempImportantHint}</p>
 
         <div className="h-px bg-line mb-6" />
 

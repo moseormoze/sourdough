@@ -178,6 +178,8 @@ export const strings = {
   },
   bakeScheduler: {
     headerTitle: "תכנון הבייק",
+    planningTitle: "תכנון זמני הבייק",
+    planningSubtitle: "בחר זמנים שתוכל לעמוד בהם",
     backToChooser: "חזרה",
     starterLabel: "הסטארטר כבר בשיא?",
     starterYes: "כן",
@@ -186,6 +188,7 @@ export const strings = {
     earliest: "הכי מוקדם",
     tempQuestion: "מה הטמפרטורה בחלל?",
     tempHint: "חורף 20–24° · קיץ 24–27°",
+    tempImportantHint: "הטמפרטורה קובעת את כל הזמנים — כדאי למדוד ולא לנחש",
     contextLine: (hours: number) => `הבייק ייקח כ-${hours} שעות`,
     // Inline retard editing on the timeline
     retardSliderLabel: "אורך ההתפחה בקירור",
