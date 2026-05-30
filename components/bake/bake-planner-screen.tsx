@@ -16,6 +16,7 @@ import {
 } from "@/lib/hooks/use-date-time-picker";
 import {
   calculateBakeSteps,
+  bakeDurationSecs,
   earliestReadyAt,
   RETARD_DEFAULT_SECS,
   RETARD_MIN_SECS,
@@ -108,17 +109,21 @@ export function BakePlannerScreen({
   const [bakingMethod, setBakingMethod] = useState<BakingMethod>(DEFAULT_BAKING_METHOD);
   const [retardHours, setRetardHours] = useState(RETARD_DEFAULT_SECS / 3600);
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+  const [direction, setDirection] = useState<"end" | "start">("end");
 
   const presets = useMemo(() => buildPresets(now, s.presets), [now, s.presets]);
 
   const kitchenTemp = typeof temp === "number" ? temp : recipe.kitchenTemp;
   const retardSecs = retardHours * 3600;
 
-  // The picker floor uses the default retard so a freshly-picked time always fits;
-  // stretching the retard beyond that is handled by graceful overflow below.
+  // In "end" mode: floor = earliest the loaf can be ready (backward planning).
+  // In "start" mode: floor = now + 30 min (earliest the baker can start levain).
   const minReadyAt = useMemo(
-    () => earliestReadyAt(kitchenTemp, now, starterReady, RETARD_DEFAULT_SECS, recipe.flour),
-    [kitchenTemp, now, starterReady, recipe.flour],
+    () =>
+      direction === "end"
+        ? earliestReadyAt(kitchenTemp, now, starterReady, RETARD_DEFAULT_SECS, recipe.flour)
+        : new Date(now.getTime() + 30 * 60 * 1000),
+    [direction, kitchenTemp, now, starterReady, recipe.flour],
   );
 
   const {
@@ -155,16 +160,21 @@ export function BakePlannerScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [starterReady]);
 
-  // Graceful overflow: keep the chosen out-of-oven time while the start stays in
-  // the future; once a longer retard would push the start before now, the
-  // out-of-oven time slides later instead.
+  // "end" mode: targetAt is the desired ready time — apply graceful overflow.
+  // "start" mode: targetAt is the levain-start time — compute readyAt forward.
   const effectiveReadyAt = useMemo(() => {
+    if (direction === "start") {
+      return new Date(
+        targetAt.getTime() + bakeDurationSecs(kitchenTemp, retardSecs, recipe.flour) * 1000,
+      );
+    }
     const floorForRetard = earliestReadyAt(kitchenTemp, now, starterReady, retardSecs, recipe.flour);
     return new Date(Math.max(targetAt.getTime(), floorForRetard.getTime()));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetAt.getTime(), kitchenTemp, now, starterReady, retardSecs, recipe.flour]);
+  }, [direction, targetAt.getTime(), kitchenTemp, now, starterReady, retardSecs, recipe.flour]);
 
-  const pushedLater = effectiveReadyAt.getTime() > targetAt.getTime() + 60_000;
+  const pushedLater =
+    direction === "end" && effectiveReadyAt.getTime() > targetAt.getTime() + 60_000;
 
   const steps = useMemo(
     () => calculateBakeSteps(effectiveReadyAt, kitchenTemp, starterReady, retardSecs, recipe.flour),
@@ -173,6 +183,9 @@ export function BakePlannerScreen({
 
   const minDateLabel = TIME_FMT.format(minReadyAt) + " " + DAY_FMT.format(minReadyAt);
   const effectiveLabel = `${TIME_FMT.format(effectiveReadyAt)} · ${dayLabel(effectiveReadyAt, now)}`;
+  const startModeTotalHours = Math.round(
+    bakeDurationSecs(kitchenTemp, retardSecs, recipe.flour) / 3600,
+  );
 
   function handleConfirm() {
     const feedAt = steps.find((step) => step.key === "feed")?.startAt;
@@ -264,11 +277,43 @@ export function BakePlannerScreen({
           })}
         </div>
 
-        {/* The single anchor: when should the loaf come out of the oven? */}
+        {/* Direction toggle: start vs end */}
+        <div role="radiogroup" className="flex gap-2 mb-6">
+          {(["end", "start"] as const).map((dir) => {
+            const label = dir === "end" ? s.directionEnd : s.directionStart;
+            const active = direction === dir;
+            return (
+              <button
+                key={dir}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => { setDirection(dir); setSelectedPreset(null); }}
+                onPointerDown={() => { setDirection(dir); setSelectedPreset(null); }}
+                className={`pressable flex-1 rounded-lg px-4 py-2.5 text-body font-medium
+                  border-[1.5px] transition-colors duration-fast ease-out
+                  ${active
+                    ? "border-accent bg-accent-bg text-accent"
+                    : "border-line bg-transparent text-ink-2"
+                  }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* The anchor picker */}
         <div className="flex flex-col gap-3 mb-6">
           <div>
-            <p className="text-label text-ink-2">{s.readyQuestion}</p>
-            <p className="text-body-sm text-ink-3 mt-0.5">{s.contextLine(totalProcessHours)}</p>
+            <p className="text-label text-ink-2">
+              {direction === "end" ? s.readyQuestion : s.readyQuestionStart}
+            </p>
+            <p className="text-body-sm text-ink-3 mt-0.5">
+              {direction === "end"
+                ? s.contextLine(totalProcessHours)
+                : s.contextLineStart(startModeTotalHours)}
+            </p>
           </div>
 
           {/* Day pills */}
@@ -358,6 +403,11 @@ export function BakePlannerScreen({
             {pushedLater && (
               <p className="text-body-sm text-warn mt-4" role="status">
                 {s.retardOverflowNote(effectiveLabel)}
+              </p>
+            )}
+            {direction === "start" && (
+              <p className="text-body-sm text-accent font-medium mt-4" data-testid="ready-result">
+                {s.readyResultLabel(effectiveLabel)}
               </p>
             )}
             <p className="text-tiny text-ink-3 mt-4">{s.timelineEstimateNote}</p>

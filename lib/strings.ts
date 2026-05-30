@@ -195,6 +195,11 @@ export const strings = {
       fridayEvening: "ערב שבת",
       saturdayMorning: "בוקר שבת",
     },
+    directionEnd: "מתי לסיים",
+    directionStart: "מתי להתחיל",
+    readyQuestionStart: "מתי מתחילים?",
+    contextLineStart: (hours: number) => `הלחם יהיה מוכן בעוד כ-${hours} שעות`,
+    readyResultLabel: (label: string) => `הלחם מוכן ב: ${label}`,
     contextLine: (hours: number) => `הבייק ייקח כ-${hours} שעות`,
     // Inline retard editing on the timeline
     retardSliderLabel: "אורך ההתפחה בקירור",
