@@ -145,7 +145,7 @@ function PresetCard({ presetKey, name, hint, readyLabel, isSelected, onSelect, c
       {/* Inline timeline expansion below selected card */}
       <div
         style={{
-          maxHeight: isSelected ? "500px" : "0px",
+          maxHeight: isSelected ? "1200px" : "0px",
           overflow: "hidden",
           transition: isSelected
             ? "max-height 250ms ease-in-out"
@@ -413,7 +413,7 @@ export function BakePlannerScreen({
             {/* Disclosure content */}
             <div
               style={{
-                maxHeight: isManualOpen ? "600px" : "0px",
+                maxHeight: isManualOpen ? "2000px" : "0px",
                 overflow: "hidden",
                 transition: isManualOpen
                   ? "max-height 250ms ease-in-out"
