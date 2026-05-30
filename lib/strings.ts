@@ -189,6 +189,12 @@ export const strings = {
     tempQuestion: "מה הטמפרטורה בחלל?",
     tempHint: "חורף 20–24° · קיץ 24–27°",
     tempImportantHint: "הטמפרטורה קובעת את כל הזמנים — כדאי למדוד ולא לנחש",
+    presets: {
+      tonight: "הערב",
+      tomorrowMorning: "מחר בבוקר",
+      fridayEvening: "ערב שבת",
+      saturdayMorning: "בוקר שבת",
+    },
     contextLine: (hours: number) => `הבייק ייקח כ-${hours} שעות`,
     // Inline retard editing on the timeline
     retardSliderLabel: "אורך ההתפחה בקירור",

@@ -109,6 +109,20 @@ describe("BakePlannerScreen", () => {
     expect(screen.getByText(new RegExp(s.coolingTip))).toBeInTheDocument();
   });
 
+  it("renders all four preset pills", () => {
+    renderScreen();
+    const p = strings.bakeScheduler.presets;
+    expect(screen.getByRole("button", { name: p.tonight })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: p.tomorrowMorning })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: p.fridayEvening })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: p.saturdayMorning })).toBeInTheDocument();
+  });
+
+  it("הערב preset is always disabled (minReadyAt > tonight 20:00)", () => {
+    renderScreen();
+    expect(screen.getByRole("button", { name: strings.bakeScheduler.presets.tonight })).toBeDisabled();
+  });
+
   it("back button calls onBack", () => {
     renderScreen();
     fireEvent.click(screen.getByRole("button", { name: s.backToChooser }));
