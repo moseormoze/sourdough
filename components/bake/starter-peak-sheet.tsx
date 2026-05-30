@@ -15,7 +15,7 @@ export function StarterPeakSheet({ open, onClose }: StarterPeakSheetProps) {
     <BottomSheet open={open} size="peek" title={sg.peakSheetTitle} onClose={onClose}>
       <div className="relative w-full rounded-xl overflow-hidden mb-4" style={{ height: 180 }}>
         <Image
-          src="/stages/starter-peak-comparison.jpg"
+          src="/stages/starter-peak-comparison.png"
           alt={sg.peakImageAlt}
           fill
           className="object-cover"
