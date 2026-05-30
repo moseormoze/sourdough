@@ -175,6 +175,15 @@ export const strings = {
     feedCardReadinessSigns:
       "הוכפל בנפח · מלא בועות · ריח חמצמץ-מתוק · שקוע מעט בפסגה · עובר מבחן ציפה (float test)",
     feedCardCalcNote: (temp: number) => `ההערכה מחושבת לפי ${temp}°C`,
+    // Peak explainer — planner toggle trigger + sheet (feature 13)
+    peakInfoTrigger: "מה זה בשיא?",
+    peakInfoAriaLabel: "פתח הסבר — מה זה סטארטר בשיא",
+    peakSheetTitle: "סטארטר בשיא — 4 הסימנים",
+    peakSign1: "הוכפל בנפח מאז ההאכלה האחרונה",
+    peakSign2: "מלא בועות אוויר",
+    peakSign3: "ריח חמצמץ-מתוק (לא חומצי חד)",
+    peakSign4: "עובר מבחן ציפה — כפית בכוס מים, הסטארטר צף",
+    peakImageAlt: "שלושה מצבי סטארטר: שטוח לפני השיא, מבעבע בשיא, קרוס אחרי השיא",
   },
   bakeScheduler: {
     headerTitle: "תכנון הבייק",
