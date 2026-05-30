@@ -98,7 +98,7 @@ const MODIFIERS: readonly Modifier[] = [Q10_MODIFIER, FLOUR_MODIFIER];
 // shrink it to fit the bake around their life, within these bounds.
 export const RETARD_DEFAULT_SECS = 12 * 3600;
 export const RETARD_MIN_SECS = 6 * 3600; // below this the crumb/handling suffers
-export const RETARD_MAX_SECS = 72 * 3600; // beyond ~3 days it over-proofs / too sour
+export const RETARD_MAX_SECS = 48 * 3600; // beyond 48h it over-proofs / gets too sour
 
 const SEQUENCE: readonly StageDef[] = [
   { key: "levain", baseSecs: 10 * 3600, kind: "fermentation" }, // levain build
