@@ -67,6 +67,7 @@ const config: Config = {
       },
       zIndex: {
         sticky: "10",
+        fab: "20",
         sheet: "50",
         toast: "100",
         overlay: "200",

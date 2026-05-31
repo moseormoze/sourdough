@@ -119,6 +119,7 @@
   --z-base:    0;
   --z-raised:  1;
   --z-sticky:  10;
+  --z-fab:     20;
   --z-sheet:   50;
   --z-toast:   100;
   --z-overlay: 200;
