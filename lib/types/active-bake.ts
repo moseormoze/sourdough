@@ -14,11 +14,9 @@ export const ActiveBakeSchema = z.object({
   timerStartedAt: z.number().int().nullable().default(null),
   timerElapsedSeconds: z.number().min(0).default(0),
   bakingMethod: BakingMethodSchema.default(DEFAULT_BAKING_METHOD),
-  // Set when bake starts with starter not yet at peak; kept as historical timestamps after feed stage
+  // Timestamps of the planned levain build; preserved for F17 adaptive timeline
   feedAt: z.number().int().nullable().default(null),
   peakAt: z.number().int().nullable().default(null),
-  // True once the user confirms starter is ready and advances past the feed stage
-  feedStagePassed: z.boolean().default(false),
   // Feed ratio chosen in the planner (1:N:N). Defaults so old saves stay valid.
   feedRatio: z.union([
     z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5),

@@ -42,8 +42,7 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
     bakingMethod: "closed-vessel",
     feedAt: null,
     peakAt: null,
-    feedStagePassed: false,
-  feedRatio: 2 as const,
+    feedRatio: 2 as const,
     ...overrides,
   };
 }
@@ -86,7 +85,8 @@ describe("StageScreen — basic stage", () => {
   it("stage 1 renders both disclosures (briefing + todo note)", () => {
     const stage = getStage(1)!;
     render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
-    expect(screen.getByText(/הנחה: סטארטר ב-100% הידרציה/)).toBeInTheDocument();
+    // feedRatio=2 → "1:2:2"
+    expect(screen.getByText(/יחס האכלה: 1:2:2 \(סטארטר:קמח:מים\)/)).toBeInTheDocument();
     expect(screen.getByText(/הקמח של השאור כלול/)).toBeInTheDocument();
   });
 
@@ -111,7 +111,7 @@ describe("StageScreen — basic stage", () => {
   it("stages 4+ do NOT show the stage-1 disclosures", () => {
     const stage = getStage(4)!;
     render(<StageScreen stage={stage} activeBake={makeBake(4)} api={makeApi()} />);
-    expect(screen.queryByText(/הנחה: סטארטר ב-100% הידרציה/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/יחס האכלה:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/הקמח של השאור כלול/)).not.toBeInTheDocument();
   });
 
@@ -124,25 +124,12 @@ describe("StageScreen — basic stage", () => {
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/2");
   });
 
-  it("does NOT show back button on stage 1 when no feed stage was planned", () => {
+  it("does NOT show back button on stage 1", () => {
     const stage = getStage(1)!;
     render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
     expect(
       screen.queryByRole("button", { name: /^חזרה$/ })
     ).not.toBeInTheDocument();
-  });
-
-  it("shows back button on stage 1 when bake had a feed stage, navigates to /bake/feed", () => {
-    const stage = getStage(1)!;
-    render(
-      <StageScreen
-        stage={stage}
-        activeBake={makeBake(1, { feedAt: Date.now() - 3600000, peakAt: Date.now() + 3600000 })}
-        api={makeApi()}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: /^חזרה$/ }));
-    expect(routerMock.push).toHaveBeenCalledWith("/bake/feed");
   });
 
   it("shows back button on stage 2+ and it returns to previous stage", () => {

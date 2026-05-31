@@ -131,6 +131,15 @@ export type FeedRatio = 1 | 2 | 3 | 4 | 5;
 /** Default ratio until the UX lever (Feature 15) is wired. 1:2:2 = ~8h at 24°C. */
 export const DEFAULT_FEED_RATIO: FeedRatio = 2;
 
+/** Display label for each feed ratio (starter:flour:water). */
+export const FEED_RATIO_LABELS: Record<FeedRatio, string> = {
+  1: "1:1:1",
+  2: "1:2:2",
+  3: "1:3:3",
+  4: "1:4:4",
+  5: "1:5:5",
+};
+
 // Empirical "hours to peak after refresh" — rows: temp in °C, cols: ratio 1…5.
 // Source: Israeli sourdough course reference table (timing-model.md §8).
 const PEAK_TABLE: { temp: number; hours: readonly number[] }[] = [
