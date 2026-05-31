@@ -11,6 +11,7 @@ export interface BakeTimelineSheetProps {
   currentStage: number;
   kitchenTemp: number;
   feedRatio: FeedRatio;
+  retardHours: number;
   onClose: () => void;
 }
 
@@ -19,6 +20,7 @@ export function BakeTimelineSheet({
   currentStage,
   kitchenTemp,
   feedRatio,
+  retardHours,
   onClose,
 }: BakeTimelineSheetProps) {
   const [dragY, setDragY] = useState(0);
@@ -128,15 +130,15 @@ export function BakeTimelineSheet({
               {STAGES.map((stage) => {
                 const isPast = stage.n < currentStage;
                 const isCurrent = stage.n === currentStage;
-                // Stage 1 (levain): duration depends on feedRatio, not just temp.
-                // starterPeakSecs uses the full 2D lookup table (temp × ratio).
-                const durationLabel =
-                  stage.n === 1
-                    ? durationRangeLabel(starterPeakSecs(kitchenTemp, feedRatio))
-                    : stage.tempSensitiveBaseSecs != null
-                      ? tempAdjustedDurationLabel(stage.tempSensitiveBaseSecs, kitchenTemp) +
-                        (stage.durationLabelSuffix ?? "")
-                      : stage.durationLabel;
+                const durationLabel = (() => {
+                  if (stage.n === 1)
+                    return durationRangeLabel(starterPeakSecs(kitchenTemp, feedRatio));
+                  if (stage.n === 7)
+                    return `${retardHours} שעות`;
+                  if (stage.tempSensitiveBaseSecs != null)
+                    return tempAdjustedDurationLabel(stage.tempSensitiveBaseSecs, kitchenTemp) + (stage.durationLabelSuffix ?? "");
+                  return stage.durationLabel;
+                })();
 
                 return (
                   <li

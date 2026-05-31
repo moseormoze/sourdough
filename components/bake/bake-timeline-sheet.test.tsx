@@ -7,6 +7,7 @@ const defaultProps = {
   currentStage: 3,
   kitchenTemp: 24,
   feedRatio: 2 as const,
+  retardHours: 12,
   onClose: vi.fn(),
 };
 
@@ -82,6 +83,11 @@ describe("BakeTimelineSheet", () => {
     // starterPeakSecs(24, 5) = 14h → durationRangeLabel → "בין 11 ל-14 שעות"
     render(<BakeTimelineSheet {...defaultProps} currentStage={1} kitchenTemp={24} feedRatio={5} />);
     expect(screen.getByText("בין 11 ל-14 שעות")).toBeInTheDocument();
+  });
+
+  it("stage 7 shows the chosen retard hours", () => {
+    render(<BakeTimelineSheet {...defaultProps} retardHours={16} />);
+    expect(screen.getByText("16 שעות")).toBeInTheDocument();
   });
 
   it("stage 4 (bulk) uses temp-adjusted label", () => {

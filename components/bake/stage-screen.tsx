@@ -87,6 +87,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         totalStages={TOTAL_STAGES}
         kitchenTemp={activeBake.recipe.kitchenTemp}
         feedRatio={activeBake.feedRatio}
+        retardHours={activeBake.retardHours}
         onTimelineOpen={() => setTimelineOpen(true)}
       />
 
@@ -211,6 +212,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       currentStage={activeBake.currentStage}
       kitchenTemp={activeBake.recipe.kitchenTemp}
       feedRatio={activeBake.feedRatio}
+      retardHours={activeBake.retardHours}
       onClose={() => setTimelineOpen(false)}
     />
     </>

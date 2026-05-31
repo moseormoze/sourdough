@@ -280,6 +280,7 @@ describe("BakePlannerScreen", () => {
         expect.any(Date),
         expect.any(Date),
         expect.any(Number), // feedRatio
+        expect.any(Number), // retardHours
       );
     });
   });
@@ -297,6 +298,7 @@ describe("BakePlannerScreen", () => {
         expect.any(Date),
         expect.any(Date),
         expect.any(Number), // feedRatio
+        expect.any(Number), // retardHours
       );
     });
   });
@@ -314,6 +316,7 @@ describe("BakePlannerScreen", () => {
         expect.any(Date),
         expect.any(Date),
         expect.any(Number), // feedRatio
+        expect.any(Number), // retardHours
       );
     });
   });
