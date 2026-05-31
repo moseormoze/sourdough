@@ -40,7 +40,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const { error } = await resend.emails.send({
     from: "כיכר פידבק <feedback@resend.dev>",
-    to: "eilon@mycache.ai",
+    to: "eilon+sourdoughfeedback@mlamdovsly.com",
     subject: `[כיכר] ${body.type}: ${body.description.slice(0, 60)}`,
     html: htmlBody,
   });
