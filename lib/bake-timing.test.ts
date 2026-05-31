@@ -14,7 +14,10 @@ import {
   starterPeakSecs,
   flourFactor,
   RETARD_DEFAULT_SECS,
+  RETARD_MIN_SECS,
   RETARD_MAX_SECS,
+  DEFAULT_FEED_RATIO,
+  type FeedRatio,
 } from "./bake-timing";
 import type { Flour } from "@/lib/types/recipe";
 
@@ -87,18 +90,20 @@ describe("tempAdjustedDurationLabel", () => {
 });
 
 describe("bakeDurationSecs", () => {
-  it("returns roughly 27–30h at 25°C (cooling excluded)", () => {
+  it("returns roughly 16–20h at 25°C (cooling excluded; levain build no longer in dough sequence)", () => {
+    // dough sequence at 25°C: mix(1h) + bulk(~3.7h) + shape(35m) + retard(12h) + preheat(45m) + bake(42m) ≈ 18.7h
     const secs = bakeDurationSecs(25);
     const hours = secs / 3600;
-    expect(hours).toBeGreaterThan(27);
-    expect(hours).toBeLessThan(30);
+    expect(hours).toBeGreaterThan(16);
+    expect(hours).toBeLessThan(20);
   });
 
   it("excludes the cooling recommendation from the headline duration", () => {
     // Cooling must not be baked into the active duration.
     const secs = bakeDurationSecs(BASE_TEMP_C);
-    // Sum of stages at base temp: 10h + 1h + 4h + 12h35m + 45m + 42m = 29h02m
-    expect(secs).toBe((10 + 1 + 4) * 3600 + (12 * 3600 + 35 * 60) + 45 * 60 + 42 * 60);
+    // Dough-axis stages at base temp (levain build removed from SEQUENCE):
+    // 1h mix + 4h bulk + 35m shape + 12h retard + 45m preheat + 42m bake
+    expect(secs).toBe((1 + 4) * 3600 + (12 * 3600 + 35 * 60) + 45 * 60 + 42 * 60);
     expect(COOL_RECOMMENDATION_SECS).toBe(3600);
   });
 
@@ -112,12 +117,13 @@ describe("bakeDurationSecs", () => {
 });
 
 describe("calculateMinReadyAt", () => {
-  it("returns a date ~38h in the future at 25°C", () => {
+  it("returns a date ~25–30h in the future at 25°C (starter peak + dough sequence)", () => {
+    // build (1:2:2 @ 25°C → 7.5h) + dough sequence (≈18.7h) ≈ 26.3h
     const now = new Date("2025-01-10T10:00:00Z");
     const min = calculateMinReadyAt(25, now);
     const hoursAhead = (min.getTime() - now.getTime()) / 3600000;
-    expect(hoursAhead).toBeGreaterThan(36);
-    expect(hoursAhead).toBeLessThan(42);
+    expect(hoursAhead).toBeGreaterThan(24);
+    expect(hoursAhead).toBeLessThan(30);
   });
 
   it("min is further ahead in a cold kitchen", () => {
@@ -159,10 +165,10 @@ describe("calculateFeedingWindow", () => {
     expect(w.feedEnd.getTime()).toBeLessThan(w.peakStart.getTime());
   });
 
-  it("levainStart equals midpoint of peak window", () => {
+  it("mixStart equals midpoint of peak window", () => {
     const w = calculateFeedingWindow(targetReady, 25);
     const mid = (w.peakStart.getTime() + w.peakEnd.getTime()) / 2;
-    expect(w.levainStart.getTime()).toBeCloseTo(mid, -3);
+    expect(w.mixStart.getTime()).toBeCloseTo(mid, -3);
   });
 
   it("earlier feed windows in a warmer kitchen", () => {
@@ -191,14 +197,24 @@ describe("calculateBakeSteps", () => {
     return steps.find((s) => s.key === key);
   }
 
-  it("omits the feed step when starterReady=true", () => {
+  it("omits the build step when starterReady=true", () => {
     const steps = calculateBakeSteps(targetReady, temp, true);
-    expect(byKey(steps, "feed")).toBeUndefined();
+    expect(byKey(steps, "build")).toBeUndefined();
   });
 
-  it("includes the feed step when starterReady=false", () => {
+  it("includes the build step when starterReady=false", () => {
     const steps = calculateBakeSteps(targetReady, temp, false);
-    expect(byKey(steps, "feed")).toBeDefined();
+    expect(byKey(steps, "build")).toBeDefined();
+  });
+
+  it("first step is 'mix' when starterReady=true", () => {
+    const steps = calculateBakeSteps(targetReady, temp, true);
+    expect(steps[0]!.key).toBe("mix");
+  });
+
+  it("first step is 'build' when starterReady=false", () => {
+    const steps = calculateBakeSteps(targetReady, temp, false);
+    expect(steps[0]!.key).toBe("build");
   });
 
   it("ends with a zero-duration 'ready' step at the target time", () => {
@@ -227,21 +243,28 @@ describe("calculateBakeSteps", () => {
     }
   });
 
-  it("the feed step ends exactly at levain start", () => {
+  it("the build step ends exactly at mix start", () => {
     const steps = calculateBakeSteps(targetReady, temp, false);
-    const feed = byKey(steps, "feed")!;
-    const levain = byKey(steps, "levain")!;
-    expect(feed.startAt.getTime() + feed.durationSecs * 1000).toBe(
-      levain.startAt.getTime(),
+    const build = byKey(steps, "build")!;
+    const mix = byKey(steps, "mix")!;
+    expect(build.startAt.getTime() + build.durationSecs * 1000).toBe(
+      mix.startAt.getTime(),
     );
   });
 
-  it("levain starts bakeDurationSecs before the target", () => {
+  it("mix starts bakeDurationSecs before the target when starterReady=true", () => {
     const steps = calculateBakeSteps(targetReady, temp, true);
-    const levain = byKey(steps, "levain")!;
-    expect(targetReady.getTime() - levain.startAt.getTime()).toBe(
+    const mix = byKey(steps, "mix")!;
+    expect(targetReady.getTime() - mix.startAt.getTime()).toBe(
       bakeDurationSecs(temp) * 1000,
     );
+  });
+
+  it("never contains a 'levain' step", () => {
+    const withBuild = calculateBakeSteps(targetReady, temp, false);
+    const noBuild  = calculateBakeSteps(targetReady, temp, true);
+    expect(byKey(withBuild, "levain")).toBeUndefined();
+    expect(byKey(noBuild,  "levain")).toBeUndefined();
   });
 
   it("has a distinct editable 'retard' step defaulting to 12h", () => {
@@ -251,13 +274,13 @@ describe("calculateBakeSteps", () => {
     expect(retard.durationSecs).toBe(12 * 3600);
   });
 
-  it("a longer retard pushes levain earlier and lengthens the total", () => {
+  it("a longer retard pushes mix earlier and lengthens the total", () => {
     const base = calculateBakeSteps(targetReady, temp, true, 12 * 3600);
     const longer = calculateBakeSteps(targetReady, temp, true, 24 * 3600);
-    const baseLevain = base.find((s) => s.key === "levain")!;
-    const longLevain = longer.find((s) => s.key === "levain")!;
+    const baseMix = base.find((s) => s.key === "mix")!;
+    const longMix = longer.find((s) => s.key === "mix")!;
     // ready time is fixed, so a 12h-longer retard moves the start 12h earlier
-    expect(baseLevain.startAt.getTime() - longLevain.startAt.getTime()).toBe(
+    expect(baseMix.startAt.getTime() - longMix.startAt.getTime()).toBe(
       12 * 3600 * 1000,
     );
     expect(longer.find((s) => s.key === "retard")!.durationSecs).toBe(24 * 3600);
@@ -283,15 +306,85 @@ describe("stage kinds (engine invariant for flour-awareness)", () => {
     for (const k of ["mix", "shape", "retard", "preheat", "bake"]) {
       expect(dur(cold, k)).toBe(dur(warm, k));
     }
-    // fermentation stages: cooler kitchen = longer
-    expect(dur(cold, "levain")).toBeGreaterThan(dur(warm, "levain"));
+    // bulk is the remaining fermentation stage (levain build gone from SEQUENCE)
     expect(dur(cold, "bulk")).toBeGreaterThan(dur(warm, "bulk"));
   });
 
-  it("the starter peak is its own axis (its own calibration, not BASE_TEMP_C)", () => {
-    // Calibrated at 25°C, so at 25°C it equals the base 9h exactly —
-    // distinct from the fermentation stages' 24°C reference.
-    expect(starterPeakSecs(25)).toBe(9 * 3600);
+  it("the starter peak is table-driven, not Q10 — its own calibration axis", () => {
+    // At 24°C with default ratio (1:2:2), the table says 8h exactly.
+    // This is distinct from the dough fermentation axis (BASE_TEMP_C = 24°C, Q10).
+    expect(starterPeakSecs(24)).toBe(8 * 3600);
+  });
+});
+
+describe("starterPeakSecs (table-based, T1)", () => {
+  it("DEFAULT_FEED_RATIO is 2 (1:2:2)", () => {
+    const r: FeedRatio = DEFAULT_FEED_RATIO;
+    expect(r).toBe(2);
+  });
+
+  it("exact grid: 24°C — all five ratios", () => {
+    expect(starterPeakSecs(24, 1)).toBe(5 * 3600);
+    expect(starterPeakSecs(24, 2)).toBe(8 * 3600);
+    expect(starterPeakSecs(24, 3)).toBe(10 * 3600);
+    expect(starterPeakSecs(24, 4)).toBe(12 * 3600);
+    expect(starterPeakSecs(24, 5)).toBe(14 * 3600);
+  });
+
+  it("exact grid: all rows for ratio 1:2:2", () => {
+    expect(starterPeakSecs(16, 2)).toBe(14 * 3600);
+    expect(starterPeakSecs(18, 2)).toBe(12 * 3600);
+    expect(starterPeakSecs(20, 2)).toBe(10 * 3600);
+    expect(starterPeakSecs(22, 2)).toBe(9 * 3600);
+    expect(starterPeakSecs(24, 2)).toBe(8 * 3600);
+    expect(starterPeakSecs(26, 2)).toBe(7 * 3600);
+    expect(starterPeakSecs(28, 2)).toBe(6 * 3600);
+    expect(starterPeakSecs(30, 2)).toBe(5 * 3600);
+    expect(starterPeakSecs(32, 2)).toBe(Math.round(4.5 * 3600));
+  });
+
+  it("exact grid: 1:1:1 column", () => {
+    expect(starterPeakSecs(16, 1)).toBe(12 * 3600);
+    expect(starterPeakSecs(22, 1)).toBe(Math.round(6.5 * 3600));
+    expect(starterPeakSecs(30, 1)).toBe(Math.round(2.5 * 3600));
+    expect(starterPeakSecs(32, 1)).toBe(2 * 3600);
+  });
+
+  it("exact grid: 1:5:5 column", () => {
+    expect(starterPeakSecs(16, 5)).toBe(20 * 3600);
+    expect(starterPeakSecs(24, 5)).toBe(14 * 3600);
+    expect(starterPeakSecs(32, 5)).toBe(10 * 3600);
+  });
+
+  it("interpolates linearly at mid-row temp (ratio 1:2:2: 23°C between 22→9h and 24→8h)", () => {
+    // midpoint = 8.5h
+    expect(starterPeakSecs(23, 2)).toBe(Math.round(8.5 * 3600));
+  });
+
+  it("interpolates at non-midpoint temp (ratio 1:3:3: 25°C between 24→10h and 26→9h)", () => {
+    // t = 0.5 → 9.5h
+    expect(starterPeakSecs(25, 3)).toBe(Math.round(9.5 * 3600));
+  });
+
+  it("clamps below 16°C — returns 16°C value", () => {
+    expect(starterPeakSecs(14, 2)).toBe(14 * 3600);
+    expect(starterPeakSecs(0,  2)).toBe(14 * 3600);
+  });
+
+  it("clamps above 32°C — returns 32°C value", () => {
+    expect(starterPeakSecs(35, 2)).toBe(Math.round(4.5 * 3600));
+    expect(starterPeakSecs(40, 1)).toBe(2 * 3600);
+  });
+
+  it("calling without ratio uses DEFAULT_FEED_RATIO", () => {
+    expect(starterPeakSecs(24)).toBe(starterPeakSecs(24, DEFAULT_FEED_RATIO));
+    expect(starterPeakSecs(20)).toBe(starterPeakSecs(20, DEFAULT_FEED_RATIO));
+  });
+});
+
+describe("RETARD_MIN_SECS", () => {
+  it("is at least 8h (below this crumb/handling suffers)", () => {
+    expect(RETARD_MIN_SECS).toBeGreaterThanOrEqual(8 * 3600);
   });
 });
 
@@ -318,10 +411,9 @@ describe("flour-aware durations (T2)", () => {
     steps.find((s) => s.key === key)!.durationSecs;
   const target = new Date("2025-01-12T14:00:00");
 
-  it("rye/whole shortens levain + bulk vs white, at the same temp", () => {
+  it("rye/whole shortens bulk vs white, at the same temp (levain build no longer in dough sequence)", () => {
     const white = calculateBakeSteps(target, temp, true, RETARD_DEFAULT_SECS, blend({ white: 100 }));
     const rye = calculateBakeSteps(target, temp, true, RETARD_DEFAULT_SECS, blend({ white: 50, rye: 50 }));
-    expect(dur(rye, "levain")).toBeLessThan(dur(white, "levain"));
     expect(dur(rye, "bulk")).toBeLessThan(dur(white, "bulk"));
   });
 
@@ -334,16 +426,15 @@ describe("flour-aware durations (T2)", () => {
   });
 
   it("does NOT change the starter peak (recipe flour off the starter axis)", () => {
-    // starterPeakSecs takes no flour at all — the feed step's wait is flour-independent.
+    // starterPeakSecs takes no flour at all — the build step's wait is flour-independent.
     const ryeNotReady = calculateBakeSteps(target, temp, false, RETARD_DEFAULT_SECS, blend({ rye: 100 }));
     const whiteNotReady = calculateBakeSteps(target, temp, false, RETARD_DEFAULT_SECS, blend({ white: 100 }));
-    expect(dur(ryeNotReady, "feed")).toBe(dur(whiteNotReady, "feed"));
+    expect(dur(ryeNotReady, "build")).toBe(dur(whiteNotReady, "build"));
   });
 
   it("regression: omitting flour equals 100% white (backward compatible)", () => {
     const noFlour = calculateBakeSteps(target, temp, true, RETARD_DEFAULT_SECS);
     const white = calculateBakeSteps(target, temp, true, RETARD_DEFAULT_SECS, blend({ white: 100 }));
-    expect(dur(noFlour, "levain")).toBe(dur(white, "levain"));
     expect(dur(noFlour, "bulk")).toBe(dur(white, "bulk"));
   });
 });

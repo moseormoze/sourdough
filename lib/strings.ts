@@ -195,7 +195,7 @@ export const strings = {
     starterNo: "לא",
     readyQuestion: "מתי שהלחם ייצא מהתנור?",
     earliest: "הכי מוקדם",
-    tempQuestion: "מה הטמפרטורה בחלל?",
+    tempQuestion: "מהי טמפרטורת החדר?",
     tempHint: "חורף 20–24° · קיץ 24–27°",
     tempImportantHint: "הטמפרטורה קובעת את כל הזמנים — כדאי למדוד ולא לנחש",
     scheduleSectionTitle: "מתי הלחם מוכן?",
@@ -226,8 +226,7 @@ export const strings = {
     coolingTip: "מומלץ לצנן כ-שעה לפני חיתוך — חיתוך חם הורס את הפירור",
     // Per-step copy (key matches BakeStepKey). desc may be omitted when computed from duration.
     timelineSteps: {
-      feed: { label: "האכלת הסטארטר", desc: "עד שהסטארטר מגיע לשיא" },
-      levain: { label: "בניית השאור" },
+      build: { label: "האכלת הסטארטר", desc: "עד שהסטארטר מגיע לשיא" },
       mix: { label: "ערבוב", desc: "אוטוליזה 45 דק׳ + לישה 15 דק׳" },
       bulk: { label: "תסיסה ראשונית", desc: "כולל קיפולים" },
       shape: { label: "עיצוב הבצק", desc: "עיצוב + מנוחת ביניים · כ-35 דק׳" },

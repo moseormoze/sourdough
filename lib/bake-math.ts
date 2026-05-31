@@ -1,3 +1,4 @@
+import { DEFAULT_FEED_RATIO, type FeedRatio } from "./bake-timing";
 import type { Flour, Recipe } from "./types/recipe";
 
 export type FlourType = keyof Flour;
@@ -50,15 +51,34 @@ function breakdownByBlend(totalGrams: number, blend: Flour): FlourBreakdownEntry
   return entries;
 }
 
-export function computeBakeQuantities(recipe: Recipe): BakeQuantities {
+export interface RefreshBreakdown {
+  starterGrams: number;
+  flourGrams: number;
+  waterGrams: number;
+}
+
+/**
+ * How much mother starter / flour / water to feed, given the desired total amount
+ * of active starter and the chosen feed ratio (1:N:N, 100% hydration).
+ * The total sums exactly (rounding drift absorbed by flour).
+ */
+export function computeRefreshBreakdown(totalGrams: number, ratio: FeedRatio = DEFAULT_FEED_RATIO): RefreshBreakdown {
+  const parts = 1 + ratio + ratio; // 1 starter + N flour + N water
+  const starterGrams = Math.round(totalGrams / parts);
+  const waterGrams = Math.round((totalGrams * ratio) / parts);
+  // absorb rounding drift into flour so the three values sum exactly
+  const flourGrams = totalGrams - starterGrams - waterGrams;
+  return { starterGrams, flourGrams, waterGrams };
+}
+
+export function computeBakeQuantities(recipe: Recipe, feedRatio: FeedRatio = DEFAULT_FEED_RATIO): BakeQuantities {
   const totalFlourGrams = recipe.flourWeightGrams;
   const totalWaterGrams = Math.round((recipe.flourWeightGrams * recipe.hydration) / 100);
   const saltGrams = Math.round((recipe.flourWeightGrams * recipe.salt) / 100);
   const levainTotalGrams = Math.round((recipe.flourWeightGrams * recipe.levain) / 100);
 
-  const levainStarter = Math.round(levainTotalGrams / 3);
-  const levainWater = Math.round(levainTotalGrams / 3);
-  const levainFlour = Math.round(levainTotalGrams / 3);
+  const { starterGrams: levainStarter, flourGrams: levainFlour, waterGrams: levainWater } =
+    computeRefreshBreakdown(levainTotalGrams, feedRatio);
 
   const mixFlour = Math.round(totalFlourGrams - levainFlour - levainStarter / 2);
   const mixWater = Math.round(

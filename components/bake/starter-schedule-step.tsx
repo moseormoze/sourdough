@@ -169,7 +169,7 @@ export function StarterScheduleStep({ onDismiss }: StarterScheduleStepProps) {
   const feedAt = window
     ? new Date((window.feedStart.getTime() + window.feedEnd.getTime()) / 2)
     : null;
-  const peakAt = window ? window.levainStart : null;
+  const peakAt = window ? window.mixStart : null;
 
   const peakHours = feedAt && peakAt
     ? Math.round((peakAt.getTime() - feedAt.getTime()) / 3600000)
