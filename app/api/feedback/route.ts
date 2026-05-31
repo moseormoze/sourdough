@@ -46,7 +46,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   });
 
   if (error) {
-    return NextResponse.json({ error: "send failed" }, { status: 500 });
+    console.error("[feedback] Resend error:", JSON.stringify(error));
+    return NextResponse.json({ error: "send failed", detail: error }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
