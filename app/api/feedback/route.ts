@@ -39,15 +39,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   `;
 
   const { error } = await resend.emails.send({
-    from: "כיכר פידבק <onboarding@resend.dev>",
-    to: "eilon+sourdoughfeedback@mlamdovsly.com",
+    from: "כיכר פידבק <feedback@mlamdovsky.com>",
+    to: "eilon+sourdoughfeedback@mlamdovsky.com",
     subject: `[כיכר] ${body.type}: ${body.description.slice(0, 60)}`,
     html: htmlBody,
   });
 
   if (error) {
-    console.error("[feedback] Resend error:", JSON.stringify(error));
-    return NextResponse.json({ error: "send failed", detail: error }, { status: 500 });
+    return NextResponse.json({ error: "send failed" }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

@@ -59,7 +59,7 @@ describe("POST /api/feedback", () => {
 
     expect(mockSend).toHaveBeenCalledOnce();
     const callArgs = mockSend.mock.calls[0][0] as { to: string; subject: string; html: string; from: string };
-    expect(callArgs.to).toBe("eilon+sourdoughfeedback@mlamdovsly.com");
+    expect(callArgs.to).toBe("eilon+sourdoughfeedback@mlamdovsky.com");
     expect(callArgs.subject).toContain("הצעה לפיצ׳ר");
   });
 
