@@ -14,6 +14,7 @@ export interface StageHeaderProps {
   totalStages: number;
   kitchenTemp?: number;
   feedRatio?: FeedRatio;
+  retardHours?: number;
   onTimelineOpen?: () => void;
 }
 
@@ -22,20 +23,21 @@ export function StageHeader({
   totalStages,
   kitchenTemp,
   feedRatio,
+  retardHours,
   onTimelineOpen,
 }: StageHeaderProps) {
   const [isPressed, setIsPressed] = useState(false);
   const dragRef = useRef({ startX: 0, startY: 0, didDrag: false });
 
-  // Stage 1 (levain): duration is driven by both temp AND feedRatio.
-  // Use the full peak-time lookup instead of the generic Q10 formula.
-  const durationLabel =
-    stage.n === 1 && kitchenTemp != null && feedRatio != null
-      ? durationRangeLabel(starterPeakSecs(kitchenTemp, feedRatio))
-      : stage.tempSensitiveBaseSecs != null && kitchenTemp != null
-        ? tempAdjustedDurationLabel(stage.tempSensitiveBaseSecs, kitchenTemp) +
-          (stage.durationLabelSuffix ?? "")
-        : stage.durationLabel;
+  const durationLabel = (() => {
+    if (stage.n === 1 && kitchenTemp != null && feedRatio != null)
+      return durationRangeLabel(starterPeakSecs(kitchenTemp, feedRatio));
+    if (stage.n === 7 && retardHours != null)
+      return `${retardHours} שעות`;
+    if (stage.tempSensitiveBaseSecs != null && kitchenTemp != null)
+      return tempAdjustedDurationLabel(stage.tempSensitiveBaseSecs, kitchenTemp) + (stage.durationLabelSuffix ?? "");
+    return stage.durationLabel;
+  })();
 
   function handlePointerDown(e: React.PointerEvent) {
     dragRef.current = { startX: e.clientX, startY: e.clientY, didDrag: false };
@@ -110,9 +112,11 @@ export function StageHeader({
       )}
 
       <div className="mt-4">
-        <span className="inline-block bg-accent-bg text-accent text-tiny font-medium px-3 py-1 rounded-full">
-          {durationLabel || "—"}
-        </span>
+        {durationLabel && (
+          <span className="inline-block bg-accent-bg text-accent text-tiny font-medium px-3 py-1 rounded-full">
+            {durationLabel}
+          </span>
+        )}
         <h1 className="mt-2 text-display-sm text-ink">
           {stage.name}
           {stage.hint && (

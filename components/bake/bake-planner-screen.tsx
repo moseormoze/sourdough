@@ -36,7 +36,7 @@ import type { Recipe } from "@/lib/types/recipe";
 export interface BakePlannerScreenProps {
   recipe: Recipe;
   imageUrl?: string;
-  onConfirm: (recipe: Recipe, bakingMethod: BakingMethod, feedAt?: Date, peakAt?: Date, feedRatio?: FeedRatio) => void;
+  onConfirm: (recipe: Recipe, bakingMethod: BakingMethod, feedAt?: Date, peakAt?: Date, feedRatio?: FeedRatio, retardHours?: number) => void;
   onBack: () => void;
 }
 
@@ -314,7 +314,7 @@ export function BakePlannerScreen({
   function handleConfirm() {
     const feedAt = steps.find((step) => step.key === "build")?.startAt;
     const peakAt = steps.find((step) => step.key === "mix")?.startAt;
-    onConfirm({ ...recipe, kitchenTemp }, bakingMethod, feedAt, peakAt, feedRatio);
+    onConfirm({ ...recipe, kitchenTemp }, bakingMethod, feedAt, peakAt, feedRatio, retardHours);
   }
 
   return (
