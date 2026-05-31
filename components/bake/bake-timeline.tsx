@@ -46,9 +46,8 @@ function waitText(step: BakeStep): string {
   const meta = strings.bakeScheduler.timelineSteps[step.key];
   const fixed = "desc" in meta ? meta.desc : undefined;
 
-  // Biology-driven steps show an honest range; the retard shows its exact set value.
-  if (step.key === "levain") return durationRangeLabel(step.durationSecs);
-  if (step.key === "feed" || step.key === "bulk")
+  // Biology-driven steps show a range label; the retard shows its exact set value.
+  if (step.key === "build" || step.key === "bulk")
     return `${durationRangeLabel(step.durationSecs)} · ${fixed}`;
   if (step.key === "retard") return durationLabel(step.durationSecs);
   return fixed ?? "";
@@ -78,7 +77,7 @@ export function BakeTimeline({ steps, now, editableRetard }: BakeTimelineProps) 
 
   return (
     <div role="region" aria-label={s.timelineTitle}>
-      <ol className="flex flex-col">
+      <ol className="flex flex-col pb-2">
         {steps.map((step, i) => {
           const isLast = i === steps.length - 1;
           const isReady = step.key === "ready";

@@ -97,25 +97,53 @@ const MODIFIERS: readonly Modifier[] = [Q10_MODIFIER, FLOUR_MODIFIER];
 // The cold retard is the schedule's shock absorber: the baker can stretch or
 // shrink it to fit the bake around their life, within these bounds.
 export const RETARD_DEFAULT_SECS = 12 * 3600;
-export const RETARD_MIN_SECS = 6 * 3600; // below this the crumb/handling suffers
-export const RETARD_MAX_SECS = 48 * 3600; // beyond 48h it over-proofs / gets too sour
+export const RETARD_MIN_SECS = 8 * 3600; // below 8h crumb/handling suffers (course minimum)
+export const RETARD_MAX_SECS = 48 * 3600; // beyond 48h over-proofs / gets too sour for beginners
 
+// The dough-axis sequence (mix → ready). The starter build is handled separately
+// on the starter axis (starterPeakSecs) and injected by calculateBakeSteps when
+// starterReady === false. Keeping it off this list ensures recipe flour never
+// influences the build duration (starter-axis boundary by construction).
 const SEQUENCE: readonly StageDef[] = [
-  { key: "levain", baseSecs: 10 * 3600, kind: "fermentation" }, // levain build
-  { key: "mix", baseSecs: (45 + 15) * 60, kind: "fixed" }, // autolyse + mix
-  { key: "bulk", baseSecs: 4 * 3600, kind: "fermentation" }, // bulk fermentation + folds
-  { key: "shape", baseSecs: (25 + 10) * 60, kind: "fixed" }, // pre-shape + shape
-  { key: "retard", baseSecs: RETARD_DEFAULT_SECS, kind: "fixed" }, // cold retard — editable
-  { key: "preheat", baseSecs: 45 * 60, kind: "fixed" }, // preheat oven + vessel
-  { key: "bake", baseSecs: (20 + 22) * 60, kind: "fixed" }, // bake covered + uncovered
+  { key: "mix",     baseSecs: (45 + 15) * 60,  kind: "fixed" },        // autolyse + mix
+  { key: "bulk",    baseSecs: 4 * 3600,         kind: "fermentation" }, // bulk + folds
+  { key: "shape",   baseSecs: (25 + 10) * 60,  kind: "fixed" },        // pre-shape + shape
+  { key: "retard",  baseSecs: RETARD_DEFAULT_SECS, kind: "fixed" },    // cold retard — editable
+  { key: "preheat", baseSecs: 45 * 60,          kind: "fixed" },       // preheat oven + vessel
+  { key: "bake",    baseSecs: (20 + 22) * 60,  kind: "fixed" },        // bake covered + uncovered
 ];
 
 // Recommended rest on a rack before slicing — shown as a tip, not part of "ready".
 export const COOL_RECOMMENDATION_SECS = 60 * 60;
 
-// Starter peaks ~9h after feeding at 25°C (Q10-adjusted below)
-const STARTER_PEAK_BASE_SECS = 9 * 3600;
-const STARTER_PEAK_BASE_TEMP_C = 25;
+// ---------------------------------------------------------------------------
+// Starter-peak axis (T1) — table-driven, not Q10.
+//
+// The starter's feed ratio (1:N:N where N = FeedRatio) is the baker's primary
+// scheduling lever: at 24°C, choosing ratio 1 gives a 5h peak; ratio 5 gives 14h.
+// Temperature interpolates linearly between the 2°C rows and clamps at the
+// table edges (16°C / 32°C). See context/timing-model.md §8.
+// ---------------------------------------------------------------------------
+
+/** Multiplier N in the 1:N:N feed ratio. 1 = 1:1:1, 5 = 1:5:5. */
+export type FeedRatio = 1 | 2 | 3 | 4 | 5;
+
+/** Default ratio until the UX lever (Feature 15) is wired. 1:2:2 = ~8h at 24°C. */
+export const DEFAULT_FEED_RATIO: FeedRatio = 2;
+
+// Empirical "hours to peak after refresh" — rows: temp in °C, cols: ratio 1…5.
+// Source: Israeli sourdough course reference table (timing-model.md §8).
+const PEAK_TABLE: { temp: number; hours: readonly number[] }[] = [
+  { temp: 16, hours: [12,   14,   16,   18,   20  ] },
+  { temp: 18, hours: [10,   12,   14,   16,   18  ] },
+  { temp: 20, hours: [ 8,   10,   12,   14,   16  ] },
+  { temp: 22, hours: [ 6.5,  9,   11,   13,   15  ] },
+  { temp: 24, hours: [ 5,    8,   10,   12,   14  ] },
+  { temp: 26, hours: [ 4,    7,    9,   11,   13  ] },
+  { temp: 28, hours: [ 3,    6,    8,   10,   12  ] },
+  { temp: 30, hours: [ 2.5,  5,    7,    9,   11  ] },
+  { temp: 32, hours: [ 2,    4.5,  6,    8,   10  ] },
+];
 
 // ±1h window applied to both feeding and peak ranges
 const WINDOW_SECS = 3600;
@@ -140,8 +168,8 @@ export function bakeDurationSecs(
   return SEQUENCE.reduce((sum, def) => sum + stageSecs(def, p), 0);
 }
 
-/** When the levain build must begin to hit a given out-of-oven target. */
-function levainStartFor(
+/** When mix must begin to hit a given out-of-oven target (dough axis only). */
+function mixStartFor(
   targetReadyAt: Date,
   kitchenTempC: number,
   retardSecs: number,
@@ -171,30 +199,43 @@ export function durationRangeLabel(secs: number): string {
   return `בין ${low} ל-${high} שעות`;
 }
 
-/** Seconds for a fed starter to reach peak, at the given kitchen temp (Q10). */
-export function starterPeakSecs(kitchenTempC: number): number {
-  return Math.round(
-    STARTER_PEAK_BASE_SECS * Math.pow(2, (STARTER_PEAK_BASE_TEMP_C - kitchenTempC) / 10),
-  );
+/** Seconds for a fed starter to reach peak, given kitchen temp and feed ratio. */
+export function starterPeakSecs(kitchenTempC: number, ratio: FeedRatio = DEFAULT_FEED_RATIO): number {
+  const col = ratio - 1; // ratio 1 → col 0, …, ratio 5 → col 4
+  const clamped = Math.max(PEAK_TABLE[0]!.temp, Math.min(PEAK_TABLE[PEAK_TABLE.length - 1]!.temp, kitchenTempC));
+
+  // Find the two surrounding rows and interpolate linearly on temperature.
+  for (let i = 0; i < PEAK_TABLE.length - 1; i++) {
+    const lo = PEAK_TABLE[i]!;
+    const hi = PEAK_TABLE[i + 1]!;
+    if (clamped >= lo.temp && clamped <= hi.temp) {
+      const t = (clamped - lo.temp) / (hi.temp - lo.temp);
+      const hours = lo.hours[col]! + t * (hi.hours[col]! - lo.hours[col]!);
+      return Math.round(hours * 3600);
+    }
+  }
+
+  // Exact match on the last row (clamped === last temp).
+  return Math.round(PEAK_TABLE[PEAK_TABLE.length - 1]!.hours[col]! * 3600);
 }
 
-/** Earliest Date at which bread can realistically be ready. */
+/** Earliest Date at which bread can realistically be ready (starter not yet at peak). */
 export function calculateMinReadyAt(
   kitchenTempC: number,
   now: Date = new Date(),
   retardSecs: number = RETARD_DEFAULT_SECS,
   flour?: Flour,
+  feedRatio: FeedRatio = DEFAULT_FEED_RATIO,
 ): Date {
   return new Date(
     now.getTime() +
-      (starterPeakSecs(kitchenTempC) + bakeDurationSecs(kitchenTempC, retardSecs, flour)) *
+      (starterPeakSecs(kitchenTempC, feedRatio) + bakeDurationSecs(kitchenTempC, retardSecs, flour)) *
         1000,
   );
 }
 
 export type BakeStepKey =
-  | "feed"
-  | "levain"
+  | "build"   // single starter refresh-to-peak step (only when starterReady=false)
   | "mix"
   | "bulk"
   | "shape"
@@ -213,8 +254,9 @@ export interface BakeStep {
 
 /**
  * The full ordered bake schedule working backwards from when the loaf should
- * leave the oven. Includes the optional feeding step when the starter isn't
- * yet at peak. Cooling is excluded — it's a recommendation after "ready".
+ * leave the oven. When the starter isn't at peak a single "build" step is
+ * prepended (refresh starter → peak). Cooling is excluded — it's a
+ * recommendation after "ready".
  */
 export function calculateBakeSteps(
   targetReadyAt: Date,
@@ -222,23 +264,23 @@ export function calculateBakeSteps(
   starterReady: boolean,
   retardSecs: number = RETARD_DEFAULT_SECS,
   flour?: Flour,
+  feedRatio: FeedRatio = DEFAULT_FEED_RATIO,
 ): BakeStep[] {
-  const levainStart = levainStartFor(targetReadyAt, kitchenTempC, retardSecs, flour);
+  const mixStart = mixStartFor(targetReadyAt, kitchenTempC, retardSecs, flour);
   const p: FermentationParams = { kitchenTempC, retardSecs, flour };
 
   const steps: BakeStep[] = [];
 
   if (!starterReady) {
-    const w = calculateFeedingWindow(targetReadyAt, kitchenTempC, retardSecs, flour);
-    const feedAt = new Date((w.feedStart.getTime() + w.feedEnd.getTime()) / 2);
+    const buildSecs = starterPeakSecs(kitchenTempC, feedRatio);
     steps.push({
-      key: "feed",
-      startAt: feedAt,
-      durationSecs: Math.round((levainStart.getTime() - feedAt.getTime()) / 1000),
+      key: "build",
+      startAt: new Date(mixStart.getTime() - buildSecs * 1000),
+      durationSecs: buildSecs,
     });
   }
 
-  let cursor = levainStart.getTime();
+  let cursor = mixStart.getTime();
   for (const def of SEQUENCE) {
     const dur = stageSecs(def, p);
     steps.push({ key: def.key, startAt: new Date(cursor), durationSecs: dur });
@@ -255,13 +297,13 @@ export interface FeedingWindow {
   feedEnd: Date;
   peakStart: Date;
   peakEnd: Date;
-  /** When the levain build (stage 1) should begin — midpoint of peak window. */
-  levainStart: Date;
+  /** When mix should begin — midpoint of peak window. */
+  mixStart: Date;
 }
 
 /**
- * Given a target bread-ready time and kitchen temperature, returns the
- * optimal feeding window and peak window for the starter.
+ * Given a target bread-ready time, kitchen temperature and feed ratio, returns
+ * the optimal feeding window and peak window for the starter.
  * Both windows span ±1h around the central estimate to reflect the
  * natural variability in starter activity.
  */
@@ -270,16 +312,17 @@ export function calculateFeedingWindow(
   kitchenTempC: number,
   retardSecs: number = RETARD_DEFAULT_SECS,
   flour?: Flour,
+  feedRatio: FeedRatio = DEFAULT_FEED_RATIO,
 ): FeedingWindow {
-  const levainStart = levainStartFor(targetReadyAt, kitchenTempC, retardSecs, flour);
-  const peakSecs = starterPeakSecs(kitchenTempC);
+  const mxStart  = mixStartFor(targetReadyAt, kitchenTempC, retardSecs, flour);
+  const peakSecs = starterPeakSecs(kitchenTempC, feedRatio);
 
-  const peakStart = new Date(levainStart.getTime() - WINDOW_SECS * 1000);
-  const peakEnd   = new Date(levainStart.getTime() + WINDOW_SECS * 1000);
+  const peakStart = new Date(mxStart.getTime() - WINDOW_SECS * 1000);
+  const peakEnd   = new Date(mxStart.getTime() + WINDOW_SECS * 1000);
   const feedStart = new Date(peakStart.getTime() - peakSecs * 1000);
   const feedEnd   = new Date(peakEnd.getTime()   - peakSecs * 1000);
 
-  return { feedStart, feedEnd, peakStart, peakEnd, levainStart };
+  return { feedStart, feedEnd, peakStart, peakEnd, mixStart: mxStart };
 }
 
 /**
@@ -292,8 +335,9 @@ export function earliestReadyAt(
   starterReady: boolean,
   retardSecs: number = RETARD_DEFAULT_SECS,
   flour?: Flour,
+  feedRatio: FeedRatio = DEFAULT_FEED_RATIO,
 ): Date {
-  const lead = starterReady ? 0 : starterPeakSecs(kitchenTempC);
+  const lead = starterReady ? 0 : starterPeakSecs(kitchenTempC, feedRatio);
   return new Date(
     now.getTime() + (lead + bakeDurationSecs(kitchenTempC, retardSecs, flour)) * 1000,
   );

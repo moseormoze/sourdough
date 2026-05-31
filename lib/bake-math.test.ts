@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { computeBakeQuantities } from "./bake-math";
+import { computeBakeQuantities, computeRefreshBreakdown } from "./bake-math";
+import type { FeedRatio } from "./bake-timing";
 import type { Recipe } from "./types/recipe";
 
 function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
@@ -20,19 +21,21 @@ function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
 }
 
 describe("computeBakeQuantities — representative recipes", () => {
-  it("Country (500g, 75% hyd, 2% salt, 20% lev)", () => {
+  // Default ratio is 1:2:2 (5 parts): starter=total/5, flour=water=2×starter.
+  it("Country (500g, 75% hyd, 2% salt, 20% lev) at default ratio 1:2:2", () => {
     const q = computeBakeQuantities(makeRecipe());
     expect(q.totalFlourGrams).toBe(500);
     expect(q.totalWaterGrams).toBe(375);
     expect(q.saltGrams).toBe(10);
     expect(q.levainTotalGrams).toBe(100);
-    expect(q.levainBuild.starterGrams).toBe(33);
-    expect(q.levainBuild.waterGrams).toBe(33);
-    expect(q.levainBuild.flourGrams).toBe(33);
+    // 100g at 1:2:2 (5 parts): starter=20, water=40, flour=40
+    expect(q.levainBuild.starterGrams).toBe(20);
+    expect(q.levainBuild.waterGrams).toBe(40);
+    expect(q.levainBuild.flourGrams).toBe(40);
     expect(q.mixAdditions.saltReserveWaterGrams).toBe(20);
   });
 
-  it("Whole Wheat (500g, 80% hyd, 2.2% salt, 25% lev)", () => {
+  it("Whole Wheat (500g, 80% hyd, 2.2% salt, 25% lev) at default ratio 1:2:2", () => {
     const q = computeBakeQuantities(
       makeRecipe({ hydration: 80, salt: 2.2, levain: 25 })
     );
@@ -40,12 +43,13 @@ describe("computeBakeQuantities — representative recipes", () => {
     expect(q.totalWaterGrams).toBe(400);
     expect(q.saltGrams).toBe(11);
     expect(q.levainTotalGrams).toBe(125);
-    expect(q.levainBuild.starterGrams).toBe(42);
-    expect(q.levainBuild.waterGrams).toBe(42);
-    expect(q.levainBuild.flourGrams).toBe(42);
+    // 125g at 1:2:2: starter=25, water=50, flour=50
+    expect(q.levainBuild.starterGrams).toBe(25);
+    expect(q.levainBuild.waterGrams).toBe(50);
+    expect(q.levainBuild.flourGrams).toBe(50);
   });
 
-  it("Rye 50 (500g, 70% hyd, 2.5% salt, 15% lev)", () => {
+  it("Rye 50 (500g, 70% hyd, 2.5% salt, 15% lev) at default ratio 1:2:2", () => {
     const q = computeBakeQuantities(
       makeRecipe({ hydration: 70, salt: 2.5, levain: 15 })
     );
@@ -53,9 +57,10 @@ describe("computeBakeQuantities — representative recipes", () => {
     expect(q.totalWaterGrams).toBe(350);
     expect(q.saltGrams).toBe(13);
     expect(q.levainTotalGrams).toBe(75);
-    expect(q.levainBuild.starterGrams).toBe(25);
-    expect(q.levainBuild.waterGrams).toBe(25);
-    expect(q.levainBuild.flourGrams).toBe(25);
+    // 75g at 1:2:2: starter=15, water=30, flour=30
+    expect(q.levainBuild.starterGrams).toBe(15);
+    expect(q.levainBuild.waterGrams).toBe(30);
+    expect(q.levainBuild.flourGrams).toBe(30);
   });
 
   it("High hydration (500g, 90% hyd, 2% salt, 20% lev)", () => {
@@ -63,11 +68,12 @@ describe("computeBakeQuantities — representative recipes", () => {
     expect(q.totalWaterGrams).toBe(450);
   });
 
-  it("Lean baguette (500g, 65% hyd, 2% salt, 10% lev)", () => {
+  it("Lean baguette (500g, 65% hyd, 2% salt, 10% lev) at default ratio 1:2:2", () => {
     const q = computeBakeQuantities(makeRecipe({ hydration: 65, levain: 10 }));
     expect(q.totalWaterGrams).toBe(325);
     expect(q.levainTotalGrams).toBe(50);
-    expect(q.levainBuild.starterGrams).toBe(17);
+    // 50g at 1:2:2: starter=10
+    expect(q.levainBuild.starterGrams).toBe(10);
   });
 });
 
@@ -215,5 +221,62 @@ describe("computeBakeQuantities — mix flourBreakdown", () => {
   it("levainBuild.flourBreakdown is empty array when levain=0", () => {
     const q = computeBakeQuantities(makeRecipe({ levain: 0 }));
     expect(q.levainBuild.flourBreakdown).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// T3 — ratio-driven refresh math
+// ---------------------------------------------------------------------------
+
+describe("computeRefreshBreakdown (T3)", () => {
+  it("at ratio 1:1:1 — starter = flour = water = total/3", () => {
+    const b = computeRefreshBreakdown(150, 1);
+    expect(b.starterGrams).toBe(50);
+    expect(b.flourGrams).toBe(50);
+    expect(b.waterGrams).toBe(50);
+    expect(b.starterGrams + b.flourGrams + b.waterGrams).toBe(150);
+  });
+
+  it("at ratio 1:2:2 — total = starter + 2×flour + 2×water (five parts)", () => {
+    // 150g at 1:2:2: 1 part starter = 30g, 2 parts flour = 60g, 2 parts water = 60g
+    const b = computeRefreshBreakdown(150, 2);
+    expect(b.starterGrams + b.flourGrams + b.waterGrams).toBe(150);
+    expect(b.flourGrams).toBe(b.waterGrams); // equal flour and water (100% hydration)
+    expect(b.starterGrams * 2).toBe(b.flourGrams); // ratio: 1 starter, 2 flour
+  });
+
+  it("at ratio 1:5:5 — total splits into 11 parts", () => {
+    // 110g at 1:5:5: 1 part = 10g starter, 5 parts = 50g flour, 5 parts = 50g water
+    const b = computeRefreshBreakdown(110, 5);
+    expect(b.starterGrams + b.flourGrams + b.waterGrams).toBe(110);
+    expect(b.starterGrams).toBe(10);
+    expect(b.flourGrams).toBe(50);
+    expect(b.waterGrams).toBe(50);
+  });
+
+  it("all values are integers", () => {
+    const ratios: FeedRatio[] = [1, 2, 3, 4, 5];
+    for (const r of ratios) {
+      const b = computeRefreshBreakdown(150, r);
+      expect(Number.isInteger(b.starterGrams)).toBe(true);
+      expect(Number.isInteger(b.flourGrams)).toBe(true);
+      expect(Number.isInteger(b.waterGrams)).toBe(true);
+    }
+  });
+
+  it("total always sums exactly (no drift)", () => {
+    const ratios: FeedRatio[] = [1, 2, 3, 4, 5];
+    for (const r of ratios) {
+      const total = 100;
+      const b = computeRefreshBreakdown(total, r);
+      expect(b.starterGrams + b.flourGrams + b.waterGrams).toBe(total);
+    }
+  });
+
+  it("at 0g total — all zeros", () => {
+    const b = computeRefreshBreakdown(0, 2);
+    expect(b.starterGrams).toBe(0);
+    expect(b.flourGrams).toBe(0);
+    expect(b.waterGrams).toBe(0);
   });
 });

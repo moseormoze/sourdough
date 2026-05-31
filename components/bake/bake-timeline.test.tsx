@@ -46,33 +46,27 @@ describe("BakeTimeline", () => {
     expect(screen.getByText(s.timelineSteps.ready.label)).toBeInTheDocument();
   });
 
-  it("renders levain, bulk, and the separated preheat + bake-in rows", () => {
+  it("renders mix, bulk, and the separated preheat + bake-in rows", () => {
     render(<BakeTimeline steps={stepsReady} now={now} />);
-    expect(screen.getByText(s.timelineSteps.levain.label)).toBeInTheDocument();
+    expect(screen.getByText(s.timelineSteps.mix.label)).toBeInTheDocument();
     expect(screen.getByText(s.timelineSteps.bulk.label)).toBeInTheDocument();
     expect(screen.getByText(s.timelineSteps.preheat.label)).toBeInTheDocument();
     expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument();
   });
 
-  it("renders the feed row when the feed step is present", () => {
+  it("renders the build row when the build step is present", () => {
     render(<BakeTimeline steps={stepsNotReady} now={now} />);
-    expect(screen.getByText(s.timelineSteps.feed.label)).toBeInTheDocument();
+    expect(screen.getByText(s.timelineSteps.build.label)).toBeInTheDocument();
   });
 
-  it("does NOT render the feed row when starter is ready", () => {
+  it("does NOT render the build row when starter is ready", () => {
     render(<BakeTimeline steps={stepsReady} now={now} />);
-    expect(screen.queryByText(s.timelineSteps.feed.label)).not.toBeInTheDocument();
+    expect(screen.queryByText(s.timelineSteps.build.label)).not.toBeInTheDocument();
   });
 
   it("always shows the cooling recommendation as a trailing tip", () => {
     render(<BakeTimeline steps={stepsReady} now={now} />);
     expect(screen.getByText(new RegExp(s.coolingTip))).toBeInTheDocument();
-  });
-
-  it("shows the levain step's duration as an honest range", () => {
-    render(<BakeTimeline steps={stepsReady} now={now} />);
-    // levain ~9h at 25°C → "בין 7 ל-9 שעות"
-    expect(screen.getByText("בין 7 ל-9 שעות")).toBeInTheDocument();
   });
 
   it("renders the inline retard slider when editableRetard is provided", () => {

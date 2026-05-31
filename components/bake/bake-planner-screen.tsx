@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -85,7 +85,6 @@ interface PresetCardProps {
 
 function PresetCard({ presetKey, name, hint, readyLabel, isSelected, onSelect, children }: PresetCardProps) {
   const [isPressed, setIsPressed] = useState(false);
-  const justFinished = useRef(false);
 
   function handlePointerDown() {
     setIsPressed(true);
@@ -96,10 +95,7 @@ function PresetCard({ presetKey, name, hint, readyLabel, isSelected, onSelect, c
   }
 
   function handleClick() {
-    if (justFinished.current) return;
     onSelect();
-    justFinished.current = true;
-    setTimeout(() => { justFinished.current = false; }, 200);
   }
 
   const scale = isPressed
@@ -180,7 +176,11 @@ export function BakePlannerScreen({
 }: BakePlannerScreenProps) {
   const s = strings.bakeScheduler;
 
-  const now = useMemo(() => new Date(), []);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const [starterReady, setStarterReady] = useState(true);
   const [temp, setTemp] = useState<number | "">(recipe.kitchenTemp);
@@ -294,8 +294,8 @@ export function BakePlannerScreen({
   }
 
   function handleConfirm() {
-    const feedAt = steps.find((step) => step.key === "feed")?.startAt;
-    const peakAt = steps.find((step) => step.key === "levain")?.startAt;
+    const feedAt = steps.find((step) => step.key === "build")?.startAt;
+    const peakAt = steps.find((step) => step.key === "mix")?.startAt;
     onConfirm({ ...recipe, kitchenTemp }, bakingMethod, feedAt, peakAt);
   }
 
@@ -371,7 +371,7 @@ export function BakePlannerScreen({
                   hint={hint}
                   readyLabel={presetReadyLabel(key)}
                   isSelected={isSelected}
-                  onSelect={() => selectPreset(key)}
+                  onSelect={() => isSelected ? setScheduleMode({ kind: "none" }) : selectPreset(key)}
                 >
                   {isSelected && (
                     <BakeTimeline

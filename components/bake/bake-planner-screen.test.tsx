@@ -222,10 +222,10 @@ describe("BakePlannerScreen", () => {
       "aria-checked",
       "true",
     );
-    expect(screen.queryByText(s.timelineSteps.feed.label)).not.toBeInTheDocument();
+    expect(screen.queryByText(s.timelineSteps.build.label)).not.toBeInTheDocument();
   });
 
-  it("toggling starter to 'לא' reveals the feed step in the preset timeline", async () => {
+  it("toggling starter to 'לא' reveals the build step in the preset timeline", async () => {
     renderScreen();
     // Select a preset first so the timeline is visible
     fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
@@ -234,7 +234,7 @@ describe("BakePlannerScreen", () => {
     fireEvent.pointerDown(no);
     fireEvent.pointerUp(no);
     await waitFor(() => {
-      expect(screen.getByText(s.timelineSteps.feed.label)).toBeInTheDocument();
+      expect(screen.getByText(s.timelineSteps.build.label)).toBeInTheDocument();
     });
   });
 
