@@ -15,7 +15,7 @@ import { track } from "@/lib/analytics/track";
 export interface UseActiveBakeApi {
   activeBake: ActiveBake | null;
   loading: boolean;
-  start: (recipe: Recipe, bakingMethod?: BakingMethod, feedAt?: Date, peakAt?: Date, feedRatio?: FeedRatio) => ActiveBake;
+  start: (recipe: Recipe, bakingMethod?: BakingMethod, feedAt?: Date, peakAt?: Date, feedRatio?: FeedRatio, retardHours?: number) => ActiveBake;
   abandon: () => void;
   advanceTo: (stage: number) => void;
   advanceSubStep: () => void;
@@ -41,6 +41,7 @@ export function useActiveBake(): UseActiveBakeApi {
       feedAt?: Date,
       peakAt?: Date,
       feedRatio: FeedRatio = DEFAULT_FEED_RATIO,
+      retardHours: number = 12,
     ): ActiveBake => {
       const now = Date.now();
       const next: ActiveBake = {
@@ -57,6 +58,7 @@ export function useActiveBake(): UseActiveBakeApi {
         feedAt: feedAt ? feedAt.getTime() : null,
         peakAt: peakAt ? peakAt.getTime() : null,
         feedRatio,
+        retardHours,
       };
       saveActiveBake(next);
       setActiveBake(next);

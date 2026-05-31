@@ -21,6 +21,8 @@ export const ActiveBakeSchema = z.object({
   feedRatio: z.union([
     z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5),
   ]).default(DEFAULT_FEED_RATIO),
+  // Cold retard duration chosen by the user in the planner slider. Defaults so old saves stay valid.
+  retardHours: z.number().int().min(8).max(48).default(12),
 });
 
 export type ActiveBake = z.infer<typeof ActiveBakeSchema>;

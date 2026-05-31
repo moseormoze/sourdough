@@ -40,8 +40,9 @@ export default function Page() {
     feedAt?: Date,
     peakAt?: Date,
     feedRatio?: FeedRatio,
+    retardHours?: number,
   ) {
-    start(chosen, method, feedAt, peakAt, feedRatio);
+    start(chosen, method, feedAt, peakAt, feedRatio, retardHours);
     clearPendingRecipe();
     router.push("/bake/stage/1");
   }
