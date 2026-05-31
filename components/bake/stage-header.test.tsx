@@ -11,10 +11,10 @@ describe("StageHeader", () => {
     expect(screen.getByText(stage.durationLabel)).toBeInTheDocument();
   });
 
-  it("renders the hint inline-ltr when present", () => {
-    const stage = getStage(1)!; // has hint "(levain)"
+  it("renders the stage name including levain term", () => {
+    const stage = getStage(1)!; // name includes "(levain)"
     render(<StageHeader stage={stage} totalStages={12} />);
-    expect(screen.getByText("(levain)")).toBeInTheDocument();
+    expect(screen.getByText(/levain/i)).toBeInTheDocument();
   });
 
   it("renders the counter N/12", () => {

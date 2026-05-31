@@ -61,3 +61,25 @@ describe("ActiveBakeSchema — timerElapsedSeconds", () => {
     ).toThrow();
   });
 });
+
+describe("ActiveBakeSchema — feedRatio (T4)", () => {
+  it("defaults to 2 (1:2:2) when missing — backwards compatible with old saves", () => {
+    const parsed = ActiveBakeSchema.parse(baseBake);
+    expect(parsed.feedRatio).toBe(2);
+  });
+
+  it("accepts all 5 valid ratios", () => {
+    for (const r of [1, 2, 3, 4, 5] as const) {
+      const parsed = ActiveBakeSchema.parse({ ...baseBake, feedRatio: r });
+      expect(parsed.feedRatio).toBe(r);
+    }
+  });
+
+  it("rejects a ratio of 0", () => {
+    expect(() => ActiveBakeSchema.parse({ ...baseBake, feedRatio: 0 })).toThrow();
+  });
+
+  it("rejects a ratio of 6", () => {
+    expect(() => ActiveBakeSchema.parse({ ...baseBake, feedRatio: 6 })).toThrow();
+  });
+});

@@ -43,6 +43,7 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
     feedAt: null,
     peakAt: null,
     feedStagePassed: false,
+  feedRatio: 2 as const,
     ...overrides,
   };
 }

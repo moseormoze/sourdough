@@ -116,6 +116,7 @@ describe("ChooserScreen", () => {
       feedAt: null,
       peakAt: null,
       feedStagePassed: false,
+  feedRatio: 2 as const,
     });
 
     render(<ChooserScreen />);
@@ -146,6 +147,7 @@ describe("ChooserScreen", () => {
       feedAt: null,
       peakAt: null,
       feedStagePassed: false,
+  feedRatio: 2 as const,
     });
 
     render(<ChooserScreen />);
@@ -179,6 +181,7 @@ describe("ChooserScreen", () => {
       feedAt: null,
       peakAt: null,
       feedStagePassed: false,
+  feedRatio: 2 as const,
     });
 
     render(<ChooserScreen />);

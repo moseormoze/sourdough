@@ -187,8 +187,8 @@ export const strings = {
   },
   bakeScheduler: {
     headerTitle: "תכנון הבייק",
-    planningTitle: "תכנון זמני הבייק",
-    planningSubtitle: "בחר זמנים שתוכל לעמוד בהם",
+    planningTitle: "תכננו את הבייק",
+    planningSubtitle: "הגדירו את התנאים והזמנים שמתאימים לכם",
     backToChooser: "חזרה",
     starterLabel: "הסטארטר כבר בשיא?",
     starterYes: "כן",
@@ -198,8 +198,8 @@ export const strings = {
     tempQuestion: "מהי טמפרטורת החדר?",
     tempHint: "חורף 20–24° · קיץ 24–27°",
     tempImportantHint: "הטמפרטורה קובעת את כל הזמנים — כדאי למדוד ולא לנחש",
-    scheduleSectionTitle: "מתי הלחם מוכן?",
-    scheduleSectionSubtitle: "כל קצב מבטיח שלבים אקטיביים בשעות נורמליות",
+    scheduleSectionTitle: "תכננו את זמני הבייק",
+    scheduleSectionSubtitle: "בחרו תבנית מומלצת או כווננו ידנית",
     presetReadyLabel: (day: string, time: string) => `${day} · ${time}`,
     advancedDisclosureOpen: "לכוונן בעצמי",
     advancedDisclosureClose: "סגור כוונון",
@@ -208,6 +208,11 @@ export const strings = {
       classic:     { name: "קלאסי",         hint: "לילה במקרר · מוכן בבוקר" },
       classicLate: { name: "קלאסי מאוחר",  hint: "לילה ארוך · מוכן לקראת ערב" },
       long:        { name: "ארוך",           hint: "התפחה ממושכת · חמצמץ ועשיר" },
+      manual:      { name: "לכוונן בעצמי",  hint: "שלטו בזמנים ויחס האכלת הסטארטר" },
+    },
+    ratioControl: {
+      label: "יחס בניית שאור (levain)",
+      hint: (feedHour: string) => `שיא ב-${feedHour}`,
     },
     directionEnd: "מתי לסיים",
     directionStart: "מתי להתחיל",
@@ -226,7 +231,7 @@ export const strings = {
     coolingTip: "מומלץ לצנן כ-שעה לפני חיתוך — חיתוך חם הורס את הפירור",
     // Per-step copy (key matches BakeStepKey). desc may be omitted when computed from duration.
     timelineSteps: {
-      build: { label: "האכלת הסטארטר", desc: "עד שהסטארטר מגיע לשיא" },
+      build: { label: "בניית שאור (levain)", desc: "ריענון הסטארטר עד לשיא" },
       mix: { label: "ערבוב", desc: "אוטוליזה 45 דק׳ + לישה 15 דק׳" },
       bulk: { label: "תסיסה ראשונית", desc: "כולל קיפולים" },
       shape: { label: "עיצוב הבצק", desc: "עיצוב + מנוחת ביניים · כ-35 דק׳" },
@@ -237,6 +242,12 @@ export const strings = {
     },
     tooSoon: (minDate: string) => `המוקדם ביותר: ${minDate}`,
     startButton: "התחל בייק",
+    compactSummary: {
+      feedLabel: "בניית שאור (levain)",
+      activeWindowLabel: "עבודה אקטיבית",
+      readyLabel: "הלחם מוכן",
+      showTimeline: "הצג את כל השלבים",
+    },
   },
   feedStage: {
     title: "האכלת הסטארטר",
