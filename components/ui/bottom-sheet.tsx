@@ -38,6 +38,8 @@ export function BottomSheet({
   children,
 }: BottomSheetProps) {
   const [mounted, setMounted] = useState(open);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
   const [visible, setVisible] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [snapping, setSnapping] = useState(false);
@@ -93,7 +95,7 @@ export function BottomSheet({
 
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab") return;
@@ -112,7 +114,7 @@ export function BottomSheet({
 
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [visible, onClose]);
+  }, [visible]);
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     drag.current = { startY: e.clientY, startTime: Date.now() };
