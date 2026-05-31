@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StageHeader } from "./stage-header";
+import { BakeTimelineSheet } from "./bake-timeline-sheet";
 import { Briefing } from "./briefing";
 import { InstructionCard } from "./instruction-card";
 import { ChecklistReference } from "./checklist-reference";
@@ -31,6 +32,7 @@ export interface StageScreenProps {
 
 export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const router = useRouter();
+  const [timelineOpen, setTimelineOpen] = useState(false);
   const nextStage = getStage(stage.n + 1);
   const quantities = useMemo(
     () => computeBakeQuantities(activeBake.recipe, activeBake.feedRatio),
@@ -78,8 +80,15 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const showStandaloneTimer = stage.type === "timer" && durationSeconds !== undefined;
 
   return (
+    <>
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-44">
-      <StageHeader stage={stage} totalStages={TOTAL_STAGES} kitchenTemp={activeBake.recipe.kitchenTemp} />
+      <StageHeader
+        stage={stage}
+        totalStages={TOTAL_STAGES}
+        kitchenTemp={activeBake.recipe.kitchenTemp}
+        feedRatio={activeBake.feedRatio}
+        onTimelineOpen={() => setTimelineOpen(true)}
+      />
 
       <div className="mt-6 flex flex-col gap-4">
         {stage.type === "done" && <StageCelebration />}
@@ -197,6 +206,14 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         </div>
       </div>
     </main>
+    <BakeTimelineSheet
+      isOpen={timelineOpen}
+      currentStage={activeBake.currentStage}
+      kitchenTemp={activeBake.recipe.kitchenTemp}
+      feedRatio={activeBake.feedRatio}
+      onClose={() => setTimelineOpen(false)}
+    />
+    </>
   );
 }
 

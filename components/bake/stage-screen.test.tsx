@@ -360,6 +360,33 @@ describe("StageScreen — timer stage", () => {
   });
 });
 
+describe("StageScreen — in-bake timeline sheet", () => {
+  it("timeline sheet is not visible by default", () => {
+    const stage = getStage(1)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("tapping the stepper opens the timeline sheet", () => {
+    const stage = getStage(1)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
+    const button = screen.getByLabelText("פתח טיימליין");
+    fireEvent.pointerDown(button, { clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(button, { clientX: 0, clientY: 0 });
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("closing the sheet via ✕ hides it", () => {
+    const stage = getStage(3)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(3)} api={makeApi()} />);
+    const button = screen.getByLabelText("פתח טיימליין");
+    fireEvent.pointerDown(button, { clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(button, { clientX: 0, clientY: 0 });
+    fireEvent.click(screen.getByLabelText("סגור טיימליין"));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+});
+
 describe("StageScreen — done (stage 12)", () => {
   it("primary says 'סיימתי' and navigates to /bake/done", () => {
     const stage = getStage(12)!;
