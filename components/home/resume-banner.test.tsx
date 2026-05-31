@@ -29,7 +29,6 @@ const activeBake: ActiveBake = {
   bakingMethod: "closed-vessel",
   feedAt: null,
   peakAt: null,
-  feedStagePassed: false,
   feedRatio: 2 as const,
 };
 

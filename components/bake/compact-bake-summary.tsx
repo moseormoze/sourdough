@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { strings } from "@/lib/strings";
 import type { BakeStep, FeedRatio } from "@/lib/bake-timing";
+import { FEED_RATIO_LABELS } from "@/lib/bake-timing";
 import { dayPrefix } from "./bake-timeline";
 
 const TIME_FMT = new Intl.DateTimeFormat("he-IL", {
@@ -10,14 +11,6 @@ const TIME_FMT = new Intl.DateTimeFormat("he-IL", {
   minute: "2-digit",
   hour12: false,
 });
-
-const RATIO_LABELS: Record<FeedRatio, string> = {
-  1: "1:1:1",
-  2: "1:2:2",
-  3: "1:3:3",
-  4: "1:4:4",
-  5: "1:5:5",
-};
 
 function fmt(d: Date, now: Date): string {
   return `${dayPrefix(d, now)} ${TIME_FMT.format(d)}`;
@@ -59,7 +52,7 @@ export function CompactBakeSummary({
             {TIME_FMT.format(buildStep.startAt)}
           </span>
           <span className="text-label text-ink-3 shrink-0" dir="ltr">
-            ({RATIO_LABELS[feedRatio]})
+            ({FEED_RATIO_LABELS[feedRatio]})
           </span>
         </div>
       )}

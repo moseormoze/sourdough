@@ -249,25 +249,6 @@ export const strings = {
       showTimeline: "הצג את כל השלבים",
     },
   },
-  feedStage: {
-    title: "האכלת הסטארטר",
-    subtitle: "שלב הכנה",
-    feedLabel: "האכל את הסטארטר",
-    peakLabel: "הסטארטר יגיע לשיא",
-    durationBridge: (hours: number) => `כ-${hours} שעות`,
-    timeDisclaimer: "הזמן הוא הערכה — הסטארטר עצמו יגיד לך מתי הוא מוכן",
-    readinessTitle: "איך יודעים שהסטארטר מוכן?",
-    readinessSigns: [
-      "השאור הוכפל בנפח",
-      "רואים בועות בפנים",
-      "ריח קצת חמצמץ ומתוק",
-      "שקוע מעט בפסגה",
-      "עובר מבחן ציפה (float test)",
-    ] as readonly string[],
-    timerLabel: "עד שיא הסטארטר",
-    ctaButton: "הסטארטר מוכן — מתחיל לאפות!",
-    bannerStage: "האכלת סטארטר",
-  },
   validationCopy: {
     nameRequired: "שדה חובה",
     flourSumWrong: (current: number) =>

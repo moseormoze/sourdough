@@ -14,10 +14,8 @@ export interface ResumeBannerProps {
 export function ResumeBanner({ activeBake, onStopRequest }: ResumeBannerProps) {
   const router = useRouter();
 
-  const inFeedStage = activeBake.feedAt !== null && !activeBake.feedStagePassed;
-
   function handleContinue() {
-    router.push(inFeedStage ? "/bake/feed" : `/bake/stage/${activeBake.currentStage}`);
+    router.push(`/bake/stage/${activeBake.currentStage}`);
   }
 
   const current = activeBake.currentStage;
@@ -40,9 +38,7 @@ export function ResumeBanner({ activeBake, onStopRequest }: ResumeBannerProps) {
             {activeBake.recipe.name}
           </p>
           <p className="mt-0.5 text-small text-ink-2">
-            {inFeedStage
-              ? strings.feedStage.bannerStage
-              : strings.bake.resumeBannerStage(current, total)}
+            {strings.bake.resumeBannerStage(current, total)}
           </p>
         </div>
 

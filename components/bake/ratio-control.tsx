@@ -2,16 +2,9 @@
 
 import { strings } from "@/lib/strings";
 import type { FeedRatio } from "@/lib/bake-timing";
+import { FEED_RATIO_LABELS } from "@/lib/bake-timing";
 
 const RATIOS: FeedRatio[] = [5, 4, 3, 2, 1]; // RTL: 1:5:5 leftmost, 1:1:1 rightmost
-
-const RATIO_LABELS: Record<FeedRatio, string> = {
-  1: "1:1:1",
-  2: "1:2:2",
-  3: "1:3:3",
-  4: "1:4:4",
-  5: "1:5:5",
-};
 
 export interface RatioControlProps {
   value: FeedRatio;
@@ -44,7 +37,7 @@ export function RatioControl({ value, onChange }: RatioControlProps) {
                   : "bg-transparent text-ink-2 border-line"
                 }`}
             >
-              {RATIO_LABELS[r]}
+              {FEED_RATIO_LABELS[r]}
             </button>
           );
         })}

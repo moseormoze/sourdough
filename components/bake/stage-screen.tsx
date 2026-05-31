@@ -15,6 +15,7 @@ import { StageCelebration } from "./stage-celebration";
 import { StageMedia } from "./stage-media";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
 import { computeBakeQuantities } from "@/lib/bake-math";
+import { FEED_RATIO_LABELS } from "@/lib/bake-timing";
 import { strings } from "@/lib/strings";
 import type { ActiveBake } from "@/lib/types/active-bake";
 import type { UseActiveBakeApi } from "@/lib/hooks/use-active-bake";
@@ -38,6 +39,10 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
 
   const methodOverride = stage.byMethod?.[activeBake.bakingMethod];
   const briefing = methodOverride?.briefing ?? stage.briefing;
+  const disclosure =
+    stage.n === 1
+      ? `יחס האכלה: ${FEED_RATIO_LABELS[activeBake.feedRatio]} (סטארטר:קמח:מים)`
+      : stage.briefingDisclosure;
   const todoData = methodOverride?.todo ?? stage.todo;
   const checks = methodOverride?.checks ?? stage.checks;
   const durationSeconds = methodOverride?.durationSeconds ?? stage.durationSeconds;
@@ -58,10 +63,6 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   }
 
   function handleBack() {
-    if (stage.n === 1 && activeBake.feedAt !== null) {
-      router.push("/bake/feed");
-      return;
-    }
     if (stage.n <= 1) return;
     api.advanceTo(stage.n - 1);
     router.push(`/bake/stage/${stage.n - 1}`);
@@ -83,7 +84,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       <div className="mt-6 flex flex-col gap-4">
         {stage.type === "done" && <StageCelebration />}
         {warning && <SafetyWarning>{warning}</SafetyWarning>}
-        <Briefing briefing={briefing} disclosure={stage.briefingDisclosure} />
+        <Briefing briefing={briefing} disclosure={disclosure} />
         <StageMedia
           imageUrl={stage.imageUrl}
           imageAlt={stage.imageAlt}
@@ -164,7 +165,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       {/* Sticky actions */}
       <div className="fixed bottom-0 inset-x-0 z-sticky bg-bg/95 backdrop-blur-sm border-t border-line">
         <div className="mx-auto max-w-md px-5 py-4">
-          {(stage.n > 1 || activeBake.feedAt !== null) ? (
+          {stage.n > 1 ? (
             <div className="flex gap-3">
               <Button
                 variant="ghost"

@@ -43,7 +43,7 @@ export default function Page() {
   ) {
     start(chosen, method, feedAt, peakAt, feedRatio);
     clearPendingRecipe();
-    router.push(feedAt ? "/bake/feed" : "/bake/stage/1");
+    router.push("/bake/stage/1");
   }
 
   return (

@@ -17,7 +17,6 @@ export interface UseActiveBakeApi {
   loading: boolean;
   start: (recipe: Recipe, bakingMethod?: BakingMethod, feedAt?: Date, peakAt?: Date, feedRatio?: FeedRatio) => ActiveBake;
   abandon: () => void;
-  completeFeedStage: () => void;
   advanceTo: (stage: number) => void;
   advanceSubStep: () => void;
   startTimer: () => void;
@@ -57,7 +56,6 @@ export function useActiveBake(): UseActiveBakeApi {
         bakingMethod,
         feedAt: feedAt ? feedAt.getTime() : null,
         peakAt: peakAt ? peakAt.getTime() : null,
-        feedStagePassed: false,
         feedRatio,
       };
       saveActiveBake(next);
@@ -75,19 +73,6 @@ export function useActiveBake(): UseActiveBakeApi {
   const abandon = useCallback(() => {
     clearActiveBake();
     setActiveBake(null);
-  }, []);
-
-  const completeFeedStage = useCallback(() => {
-    setActiveBake((current) => {
-      if (!current) return current;
-      const next: ActiveBake = {
-        ...current,
-        feedStagePassed: true,
-        stageStartedAt: Date.now(),
-      };
-      saveActiveBake(next);
-      return next;
-    });
   }, []);
 
   const advanceTo = useCallback((stage: number) => {
@@ -178,7 +163,6 @@ export function useActiveBake(): UseActiveBakeApi {
     loading,
     start,
     abandon,
-    completeFeedStage,
     advanceTo,
     advanceSubStep,
     startTimer,
