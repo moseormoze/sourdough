@@ -135,7 +135,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
                   onReset={api.resetTimer}
                 />
                 <p className="mt-2 text-tiny text-ink-3 leading-relaxed">
-                  מנוחה של 30 דקות בין קיפולים — אפשר גם 40 דקות בבצק קר או כבד.
+                  3–4 קיפולים ב-2 השעות הראשונות — המרווחים יכולים לגדול ככל שהבצק מתחזק.
                 </p>
               </div>
             )}

@@ -202,10 +202,10 @@ describe("StageScreen — bulk (stage 4) sub-step flow", () => {
     expect(foldsSection).toContainElement(timer);
   });
 
-  it("shows the '30 or 40 min between folds' hint near the timer", () => {
+  it("shows the fold interval hint near the timer", () => {
     const stage = getStage(4)!;
     render(<StageScreen stage={stage} activeBake={makeBake(4)} api={makeApi()} />);
-    expect(screen.getByText(/30 דקות בין קיפולים — אפשר גם 40/)).toBeInTheDocument();
+    expect(screen.getByText(/המרווחים יכולים לגדול ככל שהבצק מתחזק/)).toBeInTheDocument();
   });
 });
 
