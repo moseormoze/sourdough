@@ -106,9 +106,29 @@ describe("BakePlannerScreen", () => {
     });
   });
 
-  it("selecting a preset reveals the inline timeline (bake step labels visible)", async () => {
+  it("selecting a preset reveals the compact summary (not the full timeline inline)", async () => {
     renderScreen();
     fireEvent.click(screen.getByRole("radio", { name: s.presets.fast.name }));
+    await waitFor(() => {
+      expect(screen.getByTestId("compact-summary")).toBeInTheDocument();
+    });
+    // Full timeline should NOT be inline — it's behind the sheet
+    expect(screen.queryByText(s.timelineSteps.bake.label)).not.toBeInTheDocument();
+  });
+
+  it("compact summary has a 'ראה את כל השלבים' trigger", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.fast.name }));
+    await waitFor(() => {
+      expect(screen.getByTestId("timeline-trigger")).toBeInTheDocument();
+    });
+  });
+
+  it("opening the timeline trigger shows the full BakeTimeline in a sheet", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.fast.name }));
+    await waitFor(() => screen.getByTestId("timeline-trigger"));
+    fireEvent.click(screen.getByTestId("timeline-trigger"));
     await waitFor(() => {
       expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument();
     });
@@ -123,44 +143,58 @@ describe("BakePlannerScreen", () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Advanced disclosure
+  // Manual option (5th radiogroup card)
   // ---------------------------------------------------------------------------
 
-  it("disclosure button shows 'לכוונן בעצמי' when closed", () => {
+  it("'לכוונן בעצמי' is rendered as a radio card in the preset group", () => {
     renderScreen();
-    expect(screen.getByText(s.advancedDisclosureOpen)).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: s.presets.manual.name })).toBeInTheDocument();
   });
 
-  it("direction toggle is hidden before disclosure opens", () => {
+  it("direction toggle is absent before manual is selected", () => {
     renderScreen();
-    // The radiogroup with direction options should not be accessible before disclosure opens
-    expect(screen.queryByRole("radio", { name: s.directionEnd })).not.toBeVisible();
+    expect(screen.queryByRole("radio", { name: s.directionEnd })).not.toBeInTheDocument();
   });
 
-  it("opening disclosure reveals direction toggle and day picker", async () => {
+  it("selecting manual reveals direction toggle and day picker", async () => {
     renderScreen();
-    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.manual.name }));
     await waitFor(() => {
-      expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument();
+      expect(screen.getByRole("radio", { name: s.directionEnd })).toBeVisible();
     });
   });
 
-  it("opening disclosure enables the CTA when isValid", async () => {
+  it("selecting manual enables the CTA when isValid", async () => {
     renderScreen();
-    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
-    // After opening manual mode, isValid=true by default (picker is at earliest valid slot)
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.manual.name }));
     await waitFor(() => {
       expect(screen.getByRole("button", { name: s.startButton })).not.toBeDisabled();
     });
   });
 
-  it("selecting a preset after opening disclosure closes it", async () => {
+  it("selecting manual shows RatioControl", async () => {
     renderScreen();
-    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
-    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.manual.name }));
+    await waitFor(() => {
+      expect(screen.getByTestId("ratio-control")).toBeInTheDocument();
+    });
+  });
+
+  it("RatioControl has 5 ratio buttons", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.manual.name }));
+    await waitFor(() => screen.getByTestId("ratio-control"));
+    const btns = screen.getAllByTestId(/^ratio-btn-/);
+    expect(btns).toHaveLength(5);
+  });
+
+  it("selecting a preset after manual deselects manual", async () => {
+    renderScreen();
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.manual.name }));
+    await waitFor(() => screen.getByTestId("ratio-control"));
     fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
     await waitFor(() => {
-      expect(screen.getByText(s.advancedDisclosureOpen)).toBeInTheDocument();
+      expect(screen.queryByTestId("ratio-control")).not.toBeInTheDocument();
     });
   });
 
@@ -170,8 +204,8 @@ describe("BakePlannerScreen", () => {
 
   it("direction toggle works after opening disclosure", async () => {
     renderScreen();
-    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
-    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.manual.name }));
+    await waitFor(() => screen.getByTestId("ratio-control"));
     const startBtn = screen.getByRole("radio", { name: s.directionStart });
     fireEvent.pointerDown(startBtn);
     fireEvent.pointerUp(startBtn);
@@ -182,8 +216,8 @@ describe("BakePlannerScreen", () => {
 
   it("start mode shows the computed ready-at result inside disclosure", async () => {
     renderScreen();
-    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
-    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.manual.name }));
+    await waitFor(() => screen.getByTestId("ratio-control"));
     fireEvent.pointerDown(screen.getByRole("radio", { name: s.directionStart }));
     fireEvent.pointerUp(screen.getByRole("radio", { name: s.directionStart }));
     await waitFor(() => {
@@ -193,49 +227,38 @@ describe("BakePlannerScreen", () => {
 
   it("retard slider is visible inside disclosure after opening (default 12h)", async () => {
     renderScreen();
-    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
-    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.manual.name }));
+    await waitFor(() => screen.getByTestId("ratio-control"));
     const slider = screen.getByRole("slider", { name: s.retardSliderLabel });
     expect(slider).toHaveValue("12");
   });
 
   it("retard slider max is 48 (not 72)", async () => {
     renderScreen();
-    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
-    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.manual.name }));
+    await waitFor(() => screen.getByTestId("ratio-control"));
     const slider = screen.getByRole("slider", { name: s.retardSliderLabel });
     expect(slider).toHaveAttribute("max", "48");
   });
 
   it("retard slider can be changed inside disclosure", async () => {
     renderScreen();
-    fireEvent.click(screen.getByText(s.advancedDisclosureOpen));
-    await waitFor(() => expect(screen.getByText(s.advancedDisclosureClose)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("radio", { name: s.presets.manual.name }));
+    await waitFor(() => screen.getByTestId("ratio-control"));
     const slider = screen.getByRole("slider", { name: s.retardSliderLabel });
     fireEvent.change(slider, { target: { value: "24" } });
     expect(slider).toHaveValue("24");
   });
 
-  it("defaults starterReady=true ('כן' active) and hides the feed row", () => {
+  it("build step always shown — no StarterToggle, no dismiss button", async () => {
     renderScreen();
-    expect(screen.getByRole("radio", { name: s.starterYes })).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
-    expect(screen.queryByText(s.timelineSteps.build.label)).not.toBeInTheDocument();
-  });
-
-  it("toggling starter to 'לא' reveals the build step in the preset timeline", async () => {
-    renderScreen();
-    // Select a preset first so the timeline is visible
+    // No starter toggle
+    expect(screen.queryByRole("radio", { name: s.starterYes })).not.toBeInTheDocument();
+    // Feed row always present when a preset is selected
     fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
-    await waitFor(() => expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument());
-    const no = screen.getByRole("radio", { name: s.starterNo });
-    fireEvent.pointerDown(no);
-    fireEvent.pointerUp(no);
-    await waitFor(() => {
-      expect(screen.getByText(s.timelineSteps.build.label)).toBeInTheDocument();
-    });
+    await waitFor(() => screen.getByTestId("compact-summary"));
+    expect(screen.getByTestId("feed-row")).toBeInTheDocument();
+    expect(screen.queryByTestId("feed-dismiss")).not.toBeInTheDocument();
   });
 
   it("back button calls onBack", () => {
@@ -250,22 +273,20 @@ describe("BakePlannerScreen", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: s.startButton })).not.toBeDisabled());
     fireEvent.click(screen.getByRole("button", { name: s.startButton }));
     await waitFor(() => {
+      // starterReady defaults to false → feedAt is always present
       expect(onConfirm).toHaveBeenCalledWith(
         expect.objectContaining({ name: baseRecipe.name }),
         "closed-vessel",
-        undefined,
         expect.any(Date),
+        expect.any(Date),
+        expect.any(Number), // feedRatio
       );
     });
   });
 
-  it("confirming via manual with starter NOT ready passes a feedAt", async () => {
+  it("confirming with a preset passes feedAt (starter defaults to needing feeding)", async () => {
     renderScreen();
-    // Toggle starter off
-    const no = screen.getByRole("radio", { name: s.starterNo });
-    fireEvent.pointerDown(no);
-    fireEvent.pointerUp(no);
-    // Select a preset
+    // StarterToggle removed — starter always defaults to needing feeding
     fireEvent.click(screen.getByRole("radio", { name: s.presets.classic.name }));
     await waitFor(() => expect(screen.getByRole("button", { name: s.startButton })).not.toBeDisabled());
     fireEvent.click(screen.getByRole("button", { name: s.startButton }));
@@ -275,6 +296,7 @@ describe("BakePlannerScreen", () => {
         "closed-vessel",
         expect.any(Date),
         expect.any(Date),
+        expect.any(Number), // feedRatio
       );
     });
   });
@@ -289,15 +311,18 @@ describe("BakePlannerScreen", () => {
       expect(onConfirm).toHaveBeenCalledWith(
         expect.objectContaining({ name: baseRecipe.name }),
         "open-with-steam",
-        undefined,
         expect.any(Date),
+        expect.any(Date),
+        expect.any(Number), // feedRatio
       );
     });
   });
 
-  it("always shows preheat + bake rows when a preset is selected", async () => {
+  it("preheat + bake rows visible in the sheet after opening timeline", async () => {
     renderScreen();
     fireEvent.click(screen.getByRole("radio", { name: s.presets.fast.name }));
+    await waitFor(() => screen.getByTestId("timeline-trigger"));
+    fireEvent.click(screen.getByTestId("timeline-trigger"));
     await waitFor(() => {
       expect(screen.getByText(s.timelineSteps.preheat.label)).toBeInTheDocument();
       expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument();

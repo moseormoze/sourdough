@@ -50,8 +50,7 @@ export interface Stage {
 export const STAGES: readonly Stage[] = [
   {
     n: 1,
-    name: "בניית שאור",
-    hint: "(levain)",
+    name: "בניית שאור (levain)",
     type: "check",
     durationLabel: "כ-10 שעות",
     tempSensitiveBaseSecs: 10 * 3600,

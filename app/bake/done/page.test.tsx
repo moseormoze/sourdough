@@ -31,6 +31,7 @@ function seedActive() {
     feedAt: null,
     peakAt: null,
     feedStagePassed: false,
+  feedRatio: 2 as const,
   });
 }
 

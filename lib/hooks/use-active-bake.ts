@@ -9,12 +9,13 @@ import {
 import type { ActiveBake } from "@/lib/types/active-bake";
 import type { Recipe } from "@/lib/types/recipe";
 import { DEFAULT_BAKING_METHOD, type BakingMethod } from "@/lib/types/baking-method";
+import { DEFAULT_FEED_RATIO, type FeedRatio } from "@/lib/bake-timing";
 import { track } from "@/lib/analytics/track";
 
 export interface UseActiveBakeApi {
   activeBake: ActiveBake | null;
   loading: boolean;
-  start: (recipe: Recipe, bakingMethod?: BakingMethod, feedAt?: Date, peakAt?: Date) => ActiveBake;
+  start: (recipe: Recipe, bakingMethod?: BakingMethod, feedAt?: Date, peakAt?: Date, feedRatio?: FeedRatio) => ActiveBake;
   abandon: () => void;
   completeFeedStage: () => void;
   advanceTo: (stage: number) => void;
@@ -40,6 +41,7 @@ export function useActiveBake(): UseActiveBakeApi {
       bakingMethod: BakingMethod = DEFAULT_BAKING_METHOD,
       feedAt?: Date,
       peakAt?: Date,
+      feedRatio: FeedRatio = DEFAULT_FEED_RATIO,
     ): ActiveBake => {
       const now = Date.now();
       const next: ActiveBake = {
@@ -56,6 +58,7 @@ export function useActiveBake(): UseActiveBakeApi {
         feedAt: feedAt ? feedAt.getTime() : null,
         peakAt: peakAt ? peakAt.getTime() : null,
         feedStagePassed: false,
+        feedRatio,
       };
       saveActiveBake(next);
       setActiveBake(next);

@@ -4,10 +4,13 @@ import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { TempInput } from "@/components/recipes/temp-input";
 import { StarterToggle } from "./starter-toggle";
 import { BakeTimeline } from "./bake-timeline";
+import { CompactBakeSummary } from "./compact-bake-summary";
 import { BakingMethodSelector } from "./baking-method-selector";
+import { RatioControl } from "./ratio-control";
 import {
   useDateTimePicker,
   startOfDay,
@@ -18,9 +21,12 @@ import {
   calculateBakeSteps,
   bakeDurationSecs,
   earliestReadyAt,
+  starterPeakSecs,
   RETARD_DEFAULT_SECS,
   RETARD_MIN_SECS,
   RETARD_MAX_SECS,
+  DEFAULT_FEED_RATIO,
+  type FeedRatio,
 } from "@/lib/bake-timing";
 import { computePresetSchedule, type PresetKey } from "@/lib/bake-presets";
 import { strings } from "@/lib/strings";
@@ -30,7 +36,7 @@ import type { Recipe } from "@/lib/types/recipe";
 export interface BakePlannerScreenProps {
   recipe: Recipe;
   imageUrl?: string;
-  onConfirm: (recipe: Recipe, bakingMethod: BakingMethod, feedAt?: Date, peakAt?: Date) => void;
+  onConfirm: (recipe: Recipe, bakingMethod: BakingMethod, feedAt?: Date, peakAt?: Date, feedRatio?: FeedRatio) => void;
   onBack: () => void;
 }
 
@@ -138,26 +144,30 @@ function PresetCard({ presetKey, name, hint, readyLabel, isSelected, onSelect, c
         <p className="text-body-sm text-ink-2 mt-0.5">{hint}</p>
       </button>
 
-      {/* Inline timeline expansion below selected card */}
+      {/* Inline expansion — asymmetric easing per §5:
+          open  = ease-out 250ms (fast reveal, settles gently)
+          close = ease-in  200ms (content fades first, then space collapses) */}
       <div
         style={{
-          maxHeight: isSelected ? "1200px" : "0px",
-          overflow: "hidden",
+          display: "grid",
+          gridTemplateRows: isSelected ? "1fr" : "0fr",
           transition: isSelected
-            ? "max-height 250ms ease-in-out"
-            : "max-height 200ms ease-in",
+            ? "grid-template-rows 250ms ease-out"
+            : "grid-template-rows 200ms ease-in",
         }}
       >
-        <div
-          style={{
-            opacity: isSelected ? 1 : 0,
-            transition: isSelected
-              ? "opacity 200ms ease-out 50ms"
-              : "opacity 50ms ease-in",
-          }}
-          className="pt-4"
-        >
-          {children}
+        <div style={{ overflow: "hidden" }}>
+          <div
+            style={{
+              opacity: isSelected ? 1 : 0,
+              transition: isSelected
+                ? "opacity 200ms ease-out 60ms"  // fade in after space starts opening
+                : "opacity 100ms ease-in",        // fade out quickly before space collapses
+            }}
+            className="pt-4"
+          >
+            {children}
+          </div>
         </div>
       </div>
     </div>
@@ -182,13 +192,15 @@ export function BakePlannerScreen({
     return () => clearInterval(id);
   }, []);
 
-  const [starterReady, setStarterReady] = useState(true);
+  const starterReady = false; // build step always present — baker always builds levain
   const [temp, setTemp] = useState<number | "">(recipe.kitchenTemp);
   const [bakingMethod, setBakingMethod] = useState<BakingMethod>(DEFAULT_BAKING_METHOD);
   const [retardHours, setRetardHours] = useState(RETARD_DEFAULT_SECS / 3600);
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>({ kind: "none" });
   const [isManualOpen, setIsManualOpen] = useState(false);
-  const [direction, setDirection] = useState<"end" | "start">("end");
+  const [direction, setDirection] = useState<"end" | "start">("start");
+  const [feedRatio, setFeedRatio] = useState<FeedRatio>(DEFAULT_FEED_RATIO);
+  const [timelineSheetOpen, setTimelineSheetOpen] = useState(false);
 
   const kitchenTemp = typeof temp === "number" ? temp : recipe.kitchenTemp;
   const retardSecs = retardHours * 3600;
@@ -196,9 +208,10 @@ export function BakePlannerScreen({
   const minReadyAt = useMemo(
     () =>
       direction === "end"
-        ? earliestReadyAt(kitchenTemp, now, starterReady, RETARD_DEFAULT_SECS, recipe.flour)
-        : new Date(now.getTime() + 30 * 60 * 1000),
-    [direction, kitchenTemp, now, starterReady, recipe.flour],
+        ? earliestReadyAt(kitchenTemp, now, starterReady, RETARD_DEFAULT_SECS, recipe.flour, feedRatio)
+        : now,
+    // feedRatio affects earliestReadyAt only in "end" mode (starter peak secs)
+    [direction, kitchenTemp, now, starterReady, recipe.flour, feedRatio],
   );
 
   const {
@@ -229,30 +242,34 @@ export function BakePlannerScreen({
   }, [starterReady]);
 
   // "end" mode: targetAt is desired ready time — apply graceful overflow.
-  // "start" mode: targetAt is levain-start time — compute readyAt forward.
+  // "start" mode: targetAt is build-start time — compute readyAt forward
+  //   (build duration + full dough sequence).
   const effectiveReadyAt = useMemo(() => {
     if (direction === "start") {
       return new Date(
-        targetAt.getTime() + bakeDurationSecs(kitchenTemp, retardSecs, recipe.flour) * 1000,
+        targetAt.getTime() +
+          (starterPeakSecs(kitchenTemp, feedRatio) +
+            bakeDurationSecs(kitchenTemp, retardSecs, recipe.flour)) *
+            1000,
       );
     }
-    const floorForRetard = earliestReadyAt(kitchenTemp, now, starterReady, retardSecs, recipe.flour);
+    const floorForRetard = earliestReadyAt(kitchenTemp, now, starterReady, retardSecs, recipe.flour, feedRatio);
     return new Date(Math.max(targetAt.getTime(), floorForRetard.getTime()));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [direction, targetAt.getTime(), kitchenTemp, now, starterReady, retardSecs, recipe.flour]);
+  }, [direction, targetAt.getTime(), kitchenTemp, now, starterReady, retardSecs, recipe.flour, feedRatio]);
 
   const pushedLater =
     direction === "end" && effectiveReadyAt.getTime() > targetAt.getTime() + 60_000;
 
   const steps = useMemo(
-    () => calculateBakeSteps(effectiveReadyAt, kitchenTemp, starterReady, retardSecs, recipe.flour),
-    [effectiveReadyAt, kitchenTemp, starterReady, retardSecs, recipe.flour],
+    () => calculateBakeSteps(effectiveReadyAt, kitchenTemp, starterReady, retardSecs, recipe.flour, feedRatio),
+    [effectiveReadyAt, kitchenTemp, starterReady, retardSecs, recipe.flour, feedRatio],
   );
 
   const minDateLabel = TIME_FMT.format(minReadyAt) + " " + DAY_FMT.format(minReadyAt);
   const effectiveLabel = `${TIME_FMT.format(effectiveReadyAt)} · ${dayLabel(effectiveReadyAt, now)}`;
   const startModeTotalHours = Math.round(
-    bakeDurationSecs(kitchenTemp, retardSecs, recipe.flour) / 3600,
+    (starterPeakSecs(kitchenTemp, feedRatio) + bakeDurationSecs(kitchenTemp, retardSecs, recipe.flour)) / 3600,
   );
 
   // Preset selection
@@ -263,6 +280,7 @@ export function BakePlannerScreen({
     jumpTo(result.readyAt, result.readyAt.getHours());
     setDirection("end");
     setRetardHours(result.retardSecs / 3600);
+    setFeedRatio(result.feedRatio);
   }
 
   function openManual() {
@@ -296,7 +314,7 @@ export function BakePlannerScreen({
   function handleConfirm() {
     const feedAt = steps.find((step) => step.key === "build")?.startAt;
     const peakAt = steps.find((step) => step.key === "mix")?.startAt;
-    onConfirm({ ...recipe, kitchenTemp }, bakingMethod, feedAt, peakAt);
+    onConfirm({ ...recipe, kitchenTemp }, bakingMethod, feedAt, peakAt, feedRatio);
   }
 
   return (
@@ -337,15 +355,6 @@ export function BakePlannerScreen({
           <p className="text-body-sm text-ink-3 mt-1">{s.planningSubtitle}</p>
         </section>
 
-        {/* Starter readiness */}
-        <section className="mb-6">
-          <StarterToggle
-            label={s.starterLabel}
-            value={starterReady}
-            onChange={setStarterReady}
-          />
-        </section>
-
         {/* Temperature */}
         <div className="mb-2">
           <TempInput label={s.tempQuestion} value={temp} onChange={(v) => setTemp(v)} />
@@ -374,64 +383,58 @@ export function BakePlannerScreen({
                   onSelect={() => isSelected ? setScheduleMode({ kind: "none" }) : selectPreset(key)}
                 >
                   {isSelected && (
-                    <BakeTimeline
-                      steps={steps}
-                      now={now}
-                      editableRetard={{
-                        hours: retardHours,
-                        min: RETARD_MIN_SECS / 3600,
-                        max: RETARD_MAX_SECS / 3600,
-                        onChange: setRetardHours,
-                      }}
-                    />
+                    <div data-testid="compact-summary">
+                      <CompactBakeSummary
+                        steps={steps}
+                        feedRatio={feedRatio}
+                        now={now}
+                        onTimelineOpen={() => setTimelineSheetOpen(true)}
+                      />
+                    </div>
                   )}
                 </PresetCard>
               );
             })}
           </div>
 
-          {/* Advanced disclosure */}
-          <div className="mt-3">
-            <button
-              type="button"
-              onClick={isManualOpen ? closeManual : openManual}
-              className="pressable w-full flex items-center justify-between
-                         min-h-touch px-4 rounded-xl border border-line
-                         text-body text-ink-2 transition-colors duration-fast"
-            >
-              <span>{isManualOpen ? s.advancedDisclosureClose : s.advancedDisclosureOpen}</span>
-              <ChevronDown
-                size={18}
-                aria-hidden
-                style={{
-                  transform: isManualOpen ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "transform 200ms ease-out",
-                }}
-              />
-            </button>
-
-            {/* Disclosure content */}
-            <div
-              style={{
-                maxHeight: isManualOpen ? "2000px" : "0px",
-                overflow: "hidden",
-                transition: isManualOpen
-                  ? "max-height 250ms ease-in-out"
-                  : "max-height 200ms ease-in",
+          {/* Full timeline sheet — opened from CompactBakeSummary trigger */}
+          <BottomSheet
+            open={timelineSheetOpen}
+            size="full"
+            title={s.timelineTitle}
+            onClose={() => setTimelineSheetOpen(false)}
+          >
+            <BakeTimeline
+              steps={steps}
+              now={now}
+              editableRetard={{
+                hours: retardHours,
+                min: RETARD_MIN_SECS / 3600,
+                max: RETARD_MAX_SECS / 3600,
+                onChange: setRetardHours,
               }}
+            />
+          </BottomSheet>
+
+          {/* Manual option — 5th radiogroup card */}
+          <div className="mt-3">
+            <PresetCard
+              presetKey={"fast" /* placeholder key — manual has no PresetKey */}
+              name={s.presets.manual.name}
+              hint={s.presets.manual.hint}
+              readyLabel={null}
+              isSelected={scheduleMode.kind === "manual"}
+              onSelect={() =>
+                scheduleMode.kind === "manual"
+                  ? setScheduleMode({ kind: "none" })
+                  : openManual()
+              }
             >
-              <div
-                style={{
-                  opacity: isManualOpen ? 1 : 0,
-                  transition: isManualOpen
-                    ? "opacity 200ms ease-out 50ms"
-                    : "opacity 50ms ease-in",
-                }}
-                className="pt-4"
-              >
+              {scheduleMode.kind === "manual" && (
+              <div className="pt-4">
                 {/* Direction toggle */}
                 <div role="radiogroup" className="flex gap-2 mb-6">
-                  {(["end", "start"] as const).map((dir) => {
+                  {(["start", "end"] as const).map((dir) => {
                     const label = dir === "end" ? s.directionEnd : s.directionStart;
                     const active = direction === dir;
                     return (
@@ -528,6 +531,11 @@ export function BakePlannerScreen({
                   </div>
                 </div>
 
+                {/* Ratio control — below the picker so the start time is the anchor */}
+                <div className="mb-6">
+                  <RatioControl value={feedRatio} onChange={setFeedRatio} />
+                </div>
+
                 {/* Validation message */}
                 {!isValid && (
                   <p className="text-body-sm text-warn mb-6" role="alert">
@@ -566,7 +574,8 @@ export function BakePlannerScreen({
                   </section>
                 )}
               </div>
-            </div>
+            )}
+            </PresetCard>
           </div>
         </section>
 

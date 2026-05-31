@@ -121,25 +121,26 @@ describe("BottomSheet", () => {
     });
   });
 
-  it("focuses first focusable element when opened", () => {
+  it("focuses the close (×) button when opened", () => {
     render(
       <BottomSheet open={true} onClose={vi.fn()}>
         <button data-testid="first">First</button>
         <button data-testid="second">Second</button>
       </BottomSheet>,
     );
-    expect(document.activeElement).toBe(screen.getByTestId("first"));
+    // The × button is the first focusable element in the panel
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "סגור" }));
   });
 
-  it("wraps focus to last when Shift+Tab on first element", () => {
+  it("wraps focus to last when Shift+Tab on the close button", () => {
     render(
       <BottomSheet open={true} onClose={vi.fn()}>
         <button data-testid="first">First</button>
         <button data-testid="last">Last</button>
       </BottomSheet>,
     );
-    const first = screen.getByTestId("first");
-    first.focus();
+    const closeBtn = screen.getByRole("button", { name: "סגור" });
+    closeBtn.focus();
     fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
     expect(document.activeElement).toBe(screen.getByTestId("last"));
   });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computePresetSchedule } from "./bake-presets";
+import { computePresetSchedule, PRESET_DEFAULT_RATIOS } from "./bake-presets";
 import { earliestReadyAt, calculateBakeSteps } from "./bake-timing";
 
 const ACTIVE_KEYS = new Set(["mix", "bulk", "shape", "preheat", "bake"]);
@@ -97,6 +97,30 @@ describe("computePresetSchedule", () => {
       expect(r.readyAt.getTime()).toBeGreaterThanOrEqual(
         earliestReadyAt(TEMP, now, true, r.retardSecs).getTime(),
       );
+    });
+  });
+
+  describe("feedRatio — each preset returns its default ratio", () => {
+    const now = new Date("2025-06-10T08:00:00");
+
+    it("fast returns ratio 3 (1:3:3 — evening feed, morning mix)", () => {
+      expect(computePresetSchedule("fast", now, TEMP, true).feedRatio).toBe(3);
+    });
+    it("classic returns ratio 2 (1:2:2 — morning feed, afternoon mix)", () => {
+      expect(computePresetSchedule("classic", now, TEMP, true).feedRatio).toBe(2);
+    });
+    it("classic-late returns ratio 2 (1:2:2 — morning feed, late-afternoon mix)", () => {
+      expect(computePresetSchedule("classic-late", now, TEMP, true).feedRatio).toBe(2);
+    });
+    it("long returns ratio 3 (1:3:3 — evening feed, morning mix next day)", () => {
+      expect(computePresetSchedule("long", now, TEMP, true).feedRatio).toBe(3);
+    });
+
+    it("PRESET_DEFAULT_RATIOS is exported and complete", () => {
+      expect(PRESET_DEFAULT_RATIOS.fast).toBe(3);
+      expect(PRESET_DEFAULT_RATIOS.classic).toBe(2);
+      expect(PRESET_DEFAULT_RATIOS["classic-late"]).toBe(2);
+      expect(PRESET_DEFAULT_RATIOS.long).toBe(3);
     });
   });
 

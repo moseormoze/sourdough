@@ -42,6 +42,7 @@ describe("lib/storage/active-bake", () => {
       feedAt: null,
       peakAt: null,
       feedStagePassed: false,
+  feedRatio: 2 as const,
     };
     saveActiveBake(bake);
     expect(loadActiveBake()).toEqual(bake);
@@ -92,6 +93,7 @@ describe("lib/storage/active-bake", () => {
       feedAt: null,
       peakAt: null,
       feedStagePassed: false,
+  feedRatio: 2 as const,
     });
     expect(loadActiveBake()).not.toBeNull();
     clearActiveBake();

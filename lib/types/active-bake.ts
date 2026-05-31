@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { RecipeSchema } from "./recipe";
 import { BakingMethodSchema, DEFAULT_BAKING_METHOD } from "./baking-method";
+import { DEFAULT_FEED_RATIO } from "@/lib/bake-timing";
 
 export const ActiveBakeSchema = z.object({
   id: z.string().min(1),
@@ -18,6 +19,10 @@ export const ActiveBakeSchema = z.object({
   peakAt: z.number().int().nullable().default(null),
   // True once the user confirms starter is ready and advances past the feed stage
   feedStagePassed: z.boolean().default(false),
+  // Feed ratio chosen in the planner (1:N:N). Defaults so old saves stay valid.
+  feedRatio: z.union([
+    z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5),
+  ]).default(DEFAULT_FEED_RATIO),
 });
 
 export type ActiveBake = z.infer<typeof ActiveBakeSchema>;

@@ -8,6 +8,7 @@ import { loadPendingRecipe, clearPendingRecipe } from "@/lib/storage/pending-pla
 import { PRESETS } from "@/lib/presets";
 import type { Recipe } from "@/lib/types/recipe";
 import type { BakingMethod } from "@/lib/types/baking-method";
+import type { FeedRatio } from "@/lib/bake-timing";
 
 function presetImageFor(recipe: Recipe): string | undefined {
   if (!recipe.id.startsWith("preset:")) return undefined;
@@ -38,8 +39,9 @@ export default function Page() {
     method: BakingMethod,
     feedAt?: Date,
     peakAt?: Date,
+    feedRatio?: FeedRatio,
   ) {
-    start(chosen, method, feedAt, peakAt);
+    start(chosen, method, feedAt, peakAt, feedRatio);
     clearPendingRecipe();
     router.push(feedAt ? "/bake/feed" : "/bake/stage/1");
   }

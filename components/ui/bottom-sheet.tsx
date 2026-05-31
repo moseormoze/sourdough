@@ -200,13 +200,27 @@ export function BottomSheet({
           <div className="w-9 h-1 rounded-full bg-line" aria-hidden />
         </div>
 
+        {/* Header: title + close button */}
+        <div className="flex items-center justify-between px-5 pb-4 shrink-0">
+          {title
+            ? <h2 id={titleId} className="text-heading text-ink">{title}</h2>
+            : <span />
+          }
+          <button
+            type="button"
+            aria-label="סגור"
+            onClick={onClose}
+            className="pressable min-h-touch min-w-touch flex items-center justify-center
+                       text-ink-3 hover:text-ink -me-2"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+              <path d="M3 3L15 15M15 3L3 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-          {title && (
-            <h2 id={titleId} className="text-heading text-ink mb-4">
-              {title}
-            </h2>
-          )}
           {children}
         </div>
       </div>

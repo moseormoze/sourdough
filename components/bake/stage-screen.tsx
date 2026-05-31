@@ -32,8 +32,8 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const router = useRouter();
   const nextStage = getStage(stage.n + 1);
   const quantities = useMemo(
-    () => computeBakeQuantities(activeBake.recipe),
-    [activeBake.recipe]
+    () => computeBakeQuantities(activeBake.recipe, activeBake.feedRatio),
+    [activeBake.recipe, activeBake.feedRatio]
   );
 
   const methodOverride = stage.byMethod?.[activeBake.bakingMethod];
