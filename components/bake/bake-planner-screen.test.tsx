@@ -119,10 +119,11 @@ describe("BakePlannerScreen — manual-first", () => {
     expect(screen.getAllByTestId(/^ratio-btn-/)).toHaveLength(5);
   });
 
-  it("compact summary is visible by default (valid earliest slot)", () => {
+  it("full timeline is visible inline by default (all steps shown)", () => {
     renderScreen();
-    expect(screen.getByTestId("compact-summary")).toBeInTheDocument();
-    expect(screen.getByTestId("feed-row")).toBeInTheDocument();
+    expect(screen.getByText(s.timelineSteps.build.label)).toBeInTheDocument();
+    expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument();
+    expect(screen.getByText(s.timelineSteps.preheat.label)).toBeInTheDocument();
   });
 
   it("CTA is enabled by default (manual is always a valid state)", () => {
@@ -206,26 +207,31 @@ describe("BakePlannerScreen — manual-first", () => {
     });
   });
 
-  it("timeline trigger opens the full BakeTimeline in a sheet", async () => {
+  it("there is no compact summary or timeline sheet trigger anymore", () => {
     renderScreen();
-    fireEvent.click(screen.getByTestId("timeline-trigger"));
-    await waitFor(() => {
-      expect(screen.getByText(s.timelineSteps.bake.label)).toBeInTheDocument();
-      expect(screen.getByText(s.timelineSteps.preheat.label)).toBeInTheDocument();
-    });
+    expect(screen.queryByTestId("compact-summary")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("timeline-trigger")).not.toBeInTheDocument();
   });
 
-  it("retard slider lives in the timeline sheet (default 12h, max 48)", async () => {
+  it("retard slider is inline in the timeline (default 12h, max 48)", () => {
     renderScreen();
-    fireEvent.click(screen.getByTestId("timeline-trigger"));
-    const slider = await screen.findByRole("slider", { name: s.retardSliderLabel });
+    const slider = screen.getByRole("slider", { name: s.retardSliderLabel });
     expect(slider).toHaveValue("12");
     expect(slider).toHaveAttribute("max", "48");
   });
 
-  it("full timeline is not inline (only behind the sheet)", () => {
+  it("editing the retard slider clears the selected preset", async () => {
     renderScreen();
-    expect(screen.queryByText(s.timelineSteps.bake.label)).not.toBeInTheDocument();
+    fireEvent.click(presetChip(s.presets.classic.name));
+    await waitFor(() =>
+      expect(presetChip(s.presets.classic.name)).toHaveAttribute("aria-checked", "true"),
+    );
+    fireEvent.change(screen.getByRole("slider", { name: s.retardSliderLabel }), {
+      target: { value: "24" },
+    });
+    await waitFor(() => {
+      expect(presetChip(s.presets.classic.name)).toHaveAttribute("aria-checked", "false");
+    });
   });
 
   // ---------------------------------------------------------------------------
