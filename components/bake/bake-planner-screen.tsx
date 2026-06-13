@@ -4,10 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { TempInput } from "@/components/recipes/temp-input";
 import { BakeTimeline } from "./bake-timeline";
-import { CompactBakeSummary } from "./compact-bake-summary";
 import { BakingMethodSelector } from "./baking-method-selector";
 import { RatioControl } from "./ratio-control";
 import {
@@ -128,7 +126,6 @@ export function BakePlannerScreen({
   const [selectedPreset, setSelectedPreset] = useState<PresetKey | null>(null);
   const [direction, setDirection] = useState<"end" | "start">("start");
   const [feedRatio, setFeedRatio] = useState<FeedRatio>(DEFAULT_FEED_RATIO);
-  const [timelineSheetOpen, setTimelineSheetOpen] = useState(false);
 
   const kitchenTemp = typeof temp === "number" ? temp : recipe.kitchenTemp;
   const retardSecs = retardHours * 3600;
@@ -421,17 +418,23 @@ export function BakePlannerScreen({
             <RatioControl value={feedRatio} onChange={handleRatioChange} />
           </div>
 
-          {/* Summary (valid) or too-soon warning */}
+          {/* Full timeline — always visible inline, with editable retard */}
           {isValid ? (
-            <div className="mb-2">
-              <div data-testid="compact-summary">
-                <CompactBakeSummary
-                  steps={steps}
-                  feedRatio={feedRatio}
-                  now={now}
-                  onTimelineOpen={() => setTimelineSheetOpen(true)}
-                />
+            <section className="mb-2">
+              <div className="mb-4">
+                <h2 className="text-heading text-ink">{s.timelineTitle}</h2>
+                <p className="text-body-sm text-ink-3 mt-0.5">{s.timelineSubtitle}</p>
               </div>
+              <BakeTimeline
+                steps={steps}
+                now={now}
+                editableRetard={{
+                  hours: retardHours,
+                  min: RETARD_MIN_SECS / 3600,
+                  max: RETARD_MAX_SECS / 3600,
+                  onChange: handleRetardChange,
+                }}
+              />
               {direction === "start" && (
                 <p className="text-body-sm text-accent font-medium mt-4" data-testid="ready-result">
                   {s.readyResultLabel(effectiveLabel)}
@@ -442,33 +445,13 @@ export function BakePlannerScreen({
                   {s.retardOverflowNote(effectiveLabel)}
                 </p>
               )}
-            </div>
+              <p className="text-tiny text-ink-3 mt-4">{s.timelineEstimateNote}</p>
+            </section>
           ) : (
             <p className="text-body-sm text-warn mb-2" role="alert">
               {s.tooSoon(minDateLabel)}
             </p>
           )}
-
-          {/* Full timeline sheet — opened from CompactBakeSummary trigger.
-              Retard is editable here. */}
-          <BottomSheet
-            open={timelineSheetOpen}
-            size="full"
-            title={s.timelineTitle}
-            onClose={() => setTimelineSheetOpen(false)}
-          >
-            <BakeTimeline
-              steps={steps}
-              now={now}
-              editableRetard={{
-                hours: retardHours,
-                min: RETARD_MIN_SECS / 3600,
-                max: RETARD_MAX_SECS / 3600,
-                onChange: handleRetardChange,
-              }}
-            />
-            <p className="text-tiny text-ink-3 mt-4">{s.timelineEstimateNote}</p>
-          </BottomSheet>
         </section>
 
         <div className="h-px bg-line mb-6" />
