@@ -200,6 +200,7 @@ export const strings = {
     tempImportantHint: "הטמפרטורה קובעת את כל הזמנים — כדאי למדוד ולא לנחש",
     scheduleSectionTitle: "תכננו את זמני הבייק",
     scheduleSectionSubtitle: "בחרו תבנית מומלצת או כווננו ידנית",
+    presetRowLabel: "התחל מתבנית",
     presetReadyLabel: (day: string, time: string) => `${day} · ${time}`,
     advancedDisclosureOpen: "לכוונן בעצמי",
     advancedDisclosureClose: "סגור כוונון",
