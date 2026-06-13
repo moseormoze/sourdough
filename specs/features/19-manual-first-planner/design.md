@@ -107,5 +107,8 @@ direction toggle → day/hour picker → `RatioControl` → `CompactBakeSummary`
 ## Design System Impact
 אין tokens חדשים. ה-chip משתמש בשפת ה-accent הקיימת (`accent`, `accent-bg`, `line`). אין צורך ב-spring (אין מיקום מונפש).
 
+## Revision (post-review)
+מתוך שימוש: התקציר המצומצם (`CompactBakeSummary`) + ה-sheet הוסרו. **הציר המלא (`BakeTimeline`) מוצג inline תמיד** (כש-`isValid`), עם עריכת retard inline. `CompactBakeSummary` נמחק (קוד מת אחרי הסרת הצרכן היחיד).
+
 ## Open Questions
 - אין. שלוש השאלות מה-brief נסגרו (ראו "Resolved Decisions").
