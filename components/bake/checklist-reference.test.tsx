@@ -10,7 +10,7 @@ describe("ChecklistReference", () => {
 
   it("renders the default title and N items", () => {
     render(<ChecklistReference items={["בועות", "תפיחה", "ריח חמצמץ"]} />);
-    expect(screen.getByText("איך לדעת שזה בסדר")).toBeInTheDocument();
+    expect(screen.getByText("מתי להמשיך לשלב הבא")).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
   });
 

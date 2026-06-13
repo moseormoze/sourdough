@@ -115,6 +115,36 @@ describe("StageScreen — basic stage", () => {
     expect(screen.queryByText(/הקמח של השאור כלול/)).not.toBeInTheDocument();
   });
 
+  it("stage 1 shows a levain timer based on feed ratio and kitchen temp", () => {
+    const stage = getStage(1)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
+    expect(screen.getByRole("button", { name: /התחל טיימר/ })).toBeInTheDocument();
+  });
+
+  it("stage 1 checklist has title 'מתי להמשיך לשלב הבא'", () => {
+    const stage = getStage(1)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
+    expect(screen.getByText("מתי להמשיך לשלב הבא")).toBeInTheDocument();
+  });
+
+  it("stage 2 checklist has title 'מתי להמשיך לשלב הבא'", () => {
+    const stage = getStage(2)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
+    expect(screen.getByText("מתי להמשיך לשלב הבא")).toBeInTheDocument();
+  });
+
+  it("stage 1 check reads 'לפחות הוכפל בנפח'", () => {
+    const stage = getStage(1)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
+    expect(screen.getByText("השאור לפחות הוכפל בנפח")).toBeInTheDocument();
+  });
+
+  it("stage 2 does NOT show a levain timer", () => {
+    const stage = getStage(2)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
+    expect(screen.queryByRole("button", { name: /התחל טיימר/ })).not.toBeInTheDocument();
+  });
+
   it("primary action moves to next stage", () => {
     const stage = getStage(1)!;
     const api = makeApi();
@@ -399,6 +429,6 @@ describe("StageScreen — done (stage 12)", () => {
   it("done stage has no checklist (none defined in data)", () => {
     const stage = getStage(12)!;
     render(<StageScreen stage={stage} activeBake={makeBake(12)} api={makeApi()} />);
-    expect(screen.queryByText("איך לדעת שזה בסדר")).not.toBeInTheDocument();
+    expect(screen.queryByText("מתי להמשיך לשלב הבא")).not.toBeInTheDocument();
   });
 });
