@@ -12,7 +12,7 @@ export interface ChecklistReferenceProps {
  */
 export function ChecklistReference({
   items,
-  title = "איך לדעת שזה בסדר",
+  title = "מתי להמשיך לשלב הבא",
 }: ChecklistReferenceProps) {
   if (items.length === 0) return null;
   return (

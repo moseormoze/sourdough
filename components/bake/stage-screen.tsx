@@ -16,7 +16,7 @@ import { StageCelebration } from "./stage-celebration";
 import { StageMedia } from "./stage-media";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
 import { computeBakeQuantities } from "@/lib/bake-math";
-import { FEED_RATIO_LABELS } from "@/lib/bake-timing";
+import { FEED_RATIO_LABELS, starterPeakSecs } from "@/lib/bake-timing";
 import { strings } from "@/lib/strings";
 import type { ActiveBake } from "@/lib/types/active-bake";
 import type { UseActiveBakeApi } from "@/lib/hooks/use-active-bake";
@@ -78,6 +78,10 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
 
   const showBulkTimer = stage.type === "bulk" && durationSeconds !== undefined;
   const showStandaloneTimer = stage.type === "timer" && durationSeconds !== undefined;
+  const levainTimerSecs =
+    stage.n === 1
+      ? starterPeakSecs(activeBake.recipe.kitchenTemp, activeBake.feedRatio)
+      : null;
 
   return (
     <>
@@ -151,6 +155,20 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
               </div>
             )}
           </section>
+        )}
+
+        {levainTimerSecs !== null && (
+          <div className="self-start">
+            <OptionalTimer
+              durationSeconds={levainTimerSecs}
+              startedAt={activeBake.timerStartedAt}
+              elapsedSeconds={activeBake.timerElapsedSeconds}
+              onStart={api.startTimer}
+              onPause={api.pauseTimer}
+              onResume={api.resumeTimer}
+              onReset={api.resetTimer}
+            />
+          </div>
         )}
 
         {checks && checks.length > 0 && (
