@@ -239,6 +239,9 @@ export function RecipeFormScreen({
             error={showError("hydration")}
             recommended={hintFor("hydration", values.hydration, values.flour)}
           />
+          <p className="text-tiny text-ink-3 leading-relaxed">
+            {strings.form.hydrationFlourNote}
+          </p>
           <PercentInputWithHint
             label={strings.form.salt}
             min={0}

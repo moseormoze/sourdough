@@ -121,6 +121,8 @@ export const strings = {
     flourWeightHintMedium: "500g · ככר בינונית (~1kg בצק)",
     flourWeightHintLarge: "750g · ככר גדולה (~1.5kg בצק)",
     hydration: "הידרציה",
+    hydrationFlourNote:
+      "קמח לבן רגיל מהסופר (~10.5% חלבון) סופג פחות מים — איתו הישארו סביב 70–72%. קמח לחם (12%+ חלבון) מחזיק גם 75% ומעלה.",
     salt: "מלח",
     levain: "שאור",
     kitchenTemp: "טמפ׳ מטבח",
