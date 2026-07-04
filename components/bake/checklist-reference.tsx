@@ -6,6 +6,8 @@ export interface ChecklistReferenceProps {
   title?: string;
   imageUrl?: string;
   imageAlt?: string;
+  imageWidth?: number;
+  imageHeight?: number;
 }
 
 /**
@@ -20,6 +22,8 @@ export function ChecklistReference({
   title = "מתי להמשיך לשלב הבא",
   imageUrl,
   imageAlt,
+  imageWidth = 1408,
+  imageHeight = 768,
 }: ChecklistReferenceProps) {
   if (items.length === 0) return null;
   return (
@@ -30,8 +34,8 @@ export function ChecklistReference({
           <Image
             src={imageUrl}
             alt={imageAlt ?? ""}
-            width={1408}
-            height={1055}
+            width={imageWidth}
+            height={imageHeight}
             className="h-auto w-full"
             sizes="(max-width: 448px) 100vw, 448px"
           />
