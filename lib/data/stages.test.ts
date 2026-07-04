@@ -189,3 +189,70 @@ describe("stage 3 — quantity tolerance", () => {
     expect(getStage(3)!.todoNote).toContain("10%");
   });
 });
+
+// 2026-07 content audit: uncovered-bake numbers must agree across the label,
+// takeaways, steps, tips, and every bakingMethod variant (source: baking-reference.md).
+describe("stage 10 — uncovered bake consistency", () => {
+  const s10 = () => getStage(10)!;
+
+  it("every variant lowers the oven temp after removing the steam source", () => {
+    const variants = [
+      s10().todo!.steps,
+      s10().byMethod!["open-with-steam"]!.todo.steps,
+      s10().byMethod!.other!.todo.steps,
+    ];
+    for (const steps of variants) {
+      expect(steps.join(" ")).toContain("190–210°C");
+    }
+  });
+
+  it("has no 230°C reduction target, no 96–98 or 20–25 stragglers", () => {
+    const json = JSON.stringify(s10());
+    expect(json).not.toContain("230°C");
+    expect(json).not.toContain("96–98");
+    expect(json).not.toContain("20–25");
+    expect(json).toContain("96–99");
+  });
+});
+
+describe("stage 12 — done copy after the cooling stage", () => {
+  it("does not re-instruct the cooling hour that stage 11 already covered", () => {
+    expect(getStage(12)!.briefing.blurb).not.toContain("תנו ללחם להצטנן");
+  });
+});
+
+// 2026-07 engine review + second live-bake feedback round.
+describe("engine-review copy contracts", () => {
+  it("stage 4 quiet-wait step states the 1–2h duration up front (not only at 4/4 folds)", () => {
+    const step = getStage(4)!.todo!.steps.find((s) => s.includes("ההמתנה השקטה"))!;
+    expect(step).toContain("שעה-שעתיים");
+  });
+
+  it("stage 2 reserve water is weighed separately, not held back from the measured water", () => {
+    const step = getStage(2)!.todo!.steps.find((s) =>
+      s.includes("{saltReserveWaterGrams}")
+    )!;
+    expect(step).toContain("בנפרד");
+    expect(step).not.toContain("(שמרו");
+  });
+
+  it("stage 1 suggests building a ~10% spare before the weighing steps", () => {
+    const steps = getStage(1)!.todo!.steps;
+    const spareIdx = steps.findIndex((s) => s.includes("עודף"));
+    const weighIdx = steps.findIndex((s) => s.includes("{levainWaterGrams}"));
+    expect(spareIdx).toBeGreaterThanOrEqual(0);
+    expect(spareIdx).toBeLessThan(weighIdx);
+  });
+
+  it("stage 3 weighs the exact levain amount instead of adding 'all of it'", () => {
+    const step = getStage(3)!.todo!.steps[0]!;
+    expect(step).toContain("שקלו {levainTotalGrams}");
+    expect(step).toContain("היתרה");
+  });
+
+  it("stage 1 drops the dead 10h base; static label matches the step copy", () => {
+    const s1 = getStage(1)!;
+    expect(s1.durationLabel).toBe("8–12 שעות");
+    expect(s1.tempSensitiveBaseSecs).toBeUndefined();
+  });
+});

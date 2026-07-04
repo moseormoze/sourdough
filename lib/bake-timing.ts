@@ -198,14 +198,25 @@ export function durationLabel(secs: number): string {
 
 /**
  * Range label for biology-driven steps, reflecting natural variability:
- * "בין 7 ל-9 שעות". The estimate sits at the top of the range.
+ * "בין 7 ל-9 שעות". Symmetric ±1h around the estimate (same window as
+ * calculateFeedingWindow) — a ferment running past the estimate is normal,
+ * so the estimate must not read as the ceiling.
  */
 export function durationRangeLabel(secs: number): string {
   const est = secs / 3600;
-  const low = Math.max(1, Math.round(est * 0.8));
-  const high = Math.max(low, Math.round(est));
-  if (low === high) return `כ-${high} שעות`;
+  const low = Math.max(1, Math.round(est - 1));
+  const high = Math.max(low + 1, Math.round(est + 1));
   return `בין ${low} ל-${high} שעות`;
+}
+
+/**
+ * Duration of a fermentation-kind stage outside the planner pipeline:
+ * base × Q10(temp) × flourFactor. Keeps the stage screen and timeline sheet
+ * on the exact same numbers as calculateBakeSteps.
+ */
+export function fermentationStageSecs(baseSecs: number, kitchenTempC: number, flour?: Flour): number {
+  const q10 = Math.pow(2, (BASE_TEMP_C - kitchenTempC) / 10);
+  return Math.round(baseSecs * q10 * (flour ? flourFactor(flour) : 1));
 }
 
 /** Seconds for a fed starter to reach peak, given kitchen temp and feed ratio. */

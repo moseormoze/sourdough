@@ -30,6 +30,7 @@ function seedActive(recipe: Recipe) {
       feedAt: null,
       peakAt: null,
       feedRatio: 2 as const,
+      retardHours: 12,
   });
 }
 

@@ -13,6 +13,7 @@ import {
   earliestReadyAt,
   starterPeakSecs,
   flourFactor,
+  fermentationStageSecs,
   RETARD_DEFAULT_SECS,
   RETARD_MIN_SECS,
   RETARD_MAX_SECS,
@@ -440,9 +441,26 @@ describe("flour-aware durations (T2)", () => {
 });
 
 describe("durationRangeLabel", () => {
-  it("brackets the estimate at the top of the range", () => {
-    expect(durationRangeLabel(9 * 3600)).toBe("בין 7 ל-9 שעות");
-    expect(durationRangeLabel(4 * 3600)).toBe("בין 3 ל-4 שעות");
+  it("brackets the estimate symmetrically (±1h, matching the feeding window)", () => {
+    expect(durationRangeLabel(8 * 3600)).toBe("בין 7 ל-9 שעות");
+    expect(durationRangeLabel(9 * 3600)).toBe("בין 8 ל-10 שעות");
+    expect(durationRangeLabel(4 * 3600)).toBe("בין 3 ל-5 שעות");
+  });
+
+  it("never drops below 1 hour on the low side", () => {
+    expect(durationRangeLabel(1.5 * 3600)).toBe("בין 1 ל-3 שעות");
+  });
+});
+
+describe("fermentationStageSecs", () => {
+  it("applies Q10 and flour factors to a base duration", () => {
+    expect(fermentationStageSecs(4 * 3600, 24)).toBe(4 * 3600);
+    expect(fermentationStageSecs(4 * 3600, 24, blend({ rye: 100 }))).toBe(
+      Math.round(4 * 3600 * 0.8)
+    );
+    expect(fermentationStageSecs(4 * 3600, 34, blend({ white: 100 }))).toBe(
+      adjustDurationSeconds(4 * 3600, 34)
+    );
   });
 });
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { computePresetSchedule, PRESET_DEFAULT_RATIOS } from "./bake-presets";
-import { earliestReadyAt, calculateBakeSteps } from "./bake-timing";
+import { computePresetSchedule, PRESET_DEFAULT_RATIOS, type PresetKey } from "./bake-presets";
+import { earliestReadyAt, calculateBakeSteps, RETARD_MIN_SECS, RETARD_MAX_SECS } from "./bake-timing";
+import { ActiveBakeSchema } from "./types/active-bake";
 
 const ACTIVE_KEYS = new Set(["mix", "bulk", "shape", "preheat", "bake"]);
 const TEMP = 25;
@@ -16,13 +17,13 @@ function allInWindow(hours: number[]) {
 }
 
 describe("computePresetSchedule", () => {
-  describe("fast — 08:00 start, target 20:00", () => {
+  describe("fast — 08:00 start, target 22:00 (8h retard floor)", () => {
     const now = new Date("2025-06-10T08:00:00");
 
-    it("readyAt is at 20:00 (same or next day)", () => {
+    it("readyAt is at 22:00 (same or next day)", () => {
       const r = computePresetSchedule("fast", now, TEMP, true);
-      expect(r.retardSecs).toBe(6 * 3600);
-      expect(r.readyAt.getHours()).toBe(20);
+      expect(r.retardSecs).toBe(8 * 3600);
+      expect(r.readyAt.getHours()).toBe(22);
     });
 
     it("all active steps in 07:00–23:00 window", () => {
@@ -154,5 +155,29 @@ describe("computePresetSchedule", () => {
         }
       },
     );
+  });
+});
+
+// Regression: the fast preset used to carry a 6h retard — below the schema's
+// 8h floor — so starting a bake from it produced an ActiveBake that
+// loadActiveBake() rejected, bouncing the user home and losing the bake.
+describe("preset ↔ schema alignment", () => {
+  const KEYS: PresetKey[] = ["fast", "classic", "classic-late", "long"];
+  const now = new Date("2025-06-10T08:00:00");
+
+  it("every preset retard is inside the engine bounds", () => {
+    for (const k of KEYS) {
+      const r = computePresetSchedule(k, now, TEMP, true);
+      expect(r.retardSecs, k).toBeGreaterThanOrEqual(RETARD_MIN_SECS);
+      expect(r.retardSecs, k).toBeLessThanOrEqual(RETARD_MAX_SECS);
+    }
+  });
+
+  it("every preset retard round-trips through ActiveBakeSchema", () => {
+    for (const k of KEYS) {
+      const r = computePresetSchedule(k, now, TEMP, true);
+      const parsed = ActiveBakeSchema.shape.retardHours.safeParse(r.retardSecs / 3600);
+      expect(parsed.success, `${k}: ${r.retardSecs / 3600}h must satisfy the schema`).toBe(true);
+    }
   });
 });

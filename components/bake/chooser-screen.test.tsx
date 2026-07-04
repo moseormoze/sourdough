@@ -115,8 +115,8 @@ describe("ChooserScreen", () => {
       bakingMethod: "closed-vessel",
       feedAt: null,
       peakAt: null,
-      feedStagePassed: false,
-  feedRatio: 2 as const,
+      feedRatio: 2 as const,
+      retardHours: 12,
     });
 
     render(<ChooserScreen />);
@@ -146,8 +146,8 @@ describe("ChooserScreen", () => {
       bakingMethod: "closed-vessel",
       feedAt: null,
       peakAt: null,
-      feedStagePassed: false,
-  feedRatio: 2 as const,
+      feedRatio: 2 as const,
+      retardHours: 12,
     });
 
     render(<ChooserScreen />);
@@ -180,8 +180,8 @@ describe("ChooserScreen", () => {
       bakingMethod: "closed-vessel",
       feedAt: null,
       peakAt: null,
-      feedStagePassed: false,
-  feedRatio: 2 as const,
+      feedRatio: 2 as const,
+      retardHours: 12,
     });
 
     render(<ChooserScreen />);

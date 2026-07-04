@@ -3,9 +3,10 @@ import type { Flour, Recipe } from "./types/recipe";
 
 export type FlourType = keyof Flour;
 
-/** Flour types shown in the levain/mix breakdown. Excludes the legacy `other`
- * bucket (never authored, always 0) — its label was retired with spelt. */
-const FLOUR_TYPES_ORDER = ["white", "wholeWheat", "rye", "speltWhite", "speltWhole"] as const;
+/** Flour types shown in the levain/mix breakdown. `other` is last: never
+ * authored since spelt landed, but legacy saved recipes may still carry it —
+ * it gets its own labeled entry rather than being folded into another type. */
+const FLOUR_TYPES_ORDER = ["white", "wholeWheat", "rye", "speltWhite", "speltWhole", "other"] as const;
 export type DisplayFlourType = (typeof FLOUR_TYPES_ORDER)[number];
 
 export interface FlourBreakdownEntry {
@@ -32,23 +33,39 @@ export interface BakeQuantities {
   };
 }
 
-const SALT_RESERVE_WATER_GRAMS = 20;
+// The salt-dissolving reserve: ~5% of total water in friendly 5g steps,
+// never below 15g (enough to dissolve the salt) or above 50g (still pourable
+// in one go). The canonical 500g/75% recipe keeps its familiar 20g.
+const SALT_RESERVE_MIN_GRAMS = 15;
+const SALT_RESERVE_MAX_GRAMS = 50;
 
+function saltReserveWaterFor(totalWaterGrams: number, waterAvailableGrams: number): number {
+  const base = Math.round((totalWaterGrams * 0.05) / 5) * 5;
+  const clamped = Math.min(SALT_RESERVE_MAX_GRAMS, Math.max(SALT_RESERVE_MIN_GRAMS, base));
+  return Math.max(0, Math.min(clamped, waterAvailableGrams));
+}
+
+/** Largest-remainder apportionment: integer grams per type, non-negative,
+ * summing exactly to totalGrams. Zero-gram entries are dropped only AFTER
+ * the apportionment, so rounding can never produce a negative or an empty
+ * list for a positive total. */
 function breakdownByBlend(totalGrams: number, blend: Flour): FlourBreakdownEntry[] {
-  const entries = FLOUR_TYPES_ORDER.map((type) => ({
-    type,
-    grams: Math.round((totalGrams * blend[type]) / 100),
-  })).filter((e) => e.grams > 0);
+  if (totalGrams <= 0) return [];
 
-  // Fix rounding drift so the breakdown sums to totalGrams exactly.
-  const sum = entries.reduce((acc, e) => acc + e.grams, 0);
-  const drift = totalGrams - sum;
-  if (drift !== 0 && entries.length > 0) {
-    // Push the drift onto the largest entry — minimizes relative error.
-    const largest = entries.reduce((a, b) => (a.grams >= b.grams ? a : b));
-    largest.grams += drift;
+  const shares = FLOUR_TYPES_ORDER.map((type) => {
+    const exact = (totalGrams * (blend[type] ?? 0)) / 100;
+    return { type, grams: Math.floor(exact), rem: exact - Math.floor(exact) };
+  });
+
+  let deficit = totalGrams - shares.reduce((acc, s) => acc + s.grams, 0);
+  const byRemainder = [...shares].sort((a, b) => b.rem - a.rem);
+  for (let i = 0; deficit > 0; i = (i + 1) % byRemainder.length, deficit--) {
+    byRemainder[i]!.grams += 1;
   }
-  return entries;
+
+  return shares
+    .filter((s) => s.grams > 0)
+    .map(({ type, grams }) => ({ type, grams }));
 }
 
 export interface RefreshBreakdown {
@@ -81,9 +98,9 @@ export function computeBakeQuantities(recipe: Recipe, feedRatio: FeedRatio = DEF
     computeRefreshBreakdown(levainTotalGrams, feedRatio);
 
   const mixFlour = Math.round(totalFlourGrams - levainFlour - levainStarter / 2);
-  const mixWater = Math.round(
-    totalWaterGrams - levainWater - levainStarter / 2 - SALT_RESERVE_WATER_GRAMS
-  );
+  const waterAfterLevain = Math.round(totalWaterGrams - levainWater - levainStarter / 2);
+  const saltReserveWaterGrams = saltReserveWaterFor(totalWaterGrams, waterAfterLevain);
+  const mixWater = waterAfterLevain - saltReserveWaterGrams;
 
   return {
     totalFlourGrams,
@@ -100,7 +117,7 @@ export function computeBakeQuantities(recipe: Recipe, feedRatio: FeedRatio = DEF
       flourGrams: mixFlour,
       flourBreakdown: breakdownByBlend(mixFlour, recipe.flour),
       waterGrams: mixWater,
-      saltReserveWaterGrams: SALT_RESERVE_WATER_GRAMS,
+      saltReserveWaterGrams,
     },
   };
 }

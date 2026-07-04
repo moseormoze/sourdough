@@ -81,7 +81,7 @@ All "base" values are at the axis base temp above, before Q10 / flour.
 | 2 | Autolyse + mix | אוטוליזה + לישה | fixed | 45 + 15 min | ✗ | ✗ | |
 | 3 | Bulk + folds | תסיסה ראשונית | fermentation | **4 h** @24°C | ✓ | ✓ | 4 folds, every 30 min |
 | 4 | Pre-shape + shape | עיצוב | fixed | 25 + 10 min | ✗ | ✗ | |
-| 5 | Cold retard | התפחה במקרר | fixed | **12 h** | ✗ | ✗ | Editable 6–48 h, see §5 |
+| 5 | Cold retard | התפחה במקרר | fixed | **12 h** | ✗ | ✗ | Editable 8–48 h, see §5 |
 | 6 | Preheat | חימום תנור | fixed | 45 min | ✗ | ✗ | |
 | 7 | Bake | אפייה | fixed | 20 + 22 min | ✗ | ✗ | covered + uncovered |
 | — | Cool | קירור | — | 60 min | — | — | Recommendation only — **not** part of "ready" |
@@ -95,7 +95,7 @@ All "base" values are at the axis base temp above, before Q10 / flour.
 The retard is the one duration the baker stretches to fit the bake around their
 life:
 
-- Default **12 h** · Min **6 h** (below this crumb/handling suffers) · Max **48 h**
+- Default **12 h** · Min **8 h** (F14 decision; below this crumb/handling suffers) · Max **48 h**
   (beyond this it over-proofs / gets too sour).
 
 Source: [`bake-timing.ts:99-101`](../lib/bake-timing.ts#L99-L101).
@@ -148,7 +148,7 @@ active hands-on step (mix, bulk, shape, preheat, bake) **starts between
 
 | Preset | Hebrew | Retard | Target ready hour |
 |---|---|---|---|
-| `fast` | מהיר | 6 h | 20:00 |
+| `fast` | מהיר | 8 h | 22:00 |
 | `classic` | קלאסי | 12 h | 10:00 |
 | `classic-late` | קלאסי מאוחר | 16 h | 17:00 |
 | `long` | ארוך | 28 h | 18:00 |
@@ -208,8 +208,8 @@ applied. Full technique detail lives in
 | Bench rest | 15–60 min (depends on temp + dough strength). | 25 min (inside `shape`) | Ours sits at the low end. |
 | Preheat | **45–60 min**, 230–250 °C; tin method needs less, stone/steel/cast-iron need 60. | 45 min fixed | Low end; could scale by vessel (cast-iron/steel → 60). |
 | Bake covered | 20–25 min. | 20 min | OK. |
-| Bake uncovered | 15–30 min **at reduced temp 190–210 °C.** Done at **96–99 °C** internal. | 22 min, temp stays high | Content should drop the temp for the uncovered phase. |
-| **Retard** | **Min 8–12 h**, up to 24/48/72 h. Ideal fridge **4–5 °C.** | default 12 h, **min 6 h, max 48 h** | **Decided (F14): min 6 → 8 h; max stays 48 h** (72 h excessive for beginners; long-retard warning is a UX concern). |
+| Bake uncovered | 15–30 min **at reduced temp 190–210 °C.** Done at **96–99 °C** internal. | 22 min, content drops to 190–210 °C | ✔ Resolved (PR #41) — all vessel variants now instruct the drop. |
+| **Retard** | **Min 8–12 h**, up to 24/48/72 h. Ideal fridge **4–5 °C.** | default 12 h, **min 8 h, max 48 h** | ✔ Resolved (F14 + engine review): min raised 6 → 8 h in engine, schema, presets and this doc; max stays 48 h. |
 | Cool | 1 h min, **2–3 h ideal.** | 60 min recommendation | Could recommend 2–3 h. |
 
 Conceptual note from the course's final-proof graph: the retard's real value is a

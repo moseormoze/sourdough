@@ -43,6 +43,7 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
     feedAt: null,
     peakAt: null,
     feedRatio: 2 as const,
+    retardHours: 12,
     ...overrides,
   };
 }

@@ -30,6 +30,7 @@ const activeBake: ActiveBake = {
   feedAt: null,
   peakAt: null,
   feedRatio: 2 as const,
+  retardHours: 12,
 };
 
 describe("ResumeBanner", () => {

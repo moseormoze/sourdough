@@ -59,7 +59,7 @@ export const strings = {
     stagePlaceholderTitle: (stageNumber: number) => `שלב ${stageNumber} — בקרוב`,
     stagePlaceholderBackToHome: "חזרה למסך הבית",
     doneTitle: "הלחם מוכן!",
-    doneBlurb: "תהנו מהפרי של 24–48 שעות עבודה. הקרום הכי טוב אחרי לפחות שעה של קירור על רשת.",
+    doneBlurb: "תהנו מהפרי של 24–48 שעות עבודה. אחרי שעת הקירור על הרשת — הקרום עכשיו בשיאו.",
     doneButton: "סיימתי",
     // Stage screen
     stageCounter: (current: number, total: number) => `${current}/${total}`,
@@ -81,6 +81,7 @@ export const strings = {
       rye: "קמח שיפון",
       speltWhite: "קמח כוסמין לבן",
       speltWhole: "קמח כוסמין מלא",
+      other: "קמח אחר",
     },
     bakingMethod: {
       selectorTitle: "באיזה כלי תאפה?",
@@ -222,7 +223,7 @@ export const strings = {
     readyResultLabel: (label: string) => `הלחם מוכן ב: ${label}`,
     contextLine: (hours: number) => `הבייק ייקח כ-${hours} שעות`,
     // Inline retard editing on the timeline
-    retardSliderLabel: "אורך ההתפחה בקירור",
+    retardSliderLabel: "אורך ההתפחה במקרר",
     retardOverflowNote: (label: string) =>
       `כדי להספיק התפחה כזו, הלחם ייצא ב-${label}`,
     // Timeline
@@ -236,7 +237,7 @@ export const strings = {
       mix: { label: "ערבוב", desc: "אוטוליזה 45 דק׳ + לישה 15 דק׳" },
       bulk: { label: "תסיסה ראשונית", desc: "כולל קיפולים" },
       shape: { label: "עיצוב הבצק", desc: "עיצוב + מנוחת ביניים · כ-35 דק׳" },
-      retard: { label: "התפחה בקירור", desc: "בלילה" },
+      retard: { label: "התפחה במקרר", desc: "בלילה" },
       preheat: { label: "חימום התנור והכלי", desc: "כ-45 דקות" },
       bake: { label: "הכנסת הבצק לתנור", desc: "מכוסה 20 דק׳ + חשוף 22 דק׳" },
       ready: { label: "הלחם מוכן" },
