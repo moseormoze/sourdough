@@ -229,6 +229,16 @@ describe("stage reference photos — round 2", () => {
     const s = getStage(4)!;
     expect(s.checkImageHeight).toBe(1055);
   });
+
+  it("stage 7 carries a post-retard stage image", () => {
+    const s = getStage(7)!;
+    expect(s.imageUrl).toBe("/stages/7-retard-done.png");
+    expect(s.imageAlt).toContain("התפחה קרה");
+  });
+
+  it("stage 12 notes that crumb varies with the flour mix", () => {
+    expect(getStage(12)!.briefing.blurb).toContain("צפוף");
+  });
 });
 
 describe("stage 1 — levain peak tolerance", () => {
