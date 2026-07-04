@@ -31,7 +31,7 @@ export function ChecklistReference({
             src={imageUrl}
             alt={imageAlt ?? ""}
             width={1408}
-            height={768}
+            height={1055}
             className="h-auto w-full"
             sizes="(max-width: 448px) 100vw, 448px"
           />
