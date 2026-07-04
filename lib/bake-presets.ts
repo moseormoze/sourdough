@@ -18,7 +18,7 @@ interface PresetConfig {
 }
 
 const PRESET_CONFIGS: Record<PresetKey, PresetConfig> = {
-  fast:           { retardSecs:  6 * 3600, targetReadyHour: 20, defaultFeedRatio: 3 }, // feed ~22:00, mix next morning
+  fast:           { retardSecs:  8 * 3600, targetReadyHour: 22, defaultFeedRatio: 3 }, // 8h = schema/course retard floor; target 22:00 keeps mix (~07:15) inside the active window
   classic:        { retardSecs: 12 * 3600, targetReadyHour: 10, defaultFeedRatio: 2 }, // feed ~07:00, mix same afternoon
   "classic-late": { retardSecs: 16 * 3600, targetReadyHour: 17, defaultFeedRatio: 2 }, // feed ~10:00, mix same evening
   long:           { retardSecs: 28 * 3600, targetReadyHour: 18, defaultFeedRatio: 3 }, // feed ~22:00, mix next morning

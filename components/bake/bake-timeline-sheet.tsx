@@ -3,7 +3,8 @@
 import { useRef, useState, useEffect } from "react";
 import { X, CheckCircle2 } from "lucide-react";
 import { STAGES } from "@/lib/data/stages";
-import { tempAdjustedDurationLabel, starterPeakSecs, durationRangeLabel, type FeedRatio } from "@/lib/bake-timing";
+import { fermentationStageSecs, starterPeakSecs, durationRangeLabel, type FeedRatio } from "@/lib/bake-timing";
+import type { Flour } from "@/lib/types/recipe";
 import { cn } from "@/lib/cn";
 
 export interface BakeTimelineSheetProps {
@@ -12,6 +13,7 @@ export interface BakeTimelineSheetProps {
   kitchenTemp: number;
   feedRatio: FeedRatio;
   retardHours: number;
+  flour?: Flour;
   onClose: () => void;
 }
 
@@ -21,6 +23,7 @@ export function BakeTimelineSheet({
   kitchenTemp,
   feedRatio,
   retardHours,
+  flour,
   onClose,
 }: BakeTimelineSheetProps) {
   const [dragY, setDragY] = useState(0);
@@ -136,7 +139,7 @@ export function BakeTimelineSheet({
                   if (stage.n === 7)
                     return `${retardHours} שעות`;
                   if (stage.tempSensitiveBaseSecs != null)
-                    return tempAdjustedDurationLabel(stage.tempSensitiveBaseSecs, kitchenTemp) + (stage.durationLabelSuffix ?? "");
+                    return durationRangeLabel(fermentationStageSecs(stage.tempSensitiveBaseSecs, kitchenTemp, flour)) + (stage.durationLabelSuffix ?? "");
                   return stage.durationLabel;
                 })();
 

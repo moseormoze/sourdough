@@ -141,10 +141,54 @@ describe("computeBakeQuantities — invariants", () => {
     expect(Math.abs(sum - q.totalWaterGrams)).toBeLessThanOrEqual(2);
   });
 
-  it("saltReserveWaterGrams is always 20 (constant)", () => {
+  it("salt reserve scales with total water — 5% rounded to 5g, clamped 15–50", () => {
+    // 500g @75% → 375g water → 18.75 → 20 (canonical value unchanged)
     expect(computeBakeQuantities(makeRecipe()).mixAdditions.saltReserveWaterGrams).toBe(20);
-    expect(computeBakeQuantities(makeRecipe({ flourWeightGrams: 100 })).mixAdditions.saltReserveWaterGrams).toBe(20);
-    expect(computeBakeQuantities(makeRecipe({ flourWeightGrams: 1500 })).mixAdditions.saltReserveWaterGrams).toBe(20);
+    // 750g @75% → 562g water → 28 → 30
+    expect(computeBakeQuantities(makeRecipe({ flourWeightGrams: 750 })).mixAdditions.saltReserveWaterGrams).toBe(30);
+    // 1500g @75% → 1125g water → 56 → capped at 50
+    expect(computeBakeQuantities(makeRecipe({ flourWeightGrams: 1500 })).mixAdditions.saltReserveWaterGrams).toBe(50);
+    // 300g @75% → 225g water → 11 → floored at 15
+    expect(computeBakeQuantities(makeRecipe({ flourWeightGrams: 300 })).mixAdditions.saltReserveWaterGrams).toBe(15);
+  });
+});
+
+describe("flour breakdown — rounding edges (engine review)", () => {
+  const fiveWay = { white: 20, wholeWheat: 20, rye: 20, speltWhite: 20, speltWhole: 20, other: 0 };
+
+  it("tiny levain with a five-way blend never shows negative or zero grams", () => {
+    const q = computeBakeQuantities(
+      makeRecipe({ flourWeightGrams: 350, levain: 2, flour: fiveWay }),
+      1 as FeedRatio
+    );
+    const bd = q.levainBuild.flourBreakdown;
+    expect(bd.length).toBeGreaterThan(0);
+    expect(bd.every((e) => e.grams >= 1)).toBe(true);
+    expect(bd.reduce((a, e) => a + e.grams, 0)).toBe(q.levainBuild.flourGrams);
+  });
+
+  it("breakdown always sums exactly to its component total across blends", () => {
+    for (const flour of [fiveWay, { white: 34, wholeWheat: 33, rye: 33, speltWhite: 0, speltWhole: 0, other: 0 }]) {
+      for (const grams of [100, 350, 500, 1500]) {
+        const q = computeBakeQuantities(makeRecipe({ flourWeightGrams: grams, flour }));
+        const sum = q.mixAdditions.flourBreakdown.reduce((a, e) => a + e.grams, 0);
+        expect(sum).toBe(q.mixAdditions.flourGrams);
+        expect(q.mixAdditions.flourBreakdown.every((e) => e.grams >= 1)).toBe(true);
+      }
+    }
+  });
+
+  it("legacy `other` flour gets its own entry instead of being folded into another type", () => {
+    const q = computeBakeQuantities(
+      makeRecipe({ flour: { white: 70, wholeWheat: 0, rye: 0, speltWhite: 0, speltWhole: 0, other: 30 } })
+    );
+    const bd = q.mixAdditions.flourBreakdown;
+    const other = bd.find((e) => e.type === "other");
+    const white = bd.find((e) => e.type === "white");
+    expect(other).toBeDefined();
+    expect(white).toBeDefined();
+    const whiteShare = white!.grams / (white!.grams + other!.grams);
+    expect(Math.abs(whiteShare - 0.7)).toBeLessThan(0.02);
   });
 });
 

@@ -74,15 +74,15 @@ describe("BakeTimelineSheet", () => {
   });
 
   it("stage 1 shows a range label based on feedRatio and kitchenTemp", () => {
-    // starterPeakSecs(24, 2) = 8h → durationRangeLabel → "בין 6 ל-8 שעות"
+    // starterPeakSecs(24, 2) = 8h → durationRangeLabel → "בין 7 ל-9 שעות"
     render(<BakeTimelineSheet {...defaultProps} currentStage={1} kitchenTemp={24} feedRatio={2} />);
-    expect(screen.getByText("בין 6 ל-8 שעות")).toBeInTheDocument();
+    expect(screen.getByText("בין 7 ל-9 שעות")).toBeInTheDocument();
   });
 
   it("stage 1 label changes with feedRatio (ratio 5 = longer peak)", () => {
-    // starterPeakSecs(24, 5) = 14h → durationRangeLabel → "בין 11 ל-14 שעות"
+    // starterPeakSecs(24, 5) = 14h → durationRangeLabel → "בין 13 ל-15 שעות"
     render(<BakeTimelineSheet {...defaultProps} currentStage={1} kitchenTemp={24} feedRatio={5} />);
-    expect(screen.getByText("בין 11 ל-14 שעות")).toBeInTheDocument();
+    expect(screen.getByText("בין 13 ל-15 שעות")).toBeInTheDocument();
   });
 
   it("stage 7 shows the chosen retard hours", () => {
@@ -90,10 +90,23 @@ describe("BakeTimelineSheet", () => {
     expect(screen.getByText("16 שעות")).toBeInTheDocument();
   });
 
-  it("stage 4 (bulk) uses temp-adjusted label", () => {
-    // stage 4: tempSensitiveBaseSecs=4h, at kitchenTemp=24 (BASE_TEMP_C) → "כ-4 שעות"
+  it("stage 4 (bulk) uses a temp+flour-adjusted range label, matching the planner", () => {
+    // stage 4: base 4h at kitchenTemp=24, no flour → est 4h → "בין 3 ל-5 שעות"
     render(<BakeTimelineSheet {...defaultProps} currentStage={1} kitchenTemp={24} />);
-    expect(screen.getByText(/כ-4 שעות/)).toBeInTheDocument();
+    expect(screen.getByText(/בין 3 ל-5 שעות/)).toBeInTheDocument();
+  });
+
+  it("stage 4 label shortens for a rye-heavy blend", () => {
+    // 4h × 0.8 (rye cap) = 3h12m → "בין 2 ל-4 שעות"
+    render(
+      <BakeTimelineSheet
+        {...defaultProps}
+        currentStage={1}
+        kitchenTemp={24}
+        flour={{ white: 0, wholeWheat: 0, rye: 100, speltWhite: 0, speltWhole: 0, other: 0 }}
+      />
+    );
+    expect(screen.getByText(/בין 2 ל-4 שעות/)).toBeInTheDocument();
   });
 
   it("calls onClose when the close button is clicked", () => {

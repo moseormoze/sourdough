@@ -6,7 +6,8 @@ import { X, ChevronDown } from "lucide-react";
 import { ProgressStrip } from "./progress-strip";
 import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
-import { tempAdjustedDurationLabel, starterPeakSecs, durationRangeLabel, type FeedRatio } from "@/lib/bake-timing";
+import { fermentationStageSecs, starterPeakSecs, durationRangeLabel, type FeedRatio } from "@/lib/bake-timing";
+import type { Flour } from "@/lib/types/recipe";
 import type { Stage } from "@/lib/data/stages";
 
 export interface StageHeaderProps {
@@ -15,6 +16,7 @@ export interface StageHeaderProps {
   kitchenTemp?: number;
   feedRatio?: FeedRatio;
   retardHours?: number;
+  flour?: Flour;
   onTimelineOpen?: () => void;
 }
 
@@ -24,6 +26,7 @@ export function StageHeader({
   kitchenTemp,
   feedRatio,
   retardHours,
+  flour,
   onTimelineOpen,
 }: StageHeaderProps) {
   const [isPressed, setIsPressed] = useState(false);
@@ -35,7 +38,7 @@ export function StageHeader({
     if (stage.n === 7 && retardHours != null)
       return `${retardHours} שעות`;
     if (stage.tempSensitiveBaseSecs != null && kitchenTemp != null)
-      return tempAdjustedDurationLabel(stage.tempSensitiveBaseSecs, kitchenTemp) + (stage.durationLabelSuffix ?? "");
+      return durationRangeLabel(fermentationStageSecs(stage.tempSensitiveBaseSecs, kitchenTemp, flour)) + (stage.durationLabelSuffix ?? "");
     return stage.durationLabel;
   })();
 

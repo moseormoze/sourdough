@@ -81,6 +81,7 @@ export const strings = {
       rye: "קמח שיפון",
       speltWhite: "קמח כוסמין לבן",
       speltWhole: "קמח כוסמין מלא",
+      other: "קמח אחר",
     },
     bakingMethod: {
       selectorTitle: "באיזה כלי תאפה?",

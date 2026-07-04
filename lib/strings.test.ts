@@ -14,3 +14,9 @@ describe("strings — retard naming", () => {
     expect(strings.bakeScheduler.retardSliderLabel).toContain("במקרר");
   });
 });
+
+describe("strings — flour labels", () => {
+  it("carries a label for the legacy `other` flour bucket", () => {
+    expect(strings.bake.flourTypeLabels.other).toBe("קמח אחר");
+  });
+});

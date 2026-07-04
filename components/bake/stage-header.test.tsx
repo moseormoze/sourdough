@@ -11,6 +11,20 @@ describe("StageHeader", () => {
     expect(screen.getByText(stage.durationLabel)).toBeInTheDocument();
   });
 
+  it("bulk label is flour-aware and uses the planner's range style", () => {
+    const stage = getStage(4)!;
+    render(
+      <StageHeader
+        stage={stage}
+        totalStages={12}
+        kitchenTemp={24}
+        flour={{ white: 0, wholeWheat: 0, rye: 100, speltWhite: 0, speltWhole: 0, other: 0 }}
+      />
+    );
+    // 4h × 0.8 (rye) = 3h12m → range "בין 2 ל-4 שעות" + folds suffix
+    expect(screen.getByText(/בין 2 ל-4 שעות · 3–4 קיפולים/)).toBeInTheDocument();
+  });
+
   it("renders the stage name including levain term", () => {
     const stage = getStage(1)!; // name includes "(levain)"
     render(<StageHeader stage={stage} totalStages={12} />);
