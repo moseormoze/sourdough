@@ -186,6 +186,32 @@ describe("stage 4 — end-of-bulk reference photo", () => {
   });
 });
 
+// Live-bake feedback (2026-07, pre-shape): the video demoed a different school
+// (wet-hand rounding, no folds) than the course's fold-like-a-sack method, and
+// the copy never said where the dough rests or that spreading is normal.
+describe("stage 5 — pre-shape clarity", () => {
+  const s5 = () => getStage(5)!;
+
+  it("uses the boule video that matches the fold-to-center method", () => {
+    expect(s5().youtubeId).toBe("IWA0RAAsBHg");
+  });
+
+  it("teaches fold-edges-to-center like closing a sack", () => {
+    expect(s5().todo!.steps.join(" ")).toContain("כמו סוגרים שק");
+  });
+
+  it("says the dough stays on the counter — not bowl, not basket", () => {
+    const steps = s5().todo!.steps.join(" ");
+    expect(steps).toContain("לא חוזרים לקערה");
+    expect(steps).toContain("סלסלה");
+  });
+
+  it("sets expectations that relaxing during the bench rest is normal", () => {
+    expect(s5().todo!.tip).toContain("יתרווח");
+    expect(s5().checks!.join(" ")).toContain("תקין");
+  });
+});
+
 describe("stage image assets", () => {
   it("every referenced stage image exists in /public", () => {
     for (const s of STAGES) {
