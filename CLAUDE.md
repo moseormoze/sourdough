@@ -18,7 +18,7 @@ A baking companion app for home bakers of sourdough bread (לחם מחמצת). W
 | Starter (live culture) | סטארטר | — (loanword; avoids ambiguity with לחם מחמצת) |
 | Levain | שאור | (levain) |
 | Autolyse | אוטוליזה | — |
-| Bulk fermentation | תסיסה ראשונית | (Bulk fermentation) |
+| Bulk fermentation | תסיסה ראשונית (״באלק״) | (Bulk fermentation) — the loanword באלק accompanies the Hebrew term so bakers learn it |
 | Pre-shape | עיצוב ראשוני | (pre-shape) |
 | Cold retard | התפחה | (retard) |
 | Stretch & fold | קיפול | (stretch & fold) |
