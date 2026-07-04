@@ -58,7 +58,7 @@ describe("POST /api/feedback", () => {
     expect(json).toEqual({ ok: true });
 
     expect(mockSend).toHaveBeenCalledOnce();
-    const callArgs = mockSend.mock.calls[0][0] as { to: string; subject: string; html: string; from: string };
+    const callArgs = mockSend.mock.calls[0]![0] as { to: string; subject: string; html: string; from: string };
     expect(callArgs.to).toBe("eilon+sourdoughfeedback@mlamdovsky.com");
     expect(callArgs.subject).toContain("הצעה לפיצ׳ר");
   });
@@ -72,7 +72,7 @@ describe("POST /api/feedback", () => {
     const res = await POST(req);
     expect(res.status).toBe(200);
 
-    const callArgs = mockSend.mock.calls[0][0] as { html: string };
+    const callArgs = mockSend.mock.calls[0]![0] as { html: string };
     expect(callArgs.html).toContain("<img");
   });
 

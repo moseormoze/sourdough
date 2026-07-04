@@ -93,6 +93,7 @@ describe("lib/storage/active-bake", () => {
       feedAt: null,
       peakAt: null,
       feedRatio: 2 as const,
+      retardHours: 12,
     });
     expect(loadActiveBake()).not.toBeNull();
     clearActiveBake();
