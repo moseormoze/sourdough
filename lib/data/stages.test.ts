@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
 import { STAGES, TOTAL_STAGES, getStage } from "./stages";
 
 describe("STAGES data", () => {
@@ -173,6 +175,28 @@ describe("stage 4 — bulk fermentation copy", () => {
     const last = steps[steps.length - 1]!;
     expect(last).toContain("30–75%");
     expect(last).toContain("בסוף הלישה");
+  });
+});
+
+describe("stage 4 — end-of-bulk reference photo", () => {
+  it("carries a checklist image showing what done dough looks like", () => {
+    const s = getStage(4)!;
+    expect(s.checkImageUrl).toBe("/stages/4-bulk-done.png");
+    expect(s.checkImageAlt).toContain("תפח");
+  });
+});
+
+describe("stage image assets", () => {
+  it("every referenced stage image exists in /public", () => {
+    for (const s of STAGES) {
+      for (const url of [s.imageUrl, s.checkImageUrl].filter(Boolean) as string[]) {
+        const p = path.join(process.cwd(), "public", url);
+        expect(
+          fs.existsSync(p),
+          `stage ${s.n} references ${url} but the file is missing from public/`
+        ).toBe(true);
+      }
+    }
   });
 });
 
