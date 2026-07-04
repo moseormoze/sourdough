@@ -220,3 +220,39 @@ describe("stage 12 — done copy after the cooling stage", () => {
     expect(getStage(12)!.briefing.blurb).not.toContain("תנו ללחם להצטנן");
   });
 });
+
+// 2026-07 engine review + second live-bake feedback round.
+describe("engine-review copy contracts", () => {
+  it("stage 4 quiet-wait step states the 1–2h duration up front (not only at 4/4 folds)", () => {
+    const step = getStage(4)!.todo!.steps.find((s) => s.includes("ההמתנה השקטה"))!;
+    expect(step).toContain("שעה-שעתיים");
+  });
+
+  it("stage 2 reserve water is weighed separately, not held back from the measured water", () => {
+    const step = getStage(2)!.todo!.steps.find((s) =>
+      s.includes("{saltReserveWaterGrams}")
+    )!;
+    expect(step).toContain("בנפרד");
+    expect(step).not.toContain("(שמרו");
+  });
+
+  it("stage 1 suggests building a ~10% spare before the weighing steps", () => {
+    const steps = getStage(1)!.todo!.steps;
+    const spareIdx = steps.findIndex((s) => s.includes("עודף"));
+    const weighIdx = steps.findIndex((s) => s.includes("{levainWaterGrams}"));
+    expect(spareIdx).toBeGreaterThanOrEqual(0);
+    expect(spareIdx).toBeLessThan(weighIdx);
+  });
+
+  it("stage 3 weighs the exact levain amount instead of adding 'all of it'", () => {
+    const step = getStage(3)!.todo!.steps[0]!;
+    expect(step).toContain("שקלו {levainTotalGrams}");
+    expect(step).toContain("היתרה");
+  });
+
+  it("stage 1 drops the dead 10h base; static label matches the step copy", () => {
+    const s1 = getStage(1)!;
+    expect(s1.durationLabel).toBe("8–12 שעות");
+    expect(s1.tempSensitiveBaseSecs).toBeUndefined();
+  });
+});
