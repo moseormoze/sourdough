@@ -185,6 +185,8 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             items={checks}
             imageUrl={stage.checkImageUrl}
             imageAlt={stage.checkImageAlt}
+            imageWidth={stage.checkImageWidth}
+            imageHeight={stage.checkImageHeight}
           />
         )}
 

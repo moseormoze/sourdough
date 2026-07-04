@@ -46,6 +46,9 @@ export interface Stage {
    *  shows what the dough should LOOK like when the stage is done. */
   checkImageUrl?: string;
   checkImageAlt?: string;
+  /** Natural pixel size of the check image. Omit for the 1408×768 default. */
+  checkImageWidth?: number;
+  checkImageHeight?: number;
   youtubeId?: string;
   videoCaption?: string;
   byMethod?: Partial<Record<BakingMethod, StageMethodContent>>;
@@ -154,6 +157,9 @@ export const STAGES: readonly Stage[] = [
       "הבצק חלק וגמיש",
       "לא נדבק חזק לכף היד",
     ],
+    checkImageUrl: "/stages/3-windowpane.png",
+    checkImageAlt:
+      "מבחן ה-windowpane — בצק נמתח בין האצבעות לממברנה דקה ושקופה שאור עובר דרכה, בלי להיקרע",
   },
   {
     n: 4,
@@ -195,6 +201,8 @@ export const STAGES: readonly Stage[] = [
     checkImageUrl: "/stages/4-bulk-done.png",
     checkImageAlt:
       "בצק בסוף התסיסה הראשונית בקערת זכוכית — תפח לגובה עם כיפה מתוחה ומטית, בועות על פני השטח ובדפנות, ואצבע לוחצת גומה רדודה בקצה",
+    checkImageWidth: 1408,
+    checkImageHeight: 1055,
   },
   {
     n: 5,
@@ -262,6 +270,9 @@ export const STAGES: readonly Stage[] = [
       "התפר כלפי מעלה בסלסלה",
       "מקומחים מספיק כדי שלא יידבק",
     ],
+    checkImageUrl: "/stages/6-banneton.png",
+    checkImageAlt:
+      "בצק מעוצב בסלסלת התפחה מקומחת היטב, התפר הגס כלפי מעלה — כך נכנסים למקרר",
   },
   {
     n: 7,
@@ -461,6 +472,9 @@ export const STAGES: readonly Stage[] = [
     n: 10,
     name: "אפייה — לא מכוסה",
     type: "timer",
+    imageUrl: "/stages/10-crust.png",
+    imageAlt:
+      "לחם בסיר ברזל יצוק בסוף האפייה — קרום חום-זהוב עמוק, ׳אוזן׳ כהה שנפתחה לאורך החריצה ושלפוחיות קטנות",
     durationLabel: "20–22 דקות",
     durationSeconds: 22 * 60,
     briefing: {
@@ -559,6 +573,9 @@ export const STAGES: readonly Stage[] = [
     n: 12,
     name: "הלחם מוכן",
     type: "done",
+    imageUrl: "/stages/12-crumb.png",
+    imageAlt:
+      "כיכר פרוסה על קרש עץ — פירור פתוח ולח עם חורים בגדלים שונים וקרום דק ופריך",
     durationLabel: "",
     briefing: {
       heading: "הלחם מוכן!",

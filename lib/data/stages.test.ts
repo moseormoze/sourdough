@@ -200,6 +200,37 @@ describe("stage image assets", () => {
   });
 });
 
+describe("stage reference photos — round 2", () => {
+  it("stage 3 carries a windowpane check image", () => {
+    const s = getStage(3)!;
+    expect(s.checkImageUrl).toBe("/stages/3-windowpane.png");
+    expect(s.checkImageAlt).toContain("windowpane");
+  });
+
+  it("stage 6 carries a seam-up banneton check image", () => {
+    const s = getStage(6)!;
+    expect(s.checkImageUrl).toBe("/stages/6-banneton.png");
+    expect(s.checkImageAlt).toContain("התפר");
+  });
+
+  it("stage 10 carries a crust-color stage image", () => {
+    const s = getStage(10)!;
+    expect(s.imageUrl).toBe("/stages/10-crust.png");
+    expect(s.imageAlt).toContain("קרום");
+  });
+
+  it("stage 12 carries a crumb stage image", () => {
+    const s = getStage(12)!;
+    expect(s.imageUrl).toBe("/stages/12-crumb.png");
+    expect(s.imageAlt).toContain("פירור");
+  });
+
+  it("stage 4's 4:3 check image declares its dimensions", () => {
+    const s = getStage(4)!;
+    expect(s.checkImageHeight).toBe(1055);
+  });
+});
+
 describe("stage 1 — levain peak tolerance", () => {
   it("allows a levain slightly past peak instead of demanding a rebuild", () => {
     const tip = getStage(1)!.todo!.tip!;
