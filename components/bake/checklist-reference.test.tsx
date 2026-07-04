@@ -24,4 +24,22 @@ describe("ChecklistReference", () => {
     render(<ChecklistReference items={["x"]} title="סימנים" />);
     expect(screen.getByText("סימנים")).toBeInTheDocument();
   });
+
+  it("renders a reference image when imageUrl is provided", () => {
+    render(
+      <ChecklistReference
+        items={["בועות"]}
+        imageUrl="/stages/4-bulk-done.png"
+        imageAlt="בצק שתפח בסוף התסיסה"
+      />
+    );
+    const img = screen.getByRole("img", { name: "בצק שתפח בסוף התסיסה" });
+    expect(img).toBeInTheDocument();
+    expect(img.getAttribute("src")).toContain("4-bulk-done");
+  });
+
+  it("renders no image when imageUrl is absent", () => {
+    const { container } = render(<ChecklistReference items={["בועות"]} />);
+    expect(container.querySelector("img")).toBeNull();
+  });
 });

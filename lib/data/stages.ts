@@ -42,6 +42,10 @@ export interface Stage {
   subSteps?: number;
   imageUrl?: string;
   imageAlt?: string;
+  /** Reference photo rendered inside the "מתי להמשיך" checklist card —
+   *  shows what the dough should LOOK like when the stage is done. */
+  checkImageUrl?: string;
+  checkImageAlt?: string;
   youtubeId?: string;
   videoCaption?: string;
   byMethod?: Partial<Record<BakingMethod, StageMethodContent>>;
@@ -188,6 +192,9 @@ export const STAGES: readonly Stage[] = [
       "רואים בועות על פני השטח",
       "מרגיש קליל וגמיש",
     ],
+    checkImageUrl: "/stages/4-bulk-done.png",
+    checkImageAlt:
+      "בצק בסוף התסיסה הראשונית בקערת זכוכית — תפח לגובה עם כיפה מתוחה ומטית, בועות על פני השטח ובדפנות, ואצבע לוחצת גומה רדודה בקצה",
   },
   {
     n: 5,

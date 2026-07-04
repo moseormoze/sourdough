@@ -181,7 +181,11 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         )}
 
         {checks && checks.length > 0 && (
-          <ChecklistReference items={checks} />
+          <ChecklistReference
+            items={checks}
+            imageUrl={stage.checkImageUrl}
+            imageAlt={stage.checkImageAlt}
+          />
         )}
 
         {showStandaloneTimer && durationSeconds !== undefined && (

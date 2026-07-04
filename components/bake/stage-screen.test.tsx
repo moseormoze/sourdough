@@ -453,3 +453,13 @@ describe("StageScreen — done (stage 12)", () => {
     expect(screen.queryByText("מתי להמשיך לשלב הבא")).not.toBeInTheDocument();
   });
 });
+
+describe("StageScreen — end-of-bulk reference photo (stage 4)", () => {
+  it("renders the check image inside the checklist card", () => {
+    const stage = getStage(4)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(4)} api={makeApi()} />);
+    expect(
+      screen.getByRole("img", { name: stage.checkImageAlt! })
+    ).toBeInTheDocument();
+  });
+});
