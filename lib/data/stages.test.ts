@@ -145,3 +145,47 @@ describe("STAGES data", () => {
     expect(stage.byMethod?.["other"]?.warning).toMatch(/250°C/);
   });
 });
+
+// Content contracts from live-bake feedback (2026-07): a real bake stalled because
+// the copy conflated "done folding" with "done with bulk", counted bulk from the
+// autolyse, and sent a fine just-past-peak levain back to a rebuild.
+describe("stage 4 — bulk fermentation copy", () => {
+  const stage = () => getStage(4)!;
+
+  it("introduces the professional term באלק and anchors bulk to levain-in", () => {
+    expect(stage().briefing.blurb).toContain("באלק");
+    expect(stage().briefing.blurb).toContain("מהרגע שהשאור נכנס");
+  });
+
+  it("states that finishing the folds is not finishing the stage", () => {
+    expect(stage().briefing.takeaways.join(" ")).toContain(
+      "סוף הקיפולים ≠ סוף השלב"
+    );
+  });
+
+  it("has a dedicated quiet-wait step after the last fold", () => {
+    const steps = stage().todo!.steps;
+    expect(steps.some((s) => s.includes("ההמתנה השקטה"))).toBe(true);
+  });
+
+  it("anchors the 30–75% rise to the end-of-mix volume", () => {
+    const steps = stage().todo!.steps;
+    const last = steps[steps.length - 1]!;
+    expect(last).toContain("30–75%");
+    expect(last).toContain("בסוף הלישה");
+  });
+});
+
+describe("stage 1 — levain peak tolerance", () => {
+  it("allows a levain slightly past peak instead of demanding a rebuild", () => {
+    const tip = getStage(1)!.todo!.tip!;
+    expect(tip).toContain("עבר את השיא");
+    expect(tip).not.toContain("אל תפספסו");
+  });
+});
+
+describe("stage 3 — quantity tolerance", () => {
+  it("carries a note that small levain deviations are fine", () => {
+    expect(getStage(3)!.todoNote).toContain("10%");
+  });
+});

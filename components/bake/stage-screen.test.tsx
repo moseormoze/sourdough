@@ -224,6 +224,26 @@ describe("StageScreen — bulk (stage 4) sub-step flow", () => {
     render(<StageScreen stage={stage} activeBake={makeBake(4)} api={makeApi()} />);
     expect(screen.getByText(/המרווחים יכולים לגדול ככל שהבצק מתחזק/)).toBeInTheDocument();
   });
+
+  it("swaps to the quiet-wait message once all folds are done", () => {
+    const stage = getStage(4)!;
+    render(
+      <StageScreen stage={stage} activeBake={makeBake(4, { subStep: 4 })} api={makeApi()} />
+    );
+    expect(screen.getByText(/כל הקיפולים בוצעו/)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/המרווחים יכולים לגדול ככל שהבצק מתחזק/)
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not show the quiet-wait message while folds remain", () => {
+    const stage = getStage(4)!;
+    render(
+      <StageScreen stage={stage} activeBake={makeBake(4, { subStep: 2 })} api={makeApi()} />
+    );
+    expect(screen.queryByText(/כל הקיפולים בוצעו/)).not.toBeInTheDocument();
+    expect(screen.getByText(/המרווחים יכולים לגדול ככל שהבצק מתחזק/)).toBeInTheDocument();
+  });
 });
 
 describe("StageScreen — bakingMethod variants (stages 8-10)", () => {

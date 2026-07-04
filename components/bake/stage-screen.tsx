@@ -131,12 +131,18 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             <div className="mt-3">
               <FoldDots total={stage.subSteps} current={activeBake.subStep} />
             </div>
-            {foldsRemaining && (
+            {foldsRemaining ? (
               <div className="mt-4">
                 <Button variant="accent" size="sm" onClick={api.advanceSubStep}>
                   {strings.bake.stageFinishFold}
                 </Button>
               </div>
+            ) : (
+              <p className="mt-4 text-small text-ink-2 leading-relaxed">
+                כל הקיפולים בוצעו — מכאן לא נוגעים בבצק. רוב התסיסה קורית דווקא
+                עכשיו, בשקט: עוד שעה-שעתיים בערך. עוברים לשלב הבא רק כשהבצק עומד
+                בסימני ״מתי להמשיך״ שלמטה.
+              </p>
             )}
             {showBulkTimer && durationSeconds !== undefined && (
               <div className="mt-4 pt-4 border-t border-line/60">
@@ -150,7 +156,9 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
                   onReset={api.resetTimer}
                 />
                 <p className="mt-2 text-tiny text-ink-3 leading-relaxed">
-                  3–4 קיפולים ב-2 השעות הראשונות — המרווחים יכולים לגדול ככל שהבצק מתחזק.
+                  {foldsRemaining
+                    ? "3–4 קיפולים ב-2 השעות הראשונות — המרווחים יכולים לגדול ככל שהבצק מתחזק."
+                    : "הטיימר יכול להזכיר לכם לבדוק את הבצק כל ~30 דקות."}
                 </p>
               </div>
             )}
