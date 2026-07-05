@@ -210,3 +210,11 @@ describe("RecipeFormScreen", () => {
     expect(routerMock.push).toHaveBeenCalledWith("/recipes");
   });
 });
+
+describe("RecipeFormScreen — Israeli flour hydration note", () => {
+  it("shows the flour-strength note under the hydration field", () => {
+    renderForm();
+    expect(screen.getByText(/קמח לחם/)).toBeInTheDocument();
+    expect(screen.getByText(/70–72%/)).toBeInTheDocument();
+  });
+});

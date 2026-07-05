@@ -20,7 +20,7 @@ export const PRESETS: readonly Preset[] = [
     image: "/presets/country.png",
     data: {
       flour: { white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0 },
-      hydration: 75,
+      hydration: 72,
       salt: 2,
       levain: 20,
       kitchenTemp: 25,
@@ -65,7 +65,7 @@ export const PRESETS: readonly Preset[] = [
     image: "/presets/country-rye.png",
     data: {
       flour: { white: 80, wholeWheat: 0, rye: 20, speltWhite: 0, speltWhole: 0 },
-      hydration: 75,
+      hydration: 72,
       salt: 2,
       levain: 20,
       kitchenTemp: 25,
