@@ -75,6 +75,11 @@ export const strings = {
     timerResume: "המשך",
     timerReset: "אפס",
     timerFinished: "הסתיים",
+    // Rescue paths (feature 20)
+    rescueTrigger: "משהו לא מסתדר?",
+    rescueSheetTitle: "אבחון מהיר",
+    rescueSigns: "הסימנים",
+    rescueSteps: "מה עושים",
     flourTypeLabels: {
       white: "קמח לבן",
       wholeWheat: "קמח מלא",

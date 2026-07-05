@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { StageScreen } from "./stage-screen";
 import { getStage } from "@/lib/data/stages";
 import { routerMock } from "../../vitest.setup";
@@ -461,5 +461,56 @@ describe("StageScreen — end-of-bulk reference photo (stage 4)", () => {
     expect(
       screen.getByRole("img", { name: stage.checkImageAlt! })
     ).toBeInTheDocument();
+  });
+});
+
+describe("StageScreen — rescue entry (feature 20)", () => {
+  it("shows the rescue trigger on stages with rescue content", () => {
+    for (const n of [4, 5, 6, 7]) {
+      const { unmount } = render(
+        <StageScreen stage={getStage(n)!} activeBake={makeBake(n)} api={makeApi()} />
+      );
+      expect(
+        screen.getByRole("button", { name: /משהו לא מסתדר/ }),
+        `stage ${n}`
+      ).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it("hides the rescue trigger on stages without rescue content", () => {
+    for (const n of [2, 9, 12]) {
+      const { unmount } = render(
+        <StageScreen stage={getStage(n)!} activeBake={makeBake(n)} api={makeApi()} />
+      );
+      expect(
+        screen.queryByRole("button", { name: /משהו לא מסתדר/ }),
+        `stage ${n}`
+      ).not.toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it("opens the rescue sheet, keeps fold progress, and closes cleanly", async () => {
+    render(
+      <StageScreen
+        stage={getStage(4)!}
+        activeBake={makeBake(4, { subStep: 2 })}
+        api={makeApi()}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /משהו לא מסתדר/ }));
+    expect(
+      screen.getByRole("dialog", { name: "אבחון מהיר" })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/קיפולים בוצעו/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "סגור" }));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "אבחון מהיר" })
+      ).not.toBeInTheDocument()
+    );
+    expect(screen.getByText(/קיפולים בוצעו/)).toBeInTheDocument();
   });
 });

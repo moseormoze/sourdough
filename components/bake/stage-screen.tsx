@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, LifeBuoy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StageHeader } from "./stage-header";
 import { BakeTimelineSheet } from "./bake-timeline-sheet";
+import { RescueSheet } from "./rescue-sheet";
 import { Briefing } from "./briefing";
 import { InstructionCard } from "./instruction-card";
 import { ChecklistReference } from "./checklist-reference";
@@ -15,6 +16,7 @@ import { SafetyWarning } from "./safety-warning";
 import { StageCelebration } from "./stage-celebration";
 import { StageMedia } from "./stage-media";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
+import { getRescue } from "@/lib/data/rescue";
 import { computeBakeQuantities } from "@/lib/bake-math";
 import { FEED_RATIO_LABELS, starterPeakSecs } from "@/lib/bake-timing";
 import { strings } from "@/lib/strings";
@@ -33,6 +35,8 @@ export interface StageScreenProps {
 export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const router = useRouter();
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [rescueOpen, setRescueOpen] = useState(false);
+  const rescue = getRescue(stage.n);
   const nextStage = getStage(stage.n + 1);
   const quantities = useMemo(
     () => computeBakeQuantities(activeBake.recipe, activeBake.feedRatio),
@@ -203,6 +207,19 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             />
           </div>
         )}
+
+        {rescue && (
+          <div className="self-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setRescueOpen(true)}
+              iconStart={<LifeBuoy size={16} aria-hidden />}
+            >
+              {strings.bake.rescueTrigger}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Sticky actions */}
@@ -249,6 +266,13 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       flour={activeBake.recipe.flour}
       onClose={() => setTimelineOpen(false)}
     />
+    {rescue && (
+      <RescueSheet
+        stageN={stage.n}
+        isOpen={rescueOpen}
+        onClose={() => setRescueOpen(false)}
+      />
+    )}
     </>
   );
 }
