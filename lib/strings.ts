@@ -15,6 +15,17 @@ export const strings = {
     required: "שדה חובה",
     nameRequired: "השם לא יכול להיות ריק",
     positiveAmount: "הכמות חייבת להיות חיובית",
+    emailInvalid: "כתובת אימייל לא תקינה",
+  },
+  welcome: {
+    title: "נעים להכיר 👋",
+    subtitle: "עוד רגע אופים. ספרו לנו רק מי אתם:",
+    nameLabel: "שם פרטי",
+    namePlaceholder: "איך קוראים לך?",
+    emailLabel: "אימייל",
+    privacyNote:
+      "נשתמש בזה רק כדי להבין איך אופים עם כיכר ולעדכן אתכם על שיפורים. בלי ספאם.",
+    cta: "מתחילים לאפות 🍞",
   },
   home: {
     wordmark: "כיכר",
