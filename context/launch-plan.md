@@ -1,6 +1,6 @@
 # Launch Plan
 
-> **Status (2026-05-27)**: MVP end-to-end functionally complete on `localhost`. **About to enter Phase 0 (Deploy).** No paying users, no auth, no server-side data — everything in `localStorage`.
+> **Status (2026-07-05)**: Phase 0 (Deploy) הושלם — האפליקציה חיה ב-Vercel עם PostHog. Phase 1 (Self-test) הושלם בפועל — כמה בייקים אמיתיים עם איטרציות שיפור. **Phase 2 (Closed beta) מדולג בהחלטה** — אין מאגר חברים שיאפו איתה. הבא: **Phase 3 (Open beta)** — פוסט בקבוצות מחמצת בפייסבוק. שער לפוסט: פיצ'ר `21-open-beta-onboarding` (זיהוי משתמשים דרך PostHog identify + חוויית התקנה למסך הבית). עדיין ללא auth וללא דאטה בצד שרת — הכל ב-`localStorage`.
 
 מסמך זה מתעד את **התכנית של איך לקחת את האפליקציה ממקומית-בלבד למוצר משלם**, את ה-**מחסנית הטכנית** שתשרת את התכנית, ואת **הסדר של מה להוסיף מתי**. הוא לא תכנית מוצר — לזה יש [`vision.md`](./vision.md) ו-[`goals.md`](./goals.md).
 
