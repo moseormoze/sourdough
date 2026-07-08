@@ -6,10 +6,11 @@ export interface TextInputProps extends Omit<InputHTMLAttributes<HTMLInputElemen
   label?: string;
   error?: string | null;
   hint?: string;
+  type?: "text" | "email";
 }
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function TextInput(
-  { label, error, hint, className, dir = "auto", id, ...rest },
+  { label, error, hint, className, dir = "auto", id, type = "text", ...rest },
   ref
 ) {
   const reactId = useId();
@@ -27,7 +28,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
       <input
         ref={ref}
         id={inputId}
-        type="text"
+        type={type}
         dir={dir}
         aria-invalid={!!error || undefined}
         aria-describedby={errorId ?? hintId}

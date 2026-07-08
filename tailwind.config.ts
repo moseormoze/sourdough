@@ -69,6 +69,7 @@ const config: Config = {
         sticky: "10",
         fab: "20",
         sheet: "50",
+        gate: "60",
         toast: "100",
         overlay: "200",
       },
