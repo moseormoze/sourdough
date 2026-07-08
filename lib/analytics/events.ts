@@ -11,6 +11,7 @@ export type AnalyticsEvent =
   | { name: "recipe_created"; props: { name: string; flourWeightGrams: number; hydration: number } }
   | { name: "recipe_deleted"; props: { recipeId: string } }
   | { name: "baking_method_selected"; props: { method: string } }
-  | { name: "timer_started"; props: { stage: number; durationSeconds: number } };
+  | { name: "timer_started"; props: { stage: number; durationSeconds: number } }
+  | { name: "identify_completed"; props: Record<string, never> };
 
 export type AnalyticsEventName = AnalyticsEvent["name"];
