@@ -12,6 +12,12 @@ export type AnalyticsEvent =
   | { name: "recipe_deleted"; props: { recipeId: string } }
   | { name: "baking_method_selected"; props: { method: string } }
   | { name: "timer_started"; props: { stage: number; durationSeconds: number } }
-  | { name: "identify_completed"; props: Record<string, never> };
+  | { name: "identify_completed"; props: Record<string, never> }
+  | { name: "install_banner_shown"; props: { variant: InstallBannerVariant } }
+  | { name: "install_prompt_shown"; props: { variant: InstallBannerVariant } }
+  | { name: "install_completed"; props: Record<string, never> }
+  | { name: "install_banner_dismissed"; props: { variant: InstallBannerVariant } };
+
+export type InstallBannerVariant = "android" | "ios" | "fb-in-app";
 
 export type AnalyticsEventName = AnalyticsEvent["name"];
