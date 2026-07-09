@@ -95,7 +95,11 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
           aria-describedby={errorId}
           onChange={(e) => handleInput(e.target.value)}
           className={cn(
-            "flex-1 min-h-cta bg-transparent text-center font-mono text-body-lg text-ink",
+            "flex-1 min-h-cta bg-transparent font-mono text-body-lg text-ink",
+            // compact has no steppers framing the value — anchor the number
+            // next to the unit so it reads as one token ("13 גרם"), instead
+            // of floating centered with a gap between value and unit
+            compact ? "text-start" : "text-center",
             "focus:outline-none",
             "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
             className
