@@ -343,6 +343,18 @@ export const strings = {
       confirm: "מחק",
       cancel: "ביטול",
     },
+    list: {
+      pageTitle: "מעקב סטארטר",
+      backToHome: "חזרה",
+      newFeeding: "+ האכלה חדשה",
+      loadErrorMessage: "משהו השתבש בטעינת ההיסטוריה",
+      retry: "נסה שוב",
+    },
+    empty: {
+      emptyTitle: "עדיין לא תיעדת האכלות",
+      emptyDescription: "הוסף את ההאכלה הראשונה שלך כדי להתחיל לעקוב",
+      newFeeding: "+ האכלה ראשונה",
+    },
   },
   feedback: {
     fabLabel: "שליחת פידבק",
