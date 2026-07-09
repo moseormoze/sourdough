@@ -2,21 +2,23 @@ import { forwardRef, useId, type InputHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 import { ValidationMessage } from "./validation-message";
 
-export interface TextInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
+export interface TextInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "dir"> {
   label?: string;
   error?: string | null;
   hint?: string;
-  type?: "text" | "email";
+  type?: "text" | "email" | "date" | "time";
+  dir?: "ltr" | "rtl" | "auto";
 }
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function TextInput(
-  { label, error, hint, className, dir = "auto", id, type = "text", ...rest },
+  { label, error, hint, className, dir, id, type = "text", ...rest },
   ref
 ) {
   const reactId = useId();
   const inputId = id ?? reactId;
   const errorId = error ? `${inputId}-error` : undefined;
   const hintId = hint && !error ? `${inputId}-hint` : undefined;
+  const resolvedDir = dir ?? (type === "date" || type === "time" ? "ltr" : "auto");
 
   return (
     <div className="block w-full">
@@ -29,7 +31,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
         ref={ref}
         id={inputId}
         type={type}
-        dir={dir}
+        dir={resolvedDir}
         aria-invalid={!!error || undefined}
         aria-describedby={errorId ?? hintId}
         className={cn(

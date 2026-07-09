@@ -294,6 +294,14 @@ export const strings = {
     inclusionNameRequired: "שם התוספת לא יכול להיות ריק",
     inclusionAmountPositive: "כמות התוספת חייבת להיות חיובית",
   },
+  starterTracker: {
+    grams: {
+      starterLabel: "סטארטר",
+      flourLabel: "קמח",
+      waterLabel: "מים",
+      unit: "גרם",
+    },
+  },
   feedback: {
     fabLabel: "שליחת פידבק",
     title: "שליחת פידבק",

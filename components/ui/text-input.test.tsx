@@ -15,6 +15,44 @@ describe("TextInput", () => {
     expect(screen.getByLabelText("שם")).toHaveAttribute("dir", "auto");
   });
 
+  it("keeps dir='auto' by default for type='email' (regression)", () => {
+    render(<TextInput label="אימייל" type="email" />);
+    const input = screen.getByLabelText("אימייל");
+    expect(input).toHaveAttribute("dir", "auto");
+    expect(input).toHaveAttribute("type", "email");
+  });
+
+  it("keeps dir='auto' by default for type='text' (regression)", () => {
+    render(<TextInput label="שם המתכון" type="text" />);
+    const input = screen.getByLabelText("שם המתכון");
+    expect(input).toHaveAttribute("dir", "auto");
+    expect(input).toHaveAttribute("type", "text");
+  });
+
+  it("defaults to dir='ltr' for type='date'", () => {
+    render(<TextInput label="תאריך" type="date" />);
+    const input = screen.getByLabelText("תאריך");
+    expect(input).toHaveAttribute("dir", "ltr");
+    expect(input).toHaveAttribute("type", "date");
+  });
+
+  it("defaults to dir='ltr' for type='time'", () => {
+    render(<TextInput label="שעה" type="time" />);
+    const input = screen.getByLabelText("שעה");
+    expect(input).toHaveAttribute("dir", "ltr");
+    expect(input).toHaveAttribute("type", "time");
+  });
+
+  it("lets an explicit dir override the type='date' default", () => {
+    render(<TextInput label="תאריך" type="date" dir="rtl" />);
+    expect(screen.getByLabelText("תאריך")).toHaveAttribute("dir", "rtl");
+  });
+
+  it("lets an explicit dir override the type='time' default", () => {
+    render(<TextInput label="שעה" type="time" dir="auto" />);
+    expect(screen.getByLabelText("שעה")).toHaveAttribute("dir", "auto");
+  });
+
   it("shows error as alert and sets aria-invalid", () => {
     render(<TextInput label="שם" error="שדה חובה" />);
     expect(screen.getByLabelText("שם")).toHaveAttribute("aria-invalid", "true");
