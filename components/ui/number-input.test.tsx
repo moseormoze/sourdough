@@ -63,4 +63,18 @@ describe("NumberInput", () => {
     expect(screen.getByLabelText("x")).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByRole("alert")).toHaveTextContent("טווח חורג");
   });
+
+  it("anchors the value next to the unit in compact mode", () => {
+    render(<NumberInput label="x" value={13} unit="גרם" compact onChange={() => {}} />);
+    const input = screen.getByLabelText("x");
+    expect(input.className).toContain("text-start");
+    expect(input.className).not.toContain("text-center");
+  });
+
+  it("keeps the value centered between steppers in default mode", () => {
+    render(<NumberInput label="x" value={13} unit="גרם" onChange={() => {}} />);
+    const input = screen.getByLabelText("x");
+    expect(input.className).toContain("text-center");
+    expect(input.className).not.toContain("text-start");
+  });
 });
