@@ -14,6 +14,13 @@ describe("FeedingGramsInput", () => {
     expect(screen.getAllByText(strings.starterTracker.grams.unit)).toHaveLength(3);
   });
 
+  it("renders compact inputs — no −/+ stepper buttons that overflow narrow viewports", () => {
+    render(<FeedingGramsInput value={EMPTY} onChange={vi.fn()} />);
+    expect(screen.queryByLabelText(strings.common.decrement)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(strings.common.increment)).not.toBeInTheDocument();
+    expect(screen.queryAllByRole("button")).toHaveLength(0);
+  });
+
   it("treats all-empty values as valid — no error is shown", () => {
     render(<FeedingGramsInput value={EMPTY} onChange={vi.fn()} />);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();

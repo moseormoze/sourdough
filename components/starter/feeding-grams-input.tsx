@@ -32,6 +32,8 @@ export function FeedingGramsInput({ value, onChange }: FeedingGramsInputProps) {
       {KEYS.map((key) => (
         <NumberInput
           key={key}
+          compact
+          className="min-w-0"
           label={LABEL[key]}
           unit={strings.starterTracker.grams.unit}
           min={0}

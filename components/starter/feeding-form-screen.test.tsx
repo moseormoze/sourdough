@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { FeedingFormScreen } from "./feeding-form-screen";
 import { ToastProvider } from "@/components/ui/toast";
 import { routerMock } from "../../vitest.setup";
+import { strings } from "@/lib/strings";
 import type { FeedingFormValues } from "@/lib/validate-feeding";
 
 const createFeedingMock = vi.fn().mockResolvedValue({});
@@ -75,7 +76,7 @@ describe("FeedingFormScreen", () => {
     expect(screen.getByText("תאריך ההאכלה הוא שדה חובה")).toBeInTheDocument();
   });
 
-  it("does not block save when grams and time are empty", () => {
+  it("does not block save when grams and time are empty", async () => {
     renderForm({
       initialValues: {
         ...validValues,
@@ -87,9 +88,10 @@ describe("FeedingFormScreen", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "שמור" }));
     expect(createFeedingMock).toHaveBeenCalled();
+    await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/starter"));
   });
 
-  it("save calls createFeeding with the correct payload in add mode", () => {
+  it("save calls createFeeding with the correct payload in add mode", async () => {
     renderForm({ initialValues: validValues });
     fireEvent.click(screen.getByRole("button", { name: "שמור" }));
     expect(createFeedingMock).toHaveBeenCalledWith({
@@ -100,10 +102,10 @@ describe("FeedingFormScreen", () => {
       waterGrams: 100,
       fedAt: expect.any(String),
     });
-    expect(routerMock.push).toHaveBeenCalledWith("/starter");
+    await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/starter"));
   });
 
-  it("save calls updateFeeding with the correct payload in edit mode", () => {
+  it("save calls updateFeeding with the correct payload in edit mode", async () => {
     renderForm({ initialValues: validValues, feedingId: "feeding-1" });
     fireEvent.click(screen.getByRole("button", { name: "שמור" }));
     expect(updateFeedingMock).toHaveBeenCalledWith(
@@ -116,7 +118,74 @@ describe("FeedingFormScreen", () => {
         waterGrams: 100,
       })
     );
-    expect(routerMock.push).toHaveBeenCalledWith("/starter");
+    await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/starter"));
+  });
+
+  it("navigates only after createFeeding resolves — not while pending", async () => {
+    let resolveSave!: (value: unknown) => void;
+    createFeedingMock.mockImplementationOnce(
+      () => new Promise((resolve) => (resolveSave = resolve))
+    );
+    renderForm({ initialValues: validValues });
+
+    fireEvent.click(screen.getByRole("button", { name: "שמור" }));
+
+    expect(createFeedingMock).toHaveBeenCalledTimes(1);
+    expect(routerMock.push).not.toHaveBeenCalled();
+    expect(screen.queryByText(strings.starterTracker.form.savedToast)).not.toBeInTheDocument();
+
+    resolveSave({});
+    await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/starter"));
+    expect(screen.getByText(strings.starterTracker.form.savedToast)).toBeInTheDocument();
+  });
+
+  it("on save failure: stays on the form, shows the error toast, save button exits loading", async () => {
+    createFeedingMock.mockRejectedValueOnce(new Error("network"));
+    renderForm({ initialValues: validValues });
+
+    fireEvent.click(screen.getByRole("button", { name: "שמור" }));
+
+    await screen.findByText(strings.starterTracker.form.saveErrorToast);
+    expect(routerMock.push).not.toHaveBeenCalled();
+    const saveButton = screen.getByRole("button", { name: "שמור" });
+    expect(saveButton).not.toHaveAttribute("aria-busy");
+    expect(saveButton).toBeEnabled();
+  });
+
+  it("double-tap on save while pending does not call createFeeding twice", async () => {
+    let resolveSave!: (value: unknown) => void;
+    createFeedingMock.mockImplementationOnce(
+      () => new Promise((resolve) => (resolveSave = resolve))
+    );
+    renderForm({ initialValues: validValues });
+
+    const saveButton = screen.getByRole("button", { name: "שמור" });
+    fireEvent.click(saveButton);
+    fireEvent.click(saveButton);
+
+    expect(createFeedingMock).toHaveBeenCalledTimes(1);
+
+    resolveSave({});
+    await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/starter"));
+  });
+
+  it("navigates only after deleteFeeding resolves — not while pending", async () => {
+    let resolveDelete!: () => void;
+    deleteFeedingMock.mockImplementationOnce(
+      () => new Promise<void>((resolve) => (resolveDelete = resolve))
+    );
+    renderForm({ initialValues: validValues, feedingId: "feeding-1" });
+
+    fireEvent.click(screen.getByRole("button", { name: "מחק" }));
+    const confirmButtons = screen.getAllByRole("button", { name: "מחק" });
+    fireEvent.click(confirmButtons[confirmButtons.length - 1]!);
+
+    expect(deleteFeedingMock).toHaveBeenCalledWith("feeding-1", "baker@example.com");
+    expect(routerMock.push).not.toHaveBeenCalled();
+
+    resolveDelete();
+    await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/starter"));
+    expect(screen.getByText(strings.starterTracker.form.deletedToast)).toBeInTheDocument();
   });
 
   it("shows the delete button only in edit mode", () => {
@@ -127,7 +196,7 @@ describe("FeedingFormScreen", () => {
     expect(screen.getByRole("button", { name: "מחק" })).toBeInTheDocument();
   });
 
-  it("delete flow: opens the dialog, confirm calls deleteFeeding and navigates", () => {
+  it("delete flow: opens the dialog, confirm calls deleteFeeding and navigates", async () => {
     renderForm({ initialValues: validValues, feedingId: "feeding-1" });
     fireEvent.click(screen.getByRole("button", { name: "מחק" }));
     expect(screen.getByText("למחוק את ההאכלה הזו?")).toBeInTheDocument();
@@ -136,7 +205,7 @@ describe("FeedingFormScreen", () => {
     fireEvent.click(confirmButtons[confirmButtons.length - 1]!);
 
     expect(deleteFeedingMock).toHaveBeenCalledWith("feeding-1", "baker@example.com");
-    expect(routerMock.push).toHaveBeenCalledWith("/starter");
+    await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/starter"));
   });
 
   it("cancel opens the discard dialog after a dirty edit, not immediate back", () => {

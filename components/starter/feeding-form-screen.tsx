@@ -57,6 +57,9 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
   const [touched, setTouched] = useState<TouchedSet>(new Set());
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const busy = saving || deleting;
 
   const errors = useMemo(() => validateFeeding(values), [values]);
   const invalid = hasAnyError(errors);
@@ -93,7 +96,8 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
     touch("waterGrams");
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
+    if (busy) return;
     setTouched(
       new Set(["ratio", "starterGrams", "flourGrams", "waterGrams", "fedAtDate", "fedAtTime"])
     );
@@ -108,13 +112,15 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
       fedAt: buildFedAtIso(values.fedAtDate, values.fedAtTime),
     };
 
-    toast.show(s.savedToast);
-    router.push("/starter");
-
-    const save = feedingId ? updateFeeding(feedingId, input) : createFeeding(input);
-    save.catch(() => {
+    setSaving(true);
+    try {
+      await (feedingId ? updateFeeding(feedingId, input) : createFeeding(input));
+      toast.show(s.savedToast);
+      router.push("/starter");
+    } catch {
+      setSaving(false);
       toast.show(s.saveErrorToast, { variant: "danger" });
-    });
+    }
   }
 
   function handleCancel() {
@@ -130,15 +136,18 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
     router.back();
   }
 
-  function handleDelete() {
-    if (!feedingId || !identity) return;
+  async function handleDelete() {
+    if (!feedingId || !identity || busy) return;
     setDeleteOpen(false);
-    toast.show(s.deletedToast);
-    router.push("/starter");
-
-    deleteFeeding(feedingId, identity.email).catch(() => {
+    setDeleting(true);
+    try {
+      await deleteFeeding(feedingId, identity.email);
+      toast.show(s.deletedToast);
+      router.push("/starter");
+    } catch {
+      setDeleting(false);
       toast.show(s.deleteErrorToast, { variant: "danger" });
-    });
+    }
   }
 
   return (
@@ -204,10 +213,15 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
 
       <div className="mt-10 flex flex-col gap-3">
         <div className="flex gap-3">
-          <Button variant="accent" onClick={handleSubmit} disabled={touched.size > 0 && invalid}>
+          <Button
+            variant="accent"
+            onClick={handleSubmit}
+            loading={saving}
+            disabled={busy || (touched.size > 0 && invalid)}
+          >
             {s.saveButton}
           </Button>
-          <Button variant="ghost" onClick={handleCancel}>
+          <Button variant="ghost" onClick={handleCancel} disabled={busy}>
             {s.cancelButton}
           </Button>
         </div>
@@ -216,6 +230,8 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
             variant="ghost"
             size="sm"
             onClick={() => setDeleteOpen(true)}
+            loading={deleting}
+            disabled={busy}
             iconStart={<Trash2 size={16} aria-hidden />}
             className="self-start text-danger hover:bg-danger-bg"
           >
