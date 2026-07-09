@@ -317,6 +317,11 @@ export const strings = {
       waterLabel: "מים",
       unit: "גרם",
     },
+    validation: {
+      ratioRequired: "בחרו יחס האכלה",
+      dateRequired: "תאריך ההאכלה הוא שדה חובה",
+      gramsNegative: "הכמות לא יכולה להיות שלילית",
+    },
   },
   feedback: {
     fabLabel: "שליחת פידבק",
