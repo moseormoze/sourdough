@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -60,6 +60,28 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const busy = saving || deleting;
+
+  const lastAutoRef = useRef<Record<"flourGrams" | "waterGrams", number | "">>({
+    flourGrams: "",
+    waterGrams: "",
+  });
+
+  function withAutoFill(next: FeedingFormValues): FeedingFormValues {
+    const lastAuto = lastAutoRef.current;
+    const computed: number | "" =
+      next.ratio !== null && typeof next.starterGrams === "number"
+        ? next.starterGrams * next.ratio
+        : "";
+    const result = { ...next };
+    for (const key of ["flourGrams", "waterGrams"] as const) {
+      const automationOwned = result[key] === "" || result[key] === lastAuto[key];
+      if (automationOwned) {
+        result[key] = computed;
+        lastAuto[key] = computed;
+      }
+    }
+    return result;
+  }
 
   const errors = useMemo(() => validateFeeding(values), [values]);
   const invalid = hasAnyError(errors);
@@ -170,7 +192,7 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
           <RatioControl
             value={values.ratio as FeedRatio}
             onChange={(r) => {
-              setValues({ ...values, ratio: r });
+              setValues(withAutoFill({ ...values, ratio: r }));
               touch("ratio");
             }}
           />
@@ -185,7 +207,10 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
               waterGrams: values.waterGrams,
             }}
             onChange={(next) => {
-              setValues({ ...values, ...next });
+              const merged = { ...values, ...next };
+              setValues(
+                next.starterGrams !== values.starterGrams ? withAutoFill(merged) : merged
+              );
               touchGrams();
             }}
           />

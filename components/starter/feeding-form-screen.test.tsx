@@ -221,4 +221,100 @@ describe("FeedingFormScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "ביטול" }));
     expect(routerMock.back).toHaveBeenCalled();
   });
+
+  describe("auto-calc flour/water from ratio × starter grams", () => {
+    const grams = strings.starterTracker.grams;
+
+    function starterInput() {
+      return screen.getByLabelText(grams.starterLabel);
+    }
+    function flourInput() {
+      return screen.getByLabelText(grams.flourLabel);
+    }
+    function waterInput() {
+      return screen.getByLabelText(grams.waterLabel);
+    }
+
+    it("fills flour and water with starter × N when starter grams is typed with a ratio selected", () => {
+      renderForm();
+      fireEvent.click(screen.getByTestId("ratio-btn-3"));
+      fireEvent.change(starterInput(), { target: { value: "13" } });
+      expect(flourInput()).toHaveValue(39);
+      expect(waterInput()).toHaveValue(39);
+    });
+
+    it("recomputes flour and water when the ratio changes while starter grams is set", () => {
+      renderForm();
+      fireEvent.click(screen.getByTestId("ratio-btn-3"));
+      fireEvent.change(starterInput(), { target: { value: "13" } });
+      fireEvent.click(screen.getByTestId("ratio-btn-2"));
+      expect(flourInput()).toHaveValue(26);
+      expect(waterInput()).toHaveValue(26);
+    });
+
+    it("never overwrites a manually edited field", () => {
+      renderForm();
+      fireEvent.click(screen.getByTestId("ratio-btn-3"));
+      fireEvent.change(starterInput(), { target: { value: "13" } });
+      fireEvent.change(flourInput(), { target: { value: "40" } });
+
+      fireEvent.change(starterInput(), { target: { value: "20" } });
+      expect(flourInput()).toHaveValue(40);
+      expect(waterInput()).toHaveValue(60);
+
+      fireEvent.click(screen.getByTestId("ratio-btn-4"));
+      expect(flourInput()).toHaveValue(40);
+      expect(waterInput()).toHaveValue(80);
+    });
+
+    it("clearing starter grams clears only automation-owned fields", () => {
+      renderForm();
+      fireEvent.click(screen.getByTestId("ratio-btn-3"));
+      fireEvent.change(starterInput(), { target: { value: "13" } });
+      fireEvent.change(flourInput(), { target: { value: "40" } });
+
+      fireEvent.change(starterInput(), { target: { value: "" } });
+      expect(flourInput()).toHaveValue(40);
+      expect(waterInput()).not.toHaveValue();
+    });
+
+    it("edit mode: loaded values are user-owned — no auto-fill on load or on starter change", () => {
+      renderForm({
+        initialValues: { ...validValues, flourGrams: 80, waterGrams: 90 },
+        feedingId: "feeding-1",
+      });
+      expect(flourInput()).toHaveValue(80);
+      expect(waterInput()).toHaveValue(90);
+
+      fireEvent.change(starterInput(), { target: { value: "60" } });
+      expect(flourInput()).toHaveValue(80);
+      expect(waterInput()).toHaveValue(90);
+    });
+
+    it("edit mode: empty loaded fields are still auto-filled on new interaction", () => {
+      renderForm({
+        initialValues: { ...validValues, flourGrams: "", waterGrams: "" },
+        feedingId: "feeding-1",
+      });
+      fireEvent.change(starterInput(), { target: { value: "10" } });
+      expect(flourInput()).toHaveValue(20);
+      expect(waterInput()).toHaveValue(20);
+    });
+
+    it("auto-filled values are saved as regular values", async () => {
+      renderForm();
+      fireEvent.click(screen.getByTestId("ratio-btn-3"));
+      fireEvent.change(starterInput(), { target: { value: "13" } });
+      fireEvent.click(screen.getByRole("button", { name: "שמור" }));
+      expect(createFeedingMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ratio: 3,
+          starterGrams: 13,
+          flourGrams: 39,
+          waterGrams: 39,
+        })
+      );
+      await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/starter"));
+    });
+  });
 });
