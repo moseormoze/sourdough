@@ -108,6 +108,26 @@
     -webkit-appearance: none;
     appearance: none;
   }
+
+  /* iOS only (-webkit-touch-callout exists solely on iOS WebKit): with
+   * appearance:none the shadow value box top-aligns inside the 56px field
+   * and collapses to zero height when empty. flex centers it vertically;
+   * the pseudo-element keeps a text-line height. Scoped so Chromium/Android
+   * date widgets (icon at the field edge) stay untouched. */
+  @supports (-webkit-touch-callout: none) {
+    input[type="date"],
+    input[type="time"] {
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="date"]::-webkit-date-and-time-value,
+    input[type="time"]::-webkit-date-and-time-value {
+      min-height: 1.5em;
+      text-align: inherit;
+      margin: 0;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
