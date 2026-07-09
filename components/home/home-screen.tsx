@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Wheat, BookOpen } from "lucide-react";
 import { HomeCta } from "./home-cta";
 import { ResumeBanner } from "./resume-banner";
+import { InstallBanner } from "@/components/onboarding/install-banner";
 import { StopBakeDialog } from "@/components/bake/stop-bake-dialog";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
 import { listRecipes } from "@/lib/storage/recipes";
@@ -78,6 +79,8 @@ export function HomeScreen() {
           count={recipeCount ?? undefined}
         />
       </div>
+
+      {!bakeLoading && !activeBake && <InstallBanner />}
 
       <StopBakeDialog
         open={stopOpen}
