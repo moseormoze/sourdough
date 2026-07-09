@@ -3,16 +3,16 @@
 ## Task List
 
 ### T1 — Supabase Setup: Schema, Client, Docs
-**Goal:** התשתית הטכנית — הכנסת Supabase לפרויקט לראשונה (מוקדם מ-Phase 4 המתוכנן ב-launch-plan, ללא auth), טבלת `feedings`, RLS מתירני (לא אכיפת-זהות אמיתית — ראה Risks), client singleton, ותיעוד ההחלטה במסמכי ה-context.
+**Goal:** התשתית הטכנית — הכנסת Supabase לפרויקט לראשונה (מוקדם מ-Phase 4 המתוכנן ב-launch-plan, ללא auth), טבלת `sourdough_feedings`, RLS מתירני (לא אכיפת-זהות אמיתית — ראה Risks), client singleton, ותיעוד ההחלטה במסמכי ה-context. **עדכון**: הטבלה חיה בפרויקט Supabase קיים ומשותף ("Grocery List"), לא פרויקט ייעודי — free tier מוגבל ל-2 פרויקטים לארגון ושניהם כבר תפוסים. שם הטבלה מקבל prefix `sourdough_` כדי למנוע התנגשות עם טבלאות הפרויקט הקיים.
 
 **Files likely touched:**
-- `supabase/schema.sql` — חדש: טבלת `feedings` (`id uuid pk`, `email text not null`, `ratio smallint not null check (ratio between 1 and 5)`, `starter_grams int null`, `flour_grams int null`, `water_grams int null`, `fed_at timestamptz not null`, `created_at timestamptz default now()`); RLS מופעל, policy מתירנית (סינון לפי email קורה בצד אפליקציה, לא ב-DB)
-- `lib/supabase/client.ts` — חדש: יוצר client יחיד מ-`@supabase/supabase-js` עם env vars
+- `supabase/schema.sql` — חדש: טבלת `sourdough_feedings` (`id uuid pk`, `email text not null`, `ratio smallint not null check (ratio between 1 and 5)`, `starter_grams int null`, `flour_grams int null`, `water_grams int null`, `fed_at timestamptz not null`, `created_at timestamptz default now()`); RLS מופעל, policy מתירנית (סינון לפי email קורה בצד אפליקציה, לא ב-DB)
+- `lib/supabase/client.ts` — חדש: יוצר client יחיד מ-`@supabase/supabase-js` עם env vars (מצביע על הפרויקט הקיים "Grocery List")
 - `lib/supabase/client.test.ts` — חדש
 - `.env.example` — חדש/עדכון: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `package.json` — הוספת `@supabase/supabase-js`
-- `context/tech-stack.md` — עדכון שורת ה-persistence: Supabase נכנס לפיצ'ר הזה בלבד (לא MVP-רחב), `localStorage` נשאר ברירת המחדל לכל השאר
-- `context/launch-plan.md` — הערת status מתעדכנת: Supabase הוכנס מוקדם, מצומצם ל-`feedings` בלבד, בלי auth ובלי migration כללי — Phase 4 עדיין המועד ל-auth+migration מלאים
+- `context/tech-stack.md` — עדכון שורת ה-persistence: Supabase נכנס לפיצ'ר הזה בלבד (לא MVP-רחב), בתוך פרויקט קיים ומשותף, `localStorage` נשאר ברירת המחדל לכל השאר
+- `context/launch-plan.md` — הערת status מתעדכנת: Supabase הוכנס מוקדם, מצומצם לטבלת `sourdough_feedings` בלבד בפרויקט קיים ומשותף, בלי auth ובלי migration כללי — Phase 4 עדיין המועד ל-auth+migration מלאים (ואז ככל הנראה גם פרויקט ייעודי)
 
 **Test strategy:**
 - `lib/supabase/client.ts`: זורק שגיאה ברורה כש-env vars חסרים (mock `process.env`); מחזיר instance תקין כשקיימים; singleton — קריאה חוזרת לא יוצרת client נוסף
@@ -21,7 +21,7 @@
 
 **Done when:**
 - [ ] Tests written and passing
-- [ ] טבלת `feedings` נוצרה בפרויקט Supabase בפועל (הרצה ידנית של `schema.sql` — צעד חד-פעמי מחוץ ללולאת הטסטים)
+- [ ] טבלת `sourdough_feedings` נוצרה בפרויקט Supabase הקיים "Grocery List" בפועל (הרצה ידנית של `schema.sql` — צעד חד-פעמי מחוץ ללולאת הטסטים)
 - [ ] `context/tech-stack.md` ו-`context/launch-plan.md` משקפים את הכניסה המצומצמת של Supabase
 - [ ] אין `any`
 

@@ -17,7 +17,7 @@
 - **Date/number formatting**: `Intl.NumberFormat('he-IL')` / `Intl.DateTimeFormat('he-IL')`
 
 ## Data
-- **Persistence**: `localStorage`, key מוקדמת בגרסה: `sourdough:v1:recipes`. **חריג**: פיצ'ר 23 (מעקב סטארטר) מכניס Supabase מוקדם ומצומצם — טבלת `feedings` בלבד (ראה `launch-plan.md`) — כל שאר האפליקציה נשארת `localStorage`-בלבד
+- **Persistence**: `localStorage`, key מוקדמת בגרסה: `sourdough:v1:recipes`. **חריג**: פיצ'ר 23 (מעקב סטארטר) מכניס Supabase מוקדם ומצומצם — טבלת `sourdough_feedings` בלבד, בתוך פרויקט Supabase **קיים ומשותף** ("Grocery List" — free tier מוגבל ל-2 פרויקטים, שני הסלוטים כבר תפוסים בפרויקטים אישיים אחרים) ולא פרויקט ייעודי חדש (ראה `launch-plan.md`) — כל שאר האפליקציה נשארת `localStorage`-בלבד
 - **Schema validation**: Zod — schema על read/write כדי לזרוק מוקדם על נתון מקולקל
 - **ORM**: ללא. סריאליזציה ידנית JSON.
 - **Realtime sync**: N/A

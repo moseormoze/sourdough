@@ -2,7 +2,7 @@
 
 > **Status (2026-07-05)**: Phase 0 (Deploy) הושלם — האפליקציה חיה ב-Vercel עם PostHog. Phase 1 (Self-test) הושלם בפועל — כמה בייקים אמיתיים עם איטרציות שיפור. **Phase 2 (Closed beta) מדולג בהחלטה** — אין מאגר חברים שיאפו איתה. הבא: **Phase 3 (Open beta)** — פוסט בקבוצות מחמצת בפייסבוק. שער לפוסט: פיצ'ר `21-open-beta-onboarding` (זיהוי משתמשים דרך PostHog identify + חוויית התקנה למסך הבית). עדיין ללא auth וללא דאטה בצד שרת — הכל ב-`localStorage`.
 >
-> **עדכון**: פיצ'ר `23-starter-tracker` הכניס את Supabase מוקדם מהמתוכנן (טבלת `feedings` בלבד, ראה Tooling Stack למטה) — **בלי auth ובלי migration כללי** של `localStorage`. Phase 4 נשאר המועד הרשמי ל-auth מלא + מעבר כל הדאטה ל-DB.
+> **עדכון**: פיצ'ר `23-starter-tracker` הכניס את Supabase מוקדם מהמתוכנן (טבלת `sourdough_feedings` בלבד, ראה Tooling Stack למטה) — **בלי auth ובלי migration כללי** של `localStorage`. הטבלה חיה בפרויקט Supabase **קיים ומשותף** ("Grocery List") ולא בפרויקט ייעודי — free tier מוגבל ל-2 פרויקטים לכל ארגון, ושניהם כבר תפוסים על ידי פרויקטים אישיים אחרים. Phase 4 נשאר המועד הרשמי ל-auth מלא + מעבר כל הדאטה ל-DB (ואז ככל הנראה גם פרויקט Supabase ייעודי).
 
 מסמך זה מתעד את **התכנית של איך לקחת את האפליקציה ממקומית-בלבד למוצר משלם**, את ה-**מחסנית הטכנית** שתשרת את התכנית, ואת **הסדר של מה להוסיף מתי**. הוא לא תכנית מוצר — לזה יש [`vision.md`](./vision.md) ו-[`goals.md`](./goals.md).
 
@@ -32,7 +32,7 @@
 | **Payments** | Stripe | Phase 5 | 0 (2.9% מהעסקאות) | סטנדרט תעשייתי. תומך ב-ILS + Stripe Tax מטפל ב-VAT 17% אוטומטית |
 | **Email** | Resend | Phase 5 (טרנזקציוני) | 100 emails/יום | API פשוט, מחיר זול, dev experience טוב |
 
-**הערה על Supabase**: הוכנס מוקדם וב-scope מצומצם ב-פיצ'ר `23-starter-tracker` — טבלת `feedings` בלבד, RLS מתירני (אין auth לאכוף מולו — סינון לפי email קורה בצד אפליקציה), למשתמש יחיד ב-beta. זו לא תזוזה של תאריך ה-Phase 4 — אין auth, ואין migration של שאר ה-`localStorage` (recipes וכו') ל-DB. ראה `specs/features/23-starter-tracker/tasks.md` (Risks) לפירוט הסיכון.
+**הערה על Supabase**: הוכנס מוקדם וב-scope מצומצם ב-פיצ'ר `23-starter-tracker` — טבלת `sourdough_feedings` בלבד, בפרויקט Supabase קיים ומשותף ("Grocery List", לא פרויקט ייעודי — free tier מוגבל ל-2 פרויקטים לארגון ושניהם תפוסים), RLS מתירני (אין auth לאכוף מולו — סינון לפי email קורה בצד אפליקציה), למשתמש יחיד ב-beta. זו לא תזוזה של תאריך ה-Phase 4 — אין auth, ואין migration של שאר ה-`localStorage` (recipes וכו') ל-DB. ראה `specs/features/23-starter-tracker/tasks.md` (Risks) לפירוט הסיכון.
 
 ### Important: when does `localStorage` → server-side DB happen?
 
