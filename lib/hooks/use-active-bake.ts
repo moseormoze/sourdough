@@ -19,6 +19,7 @@ export interface UseActiveBakeApi {
   abandon: () => void;
   advanceTo: (stage: number) => void;
   advanceSubStep: () => void;
+  setDoughTemp: (tempC: number | null) => void;
   startTimer: () => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
@@ -59,6 +60,7 @@ export function useActiveBake(): UseActiveBakeApi {
         peakAt: peakAt ? peakAt.getTime() : null,
         feedRatio,
         retardHours,
+        doughTempC: null,
       };
       saveActiveBake(next);
       setActiveBake(next);
@@ -102,6 +104,24 @@ export function useActiveBake(): UseActiveBakeApi {
         subStep: current.subStep + 1,
       };
       saveActiveBake(next);
+      return next;
+    });
+  }, []);
+
+  const setDoughTemp = useCallback((tempC: number | null) => {
+    setActiveBake((current) => {
+      if (!current) return current;
+      const next: ActiveBake = {
+        ...current,
+        doughTempC: tempC,
+      };
+      saveActiveBake(next);
+      if (tempC !== null) {
+        track("dough_temp_recorded", {
+          doughTempC: tempC,
+          kitchenTempC: current.recipe.kitchenTemp,
+        });
+      }
       return next;
     });
   }, []);
@@ -167,6 +187,7 @@ export function useActiveBake(): UseActiveBakeApi {
     abandon,
     advanceTo,
     advanceSubStep,
+    setDoughTemp,
     startTimer,
     pauseTimer,
     resumeTimer,

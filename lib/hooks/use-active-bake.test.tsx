@@ -252,3 +252,26 @@ describe("useActiveBake — 05 baking method", () => {
     expect(result.current.activeBake?.bakingMethod).toBe("closed-vessel");
   });
 });
+
+describe("setDoughTemp (feature 22)", () => {
+  it("persists the measurement and clears it with null", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => {
+      result.current.start(recipe);
+    });
+
+    act(() => {
+      result.current.setDoughTemp(27);
+    });
+    expect(result.current.activeBake?.doughTempC).toBe(27);
+    expect(loadActiveBake()?.doughTempC).toBe(27);
+
+    act(() => {
+      result.current.setDoughTemp(null);
+    });
+    expect(result.current.activeBake?.doughTempC).toBeNull();
+    expect(loadActiveBake()?.doughTempC).toBeNull();
+  });
+});

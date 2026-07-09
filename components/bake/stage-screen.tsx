@@ -10,6 +10,7 @@ import { RescueSheet } from "./rescue-sheet";
 import { Briefing } from "./briefing";
 import { InstructionCard } from "./instruction-card";
 import { ChecklistReference } from "./checklist-reference";
+import { DoughTempCard } from "./dough-temp-card";
 import { FoldDots } from "./fold-dots";
 import { OptionalTimer } from "./optional-timer";
 import { SafetyWarning } from "./safety-warning";
@@ -28,7 +29,13 @@ export interface StageScreenProps {
   activeBake: ActiveBake;
   api: Pick<
     UseActiveBakeApi,
-    "advanceTo" | "advanceSubStep" | "startTimer" | "pauseTimer" | "resumeTimer" | "resetTimer"
+    | "advanceTo"
+    | "advanceSubStep"
+    | "setDoughTemp"
+    | "startTimer"
+    | "pauseTimer"
+    | "resumeTimer"
+    | "resetTimer"
   >;
 }
 
@@ -104,6 +111,15 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         {stage.type === "done" && <StageCelebration />}
         {warning && <SafetyWarning>{warning}</SafetyWarning>}
         <Briefing briefing={briefing} disclosure={disclosure} />
+        {stage.type === "bulk" && stage.tempSensitiveBaseSecs != null && (
+          <DoughTempCard
+            doughTempC={activeBake.doughTempC}
+            kitchenTempC={activeBake.recipe.kitchenTemp}
+            flour={activeBake.recipe.flour}
+            baseSecs={stage.tempSensitiveBaseSecs}
+            onChange={api.setDoughTemp}
+          />
+        )}
         <StageMedia
           imageUrl={stage.imageUrl}
           imageAlt={stage.imageAlt}

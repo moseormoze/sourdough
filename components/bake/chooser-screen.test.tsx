@@ -117,6 +117,7 @@ describe("ChooserScreen", () => {
       peakAt: null,
       feedRatio: 2 as const,
       retardHours: 12,
+      doughTempC: null,
     });
 
     render(<ChooserScreen />);
@@ -148,6 +149,7 @@ describe("ChooserScreen", () => {
       peakAt: null,
       feedRatio: 2 as const,
       retardHours: 12,
+      doughTempC: null,
     });
 
     render(<ChooserScreen />);
@@ -182,6 +184,7 @@ describe("ChooserScreen", () => {
       peakAt: null,
       feedRatio: 2 as const,
       retardHours: 12,
+      doughTempC: null,
     });
 
     render(<ChooserScreen />);
