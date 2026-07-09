@@ -43,6 +43,20 @@ function assertNoError(error: { message: string } | null): void {
   if (error) throw new Error(error.message);
 }
 
+export async function getFeeding(id: string, email: string): Promise<Feeding | null> {
+  const client = getSupabaseClient();
+  const { data, error } = await client
+    .from(TABLE)
+    .select("*")
+    .eq("id", id)
+    .eq("email", email)
+    .maybeSingle();
+
+  assertNoError(error);
+  if (!data) return null;
+  return toFeeding(data as FeedingRow);
+}
+
 export async function listFeedings(email: string): Promise<Feeding[]> {
   const client = getSupabaseClient();
   const { data, error } = await client
