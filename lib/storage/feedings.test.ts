@@ -50,6 +50,10 @@ class FakeQueryBuilder implements PromiseLike<FakeResult> {
     return this.record("single", args);
   }
 
+  maybeSingle(...args: unknown[]): this {
+    return this.record("maybeSingle", args);
+  }
+
   then<TResult1 = FakeResult, TResult2 = never>(
     onfulfilled?: ((value: FakeResult) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null
@@ -92,6 +96,40 @@ const feedingInput: FeedingInput = {
 
 beforeEach(() => {
   getSupabaseClientMock.mockReset();
+});
+
+describe("getFeeding", () => {
+  it("queries by id and email and maps the found row", async () => {
+    const builder = new FakeQueryBuilder({ data: row, error: null });
+    const fromMock = mockClientReturning(builder);
+
+    const { getFeeding } = await import("./feedings");
+    const result = await getFeeding("feeding-1", "baker@example.com");
+
+    expect(fromMock).toHaveBeenCalledWith("sourdough_feedings");
+    expect(builder.calls).toContainEqual({ method: "eq", args: ["id", "feeding-1"] });
+    expect(builder.calls).toContainEqual({ method: "eq", args: ["email", "baker@example.com"] });
+    expect(builder.calls[builder.calls.length - 1]?.method).toBe("maybeSingle");
+    expect(result?.id).toBe("feeding-1");
+  });
+
+  it("returns null when no row is found", async () => {
+    const builder = new FakeQueryBuilder({ data: null, error: null });
+    mockClientReturning(builder);
+
+    const { getFeeding } = await import("./feedings");
+    const result = await getFeeding("missing", "baker@example.com");
+
+    expect(result).toBeNull();
+  });
+
+  it("throws on Supabase error", async () => {
+    const builder = new FakeQueryBuilder({ data: null, error: { message: "read failed" } });
+    mockClientReturning(builder);
+
+    const { getFeeding } = await import("./feedings");
+    await expect(getFeeding("feeding-1", "baker@example.com")).rejects.toThrow(/read failed/);
+  });
 });
 
 describe("listFeedings", () => {
