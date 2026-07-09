@@ -1,9 +1,18 @@
-import { describe, it, expect, beforeAll, beforeEach } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi, type Mock } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { HomeScreen } from "./home-screen";
 import { saveRecipe } from "@/lib/storage/recipes";
 import { loadActiveBake, saveActiveBake } from "@/lib/storage/active-bake";
+import { getInstallEnvironment } from "@/lib/install-environment";
+import { strings } from "@/lib/strings";
 import type { Recipe } from "@/lib/types/recipe";
+
+vi.mock("@/lib/install-environment", () => ({
+  getInstallEnvironment: vi.fn(() => "none"),
+}));
+vi.mock("@/lib/hooks/use-install-prompt", () => ({
+  useInstallPrompt: vi.fn(() => ({ promptEvent: null, installed: false })),
+}));
 
 const sample = {
   name: "כפרי",
@@ -128,5 +137,29 @@ describe("HomeScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "סיים בייק" }));
     fireEvent.click(await screen.findByRole("button", { name: "לא, להמשיך" }));
     expect(loadActiveBake()?.id).toBe("ab-1");
+  });
+});
+
+describe("HomeScreen — install banner integration", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+  afterEach(() => {
+    (getInstallEnvironment as Mock).mockImplementation(() => "none");
+  });
+
+  it("shows the install banner below the CTAs when installable and no bake is active", async () => {
+    (getInstallEnvironment as Mock).mockReturnValue("ios");
+    render(<HomeScreen />);
+    expect(await screen.findByText(strings.install.title)).toBeInTheDocument();
+  });
+
+  it("hides the install banner while a bake is active (no competition with ResumeBanner)", async () => {
+    (getInstallEnvironment as Mock).mockReturnValue("ios");
+    const recipe = saveRecipe(sample);
+    seedActive(recipe);
+    render(<HomeScreen />);
+    await screen.findByText("ממשיכים");
+    expect(screen.queryByText(strings.install.title)).not.toBeInTheDocument();
   });
 });
