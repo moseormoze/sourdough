@@ -93,6 +93,20 @@
 
   body {
     min-height: 100dvh;
+    /* iOS Safari + RTL allows a small horizontal pan from sub-pixel/UA-widget
+     * overflow even when no element exceeds the viewport in layout. `clip`
+     * (not `hidden`) blocks it without creating a scroll container, so
+     * position: sticky keeps working. */
+    overflow-x: clip;
+  }
+
+  /* iOS renders date/time inputs with native UA styling that ignores the
+   * box's width constraints; appearance:none makes them honor width: 100%.
+   * The native picker still opens on tap. */
+  input[type="date"],
+  input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
   }
 }
 
