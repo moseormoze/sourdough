@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Wheat, BookOpen } from "lucide-react";
+import { Wheat, BookOpen, Sprout } from "lucide-react";
 import { HomeCta } from "./home-cta";
 import { ResumeBanner } from "./resume-banner";
 import { InstallBanner } from "@/components/onboarding/install-banner";
@@ -77,6 +77,12 @@ export function HomeScreen() {
           icon={<BookOpen size={24} />}
           label={strings.home.myRecipes}
           count={recipeCount ?? undefined}
+        />
+        <HomeCta
+          variant="secondary"
+          href="/starter"
+          icon={<Sprout size={24} />}
+          label={strings.home.starterTracker}
         />
       </div>
 

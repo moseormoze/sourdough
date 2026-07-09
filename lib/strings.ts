@@ -46,6 +46,7 @@ export const strings = {
     startBaking: "התחל אפייה",
     startBakingAlt: "אפייה חדשה",
     myRecipes: "המתכונים שלי",
+    starterTracker: "מעקב סטארטר",
   },
   recipes: {
     pageTitle: "המתכונים שלי",

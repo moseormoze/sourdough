@@ -5,6 +5,7 @@ import { saveRecipe } from "@/lib/storage/recipes";
 import { loadActiveBake, saveActiveBake } from "@/lib/storage/active-bake";
 import { getInstallEnvironment } from "@/lib/install-environment";
 import { strings } from "@/lib/strings";
+import { routerMock } from "../../vitest.setup";
 import type { Recipe } from "@/lib/types/recipe";
 
 vi.mock("@/lib/install-environment", () => ({
@@ -86,6 +87,15 @@ describe("HomeScreen", () => {
     render(<HomeScreen />);
     expect(await screen.findByText("התחל אפייה")).toBeInTheDocument();
     expect(screen.getByText("המתכונים שלי")).toBeInTheDocument();
+    expect(screen.getByText(strings.home.starterTracker)).toBeInTheDocument();
+  });
+
+  it("navigates to /starter when the starter tracker CTA is pressed (fresh state)", async () => {
+    render(<HomeScreen />);
+    const btn = await screen.findByRole("button", { name: strings.home.starterTracker });
+    fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+    expect(routerMock.push).toHaveBeenCalledWith("/starter");
   });
 
   it("shows recipe count when > 0", async () => {
@@ -110,6 +120,7 @@ describe("HomeScreen", () => {
     expect(screen.getByText("אפייה חדשה")).toBeInTheDocument();
     expect(screen.queryByText("התחל אפייה")).not.toBeInTheDocument();
     expect(screen.getByText("המתכונים שלי")).toBeInTheDocument();
+    expect(screen.getByText(strings.home.starterTracker)).toBeInTheDocument();
   });
 
   it("banner 'סיים בייק' opens the StopBakeDialog; confirm clears the active bake", async () => {
