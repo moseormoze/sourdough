@@ -32,6 +32,7 @@ function seedActive(currentStage: number) {
       peakAt: null,
       feedRatio: 2 as const,
       retardHours: 12,
+      doughTempC: null,
   });
 }
 

@@ -99,6 +99,22 @@ export const strings = {
     timerResume: "המשך",
     timerReset: "אפס",
     timerFinished: "הסתיים",
+    // Dough temp shadow estimate (feature 22)
+    doughTemp: {
+      prompt: "יש מד-חום? מדדו את טמפ׳ הבצק",
+      measured: "מדדתי",
+      fieldLabel: "טמפ׳ הבצק",
+      save: "שמירה",
+      cancel: "ביטול",
+      edit: "עריכה",
+      remove: "הסרת המדידה",
+      rangeError: "טווח סביר: 18–35°C",
+      shadowPrefix: (temp: string) => `לפי טמפ׳ הבצק (${temp}°): `,
+      hintEarly: "התחילו לבדוק מוקדם מהרגיל.",
+      hintLater: "יש לכם יותר זמן מהרגיל.",
+      hintSimilar: "קרוב לתחזית הרגילה.",
+      signsRule: "הסימנים על הבצק עדיין קובעים.",
+    },
     // Rescue paths (feature 20)
     rescueTrigger: "משהו לא מסתדר?",
     rescueSheetTitle: "אבחון מהיר",

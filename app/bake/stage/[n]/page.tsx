@@ -14,6 +14,7 @@ export default function Page() {
     loading,
     advanceTo,
     advanceSubStep,
+    setDoughTemp,
     startTimer,
     pauseTimer,
     resumeTimer,
@@ -50,7 +51,7 @@ export default function Page() {
     <StageScreen
       stage={stage}
       activeBake={activeBake}
-      api={{ advanceTo, advanceSubStep, startTimer, pauseTimer, resumeTimer, resetTimer }}
+      api={{ advanceTo, advanceSubStep, setDoughTemp, startTimer, pauseTimer, resumeTimer, resetTimer }}
     />
   );
 }

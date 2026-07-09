@@ -16,7 +16,8 @@ export type AnalyticsEvent =
   | { name: "install_banner_shown"; props: { variant: InstallBannerVariant } }
   | { name: "install_prompt_shown"; props: { variant: InstallBannerVariant } }
   | { name: "install_completed"; props: Record<string, never> }
-  | { name: "install_banner_dismissed"; props: { variant: InstallBannerVariant } };
+  | { name: "install_banner_dismissed"; props: { variant: InstallBannerVariant } }
+  | { name: "dough_temp_recorded"; props: { doughTempC: number; kitchenTempC: number } };
 
 export type InstallBannerVariant = "android" | "ios" | "fb-in-app";
 

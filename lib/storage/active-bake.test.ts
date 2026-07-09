@@ -43,6 +43,7 @@ describe("lib/storage/active-bake", () => {
       peakAt: null,
       feedRatio: 2 as const,
       retardHours: 12,
+      doughTempC: null,
     };
     saveActiveBake(bake);
     expect(loadActiveBake()).toEqual(bake);
@@ -94,6 +95,7 @@ describe("lib/storage/active-bake", () => {
       peakAt: null,
       feedRatio: 2 as const,
       retardHours: 12,
+      doughTempC: null,
     });
     expect(loadActiveBake()).not.toBeNull();
     clearActiveBake();
@@ -121,5 +123,60 @@ describe("migration: ActiveBake from before 03 (no subStep / no timerStartedAt)"
     expect(loaded?.id).toBe("old-bake");
     expect(loaded?.subStep).toBe(0);
     expect(loaded?.timerStartedAt).toBeNull();
+  });
+});
+
+describe("doughTempC (feature 22 — shadow mode)", () => {
+  it("round-trips a measured value and defaults to null for legacy saves", () => {
+    const recipe = saveRecipe(sampleRecipeInput);
+    saveActiveBake({
+      id: "dt",
+      recipe,
+      startedAt: 1,
+      currentStage: 4,
+      stageStartedAt: 1,
+      observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
+      timerElapsedSeconds: 0,
+      bakingMethod: "closed-vessel" as const,
+      feedAt: null,
+      peakAt: null,
+      feedRatio: 2 as const,
+      retardHours: 12,
+      doughTempC: 26.5,
+    });
+    expect(loadActiveBake()?.doughTempC).toBe(26.5);
+
+    // legacy save without the field → null, bake still loads
+    const raw = JSON.parse(localStorage.getItem(ACTIVE_BAKE_STORAGE_KEY)!);
+    delete raw.doughTempC;
+    localStorage.setItem(ACTIVE_BAKE_STORAGE_KEY, JSON.stringify(raw));
+    expect(loadActiveBake()?.doughTempC).toBeNull();
+  });
+
+  it("rejects an out-of-range stored value (defensive parse)", () => {
+    const recipe = saveRecipe(sampleRecipeInput);
+    saveActiveBake({
+      id: "dt2",
+      recipe,
+      startedAt: 1,
+      currentStage: 4,
+      stageStartedAt: 1,
+      observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
+      timerElapsedSeconds: 0,
+      bakingMethod: "closed-vessel" as const,
+      feedAt: null,
+      peakAt: null,
+      feedRatio: 2 as const,
+      retardHours: 12,
+      doughTempC: null,
+    });
+    const raw = JSON.parse(localStorage.getItem(ACTIVE_BAKE_STORAGE_KEY)!);
+    raw.doughTempC = 90;
+    localStorage.setItem(ACTIVE_BAKE_STORAGE_KEY, JSON.stringify(raw));
+    expect(loadActiveBake()).toBeNull();
   });
 });

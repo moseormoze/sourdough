@@ -23,6 +23,8 @@ export const ActiveBakeSchema = z.object({
   ]).default(DEFAULT_FEED_RATIO),
   // Cold retard duration chosen by the user in the planner slider. Defaults so old saves stay valid.
   retardHours: z.number().int().min(8).max(48).default(12),
+  // Measured dough temp at bulk start (feature 22, shadow mode). Defaults so old saves stay valid.
+  doughTempC: z.number().min(18).max(35).nullable().default(null),
 });
 
 export type ActiveBake = z.infer<typeof ActiveBakeSchema>;

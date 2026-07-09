@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { StageScreen } from "./stage-screen";
 import { getStage } from "@/lib/data/stages";
 import { routerMock } from "../../vitest.setup";
+import { strings } from "@/lib/strings";
 import type { ActiveBake } from "@/lib/types/active-bake";
 
 function makeApi() {
@@ -13,6 +14,7 @@ function makeApi() {
     pauseTimer: vi.fn(),
     resumeTimer: vi.fn(),
     resetTimer: vi.fn(),
+    setDoughTemp: vi.fn(),
   };
 }
 
@@ -44,6 +46,7 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
     peakAt: null,
     feedRatio: 2 as const,
     retardHours: 12,
+    doughTempC: null,
     ...overrides,
   };
 }
@@ -512,5 +515,42 @@ describe("StageScreen — rescue entry (feature 20)", () => {
       ).not.toBeInTheDocument()
     );
     expect(screen.getByText(/קיפולים בוצעו/)).toBeInTheDocument();
+  });
+});
+
+describe("StageScreen — dough temp shadow (stage 4)", () => {
+  it("stage 4 shows the measurement prompt; skipping changes nothing else", () => {
+    const stage = getStage(4)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(4)} api={makeApi()} />);
+    expect(screen.getByText(strings.bake.doughTemp.prompt)).toBeInTheDocument();
+    expect(screen.queryByText(/לפי טמפ׳ הבצק/)).not.toBeInTheDocument();
+  });
+
+  it("non-bulk stages do not render the card", () => {
+    const stage = getStage(3)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(3)} api={makeApi()} />);
+    expect(screen.queryByText(strings.bake.doughTemp.prompt)).not.toBeInTheDocument();
+  });
+
+  it("a stored measurement renders the shadow line on load", () => {
+    const stage = getStage(4)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(4, { doughTempC: 28 })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByText(/לפי טמפ׳ הבצק/)).toBeInTheDocument();
+  });
+
+  it("saving a measurement calls api.setDoughTemp with the value", () => {
+    const stage = getStage(4)!;
+    const api = makeApi();
+    render(<StageScreen stage={stage} activeBake={makeBake(4)} api={api} />);
+    fireEvent.click(screen.getByRole("button", { name: strings.bake.doughTemp.measured }));
+    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "27.5" } });
+    fireEvent.click(screen.getByRole("button", { name: strings.bake.doughTemp.save }));
+    expect(api.setDoughTemp).toHaveBeenCalledWith(27.5);
   });
 });
