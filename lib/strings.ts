@@ -322,6 +322,18 @@ export const strings = {
       dateRequired: "תאריך ההאכלה הוא שדה חובה",
       gramsNegative: "הכמות לא יכולה להיות שלילית",
     },
+    list: {
+      pageTitle: "מעקב סטארטר",
+      backToHome: "חזרה",
+      newFeeding: "+ האכלה חדשה",
+      loadErrorMessage: "משהו השתבש בטעינת ההיסטוריה",
+      retry: "נסה שוב",
+    },
+    empty: {
+      emptyTitle: "עדיין לא תיעדת האכלות",
+      emptyDescription: "הוסף את ההאכלה הראשונה שלך כדי להתחיל לעקוב",
+      newFeeding: "+ האכלה ראשונה",
+    },
   },
   feedback: {
     fabLabel: "שליחת פידבק",
