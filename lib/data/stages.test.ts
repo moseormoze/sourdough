@@ -227,10 +227,13 @@ describe("stage image assets", () => {
 });
 
 describe("stage reference photos — round 2", () => {
-  it("stage 3 carries a windowpane check image", () => {
+  // Reversed by discovery 20: the windowpane bar was unreachable at end-of-mix
+  // with the app's own gentle-mix method, so the criterion and its check image
+  // are gone. The main stage image is untouched (deferred to the images round).
+  it("stage 3 no longer gates on a windowpane check image", () => {
     const s = getStage(3)!;
-    expect(s.checkImageUrl).toBe("/stages/3-windowpane.png");
-    expect(s.checkImageAlt).toContain("windowpane");
+    expect(s.checkImageUrl).toBeUndefined();
+    expect(JSON.stringify(s)).not.toContain("windowpane");
   });
 
   it("stage 6 carries a seam-up banneton check image", () => {
@@ -345,5 +348,55 @@ describe("engine-review copy contracts", () => {
     const s1 = getStage(1)!;
     expect(s1.durationLabel).toBe("8–12 שעות");
     expect(s1.tempSensitiveBaseSecs).toBeUndefined();
+  });
+});
+
+// Discovery 20 (live bake 2026-07-24): stage 3's finish bar described a developed,
+// smooth dough no hand-mixed dough reaches at end-of-mix — real dough is uniform
+// but sticky and shaggy. Strength arrives during the bulk folds, the cover
+// instruction lived one screen ahead, and the bulk volume anchor was worded two
+// different ways.
+describe("stage reality copy (discovery 20)", () => {
+  it("stage 3 and stage 6 carry English hints like their siblings", () => {
+    expect(getStage(3)!.hint).toBe("(final mix)");
+    expect(getStage(6)!.hint).toBe("(shaping)");
+  });
+
+  it("stage 3's bar is uniformity — smooth-and-elastic is gone everywhere", () => {
+    const s = getStage(3)!;
+    expect(s.checks!.join(" ")).toContain("אחיד");
+    expect(s.checks!.join(" ")).not.toContain("חלק וגמיש");
+    expect(s.briefing.takeaways.join(" ")).not.toContain("חלק וגמיש");
+  });
+
+  it("stage 3 says sticky-and-shaggy is the correct end state", () => {
+    const all = [...getStage(3)!.todo!.steps, getStage(3)!.todo!.tip!].join(" ");
+    expect(all).toContain("דביק ופרוע");
+  });
+
+  it("stage 3 ends with mark-the-level + cover-and-move-on", () => {
+    const last = getStage(3)!.todo!.steps.at(-1)!;
+    expect(last).toContain("סמנו");
+    expect(last).toContain("כסו");
+  });
+
+  it("stage 3's tip defers strength to the bulk folds instead of gating on it", () => {
+    expect(getStage(3)!.todo!.tip).toContain("קיפולים");
+  });
+
+  it("stage 4 anchors the volume to the marked end-of-mix level in every mention", () => {
+    const s = getStage(4)!;
+    expect(s.briefing.takeaways.join(" ")).toContain("שסימנתם בסוף הלישה");
+    expect(s.briefing.takeaways.join(" ")).not.toContain("מאז שהשאור נכנס");
+    expect(s.todo!.steps.at(-1)).toContain("שסימנתם בסוף הלישה");
+  });
+
+  it("stage 4 closes the loop: smoothness arrives after 2–3 fold sets", () => {
+    const foldStep = getStage(4)!.todo!.steps.find((s) => s.includes("סט אחד"))!;
+    expect(foldStep).toContain("חלק ומתוח");
+  });
+
+  it("stage 6 ends by pointing forward to cover-and-fridge (the 6→7 seam)", () => {
+    expect(getStage(6)!.todo!.steps.at(-1)).toContain("לשלב הבא");
   });
 });
