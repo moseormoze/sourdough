@@ -374,21 +374,23 @@ describe("stage reality copy (discovery 20)", () => {
     expect(all).toContain("דביק ופרוע");
   });
 
-  it("stage 3 ends with mark-the-level + cover-and-move-on", () => {
-    const last = getStage(3)!.todo!.steps.at(-1)!;
-    expect(last).toContain("סמנו");
-    expect(last).toContain("כסו");
+  it("stage 3 ends with cover-and-move-on — no bowl-height marking (useless in a wide bowl)", () => {
+    const s = getStage(3)!;
+    expect(s.todo!.steps.at(-1)).toContain("כסו את הקערה");
+    expect(JSON.stringify(s)).not.toContain("סמנו");
   });
 
   it("stage 3's tip defers strength to the bulk folds instead of gating on it", () => {
     expect(getStage(3)!.todo!.tip).toContain("קיפולים");
   });
 
-  it("stage 4 anchors the volume to the marked end-of-mix level in every mention", () => {
+  it("stage 4 anchors the volume to the end-of-mix level in every mention", () => {
     const s = getStage(4)!;
-    expect(s.briefing.takeaways.join(" ")).toContain("שסימנתם בסוף הלישה");
+    expect(s.briefing.takeaways.join(" ")).toContain("בסוף הלישה");
     expect(s.briefing.takeaways.join(" ")).not.toContain("מאז שהשאור נכנס");
-    expect(s.todo!.steps.at(-1)).toContain("שסימנתם בסוף הלישה");
+    expect(s.todo!.steps.at(-1)).toContain("בסוף הלישה");
+    // No dangling reference to a mark that no longer exists (bowl-marking dropped).
+    expect(JSON.stringify(s)).not.toContain("שסימנתם");
   });
 
   it("stage 4 closes the loop: smoothness arrives after 2–3 fold sets", () => {
@@ -398,5 +400,38 @@ describe("stage reality copy (discovery 20)", () => {
 
   it("stage 6 ends by pointing forward to cover-and-fridge (the 6→7 seam)", () => {
     expect(getStage(6)!.todo!.steps.at(-1)).toContain("לשלב הבא");
+  });
+});
+
+// Feedback 2026-07-24: every dough-cover instruction must name its method
+// (plastic wrap / resting lid / damp towel / bag / shower cap / upturned bowl)
+// — "cover the bowl" alone leaves the baker guessing. The first cover mention
+// (autolyse) also states WHY: the surface must not dry into a skin.
+describe("cover instructions name their method", () => {
+  const METHODS = /ניילון|מכסה|מגבת|שקית|כובע מקלחת|קערה הפוכה/;
+
+  it("stage 2 (autolyse) covers with named methods and states the why once", () => {
+    const step = getStage(2)!.todo!.steps.find((s) => s.includes("כסו"))!;
+    expect(step).toMatch(METHODS);
+    expect(step).toContain("יתייבש");
+  });
+
+  it("stage 3's closing cover step names methods", () => {
+    expect(getStage(3)!.todo!.steps.at(-1)).toMatch(METHODS);
+  });
+
+  it("stage 4 names methods both at rest (step 1) and at the quiet wait", () => {
+    const steps = getStage(4)!.todo!.steps;
+    expect(steps[0]).toMatch(METHODS);
+    const quietWait = steps.find((s) => s.includes("ההמתנה השקטה"))!;
+    expect(quietWait).toMatch(METHODS);
+  });
+
+  it("stage 5's covered bench rest names methods in the takeaway too", () => {
+    expect(getStage(5)!.briefing.takeaways.join(" ")).toMatch(METHODS);
+  });
+
+  it("stage 6's forward pointer names the banneton cover method", () => {
+    expect(getStage(6)!.todo!.steps.at(-1)).toMatch(/שקית|כובע מקלחת/);
   });
 });
