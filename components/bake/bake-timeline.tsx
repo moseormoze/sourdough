@@ -82,20 +82,29 @@ export function BakeTimeline({ steps, now, editableRetard }: BakeTimelineProps) 
           const isLast = i === steps.length - 1;
           const isReady = step.key === "ready";
           const isNight = step.key === NIGHT_STEP;
+          // A step whose clock time already passed (e.g. after a backdated start).
+          const isElapsed = !isReady && step.startAt.getTime() < now.getTime();
           const meta = s.timelineSteps[step.key];
           const wait = isReady ? "" : waitText(step);
 
           return (
-            <li key={step.key} className="flex gap-3">
+            <li
+              key={step.key}
+              data-testid={`timeline-step-${step.key}`}
+              data-elapsed={isElapsed ? "" : undefined}
+              className="flex gap-3"
+            >
               {/* Rail: node + connecting line */}
               <div className="flex flex-col items-center w-4 shrink-0">
                 <span
                   aria-hidden
                   className={cn(
-                    "mt-1 shrink-0 rounded-full bg-bg",
+                    "mt-1 shrink-0 rounded-full",
                     isReady
                       ? "w-3.5 h-3.5 bg-accent ring-4 ring-accent/15"
-                      : "w-2.5 h-2.5 border-2 border-ink-3",
+                      : isElapsed
+                        ? "w-2.5 h-2.5 bg-ink-3 border-2 border-ink-3"
+                        : "w-2.5 h-2.5 bg-bg border-2 border-ink-3",
                   )}
                 />
                 {!isLast && (
@@ -115,10 +124,10 @@ export function BakeTimeline({ steps, now, editableRetard }: BakeTimelineProps) 
                   <p
                     className={cn(
                       "text-body font-medium",
-                      isReady ? "text-accent" : "text-ink",
+                      isReady ? "text-accent" : isElapsed ? "text-ink-3" : "text-ink",
                     )}
                   >
-                    {isReady && <span className="me-1">✓</span>}
+                    {(isReady || isElapsed) && <span className="me-1">✓</span>}
                     {meta.label}
                   </p>
                   <div className="shrink-0 text-end">
@@ -128,7 +137,7 @@ export function BakeTimeline({ steps, now, editableRetard }: BakeTimelineProps) 
                     <p
                       className={cn(
                         "text-label font-semibold mt-0.5",
-                        isReady ? "text-accent" : "text-ink",
+                        isReady ? "text-accent" : isElapsed ? "text-ink-3" : "text-ink",
                       )}
                     >
                       <span dir="ltr" className="num">
