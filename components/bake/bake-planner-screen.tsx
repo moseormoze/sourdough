@@ -144,13 +144,15 @@ export function BakePlannerScreen({
     dayIdx,
     effectiveHour,
     minHour,
+    timeLabel,
     handleDaySelect,
     adjustHour,
+    setExactTime,
     jumpTo,
     targetAt,
     isValid,
     totalProcessHours,
-  } = useDateTimePicker({ minReadyAt, now });
+  } = useDateTimePicker({ minReadyAt, now, allowPast: direction === "start" });
 
   // Reset to earliest slot when starter readiness changes
   useEffect(() => {
@@ -171,6 +173,17 @@ export function BakePlannerScreen({
   function adjustHourManual(delta: number) {
     clearPreset();
     adjustHour(delta);
+  }
+
+  function handleExactTime(value: string) {
+    // value is "HH:MM" from the native time input; empty when cleared.
+    if (!value) return;
+    const [h, m] = value.split(":");
+    const hh = Number(h);
+    const mm = Number(m);
+    if (Number.isNaN(hh) || Number.isNaN(mm)) return;
+    clearPreset();
+    setExactTime(hh, mm);
   }
 
   function handleDirection(dir: "end" | "start") {
@@ -227,7 +240,7 @@ export function BakePlannerScreen({
     }
     const result = computePresetSchedule(key, now, kitchenTemp, starterReady, recipe.flour);
     setSelectedPreset(key);
-    jumpTo(result.readyAt, result.readyAt.getHours());
+    jumpTo(result.readyAt, result.readyAt.getHours(), result.readyAt.getMinutes());
     setDirection("end");
     setRetardHours(result.retardSecs / 3600);
     setFeedRatio(result.feedRatio);
@@ -395,11 +408,18 @@ export function BakePlannerScreen({
               >
                 <span className="text-xl leading-none select-none">−</span>
               </button>
-              <div className="flex-1 flex items-center justify-center min-h-touch">
-                <span dir="ltr" className="num font-mono text-body-lg text-ink">
-                  {String(effectiveHour).padStart(2, "0")}:00
-                </span>
-              </div>
+              <input
+                type="time"
+                value={timeLabel}
+                onChange={(e) => handleExactTime(e.target.value)}
+                aria-label={s.exactTimeLabel}
+                dir="ltr"
+                className="flex-1 min-h-touch bg-transparent text-center num font-mono
+                           text-body-lg text-ink cursor-pointer
+                           transition-transform duration-[120ms] ease-out active:scale-[0.985]
+                           focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-inset
+                           rounded-md"
+              />
               <button
                 type="button"
                 aria-label="עוד שעה"
@@ -411,6 +431,10 @@ export function BakePlannerScreen({
                 <span className="text-xl leading-none select-none">+</span>
               </button>
             </div>
+
+            {direction === "start" && (
+              <p className="text-tiny text-ink-3">{s.pastHint}</p>
+            )}
           </div>
 
           {/* Ratio control — below the picker so the start time is the anchor */}

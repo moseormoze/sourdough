@@ -267,6 +267,8 @@ export const strings = {
     directionEnd: "מתי לסיים",
     directionStart: "מתי להתחיל",
     readyQuestionStart: "מתי מתחילים?",
+    exactTimeLabel: "בחירת שעה מדויקת",
+    pastHint: "אפשר לבחור גם שעה שכבר עברה — אם התחלתם קודם",
     contextLineStart: (hours: number) => `הלחם יהיה מוכן בעוד כ-${hours} שעות`,
     readyResultLabel: (label: string) => `הלחם מוכן ב: ${label}`,
     contextLine: (hours: number) => `הבייק ייקח כ-${hours} שעות`,

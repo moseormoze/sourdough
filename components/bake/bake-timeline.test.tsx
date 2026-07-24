@@ -82,4 +82,27 @@ describe("BakeTimeline", () => {
       screen.getByRole("slider", { name: strings.bakeScheduler.retardSliderLabel }),
     ).toHaveValue("12");
   });
+
+  // Elapsed steps (Feature 24) — when a backdated start puts steps in the past.
+  describe("elapsed steps", () => {
+    const midBake = new Date("2026-06-03T12:00:00"); // 6h before the 18:00 ready
+
+    it("marks a past step as elapsed but not a still-future step", () => {
+      render(<BakeTimeline steps={stepsNotReady} now={midBake} />);
+      expect(screen.getByTestId("timeline-step-build")).toHaveAttribute("data-elapsed");
+      expect(screen.getByTestId("timeline-step-bake")).not.toHaveAttribute("data-elapsed");
+    });
+
+    it("marks nothing elapsed when now is before every step", () => {
+      const early = new Date("2026-05-30T00:00:00");
+      const { container } = render(<BakeTimeline steps={stepsNotReady} now={early} />);
+      expect(container.querySelectorAll("[data-elapsed]").length).toBe(0);
+    });
+
+    it("never marks the terminal ready node as elapsed, even past ready time", () => {
+      const afterReady = new Date("2026-06-04T00:00:00");
+      render(<BakeTimeline steps={stepsReady} now={afterReady} />);
+      expect(screen.getByTestId("timeline-step-ready")).not.toHaveAttribute("data-elapsed");
+    });
+  });
 });
