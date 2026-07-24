@@ -235,6 +235,54 @@ describe("BakePlannerScreen — manual-first", () => {
   });
 
   // ---------------------------------------------------------------------------
+  // Precise time entry + past hours (Feature 24)
+  // ---------------------------------------------------------------------------
+
+  it("renders a precise time input (type=time)", () => {
+    renderScreen();
+    expect(screen.getByLabelText(s.exactTimeLabel)).toHaveAttribute("type", "time");
+  });
+
+  it("shows the past-time hint in start mode and hides it in end mode", async () => {
+    renderScreen(); // default direction = start
+    expect(screen.getByText(s.pastHint)).toBeInTheDocument();
+    const endBtn = screen.getByRole("radio", { name: s.directionEnd });
+    fireEvent.pointerDown(endBtn);
+    fireEvent.pointerUp(endBtn);
+    await waitFor(() =>
+      expect(screen.queryByText(s.pastHint)).not.toBeInTheDocument(),
+    );
+  });
+
+  it("accepts an exact minute value (e.g. 15:34)", () => {
+    renderScreen();
+    const input = screen.getByLabelText(s.exactTimeLabel) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "15:34" } });
+    expect(input.value).toBe("15:34");
+  });
+
+  it("lets you pick an earlier hour today in start mode (floor is 00:00)", () => {
+    renderScreen();
+    const input = screen.getByLabelText(s.exactTimeLabel) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "05:15" } });
+    expect(input.value).toBe("05:15");
+  });
+
+  it("changing the exact time clears a selected preset", async () => {
+    renderScreen();
+    fireEvent.click(presetChip(s.presets.classic.name));
+    await waitFor(() =>
+      expect(presetChip(s.presets.classic.name)).toHaveAttribute("aria-checked", "true"),
+    );
+    fireEvent.change(screen.getByLabelText(s.exactTimeLabel), {
+      target: { value: "21:07" },
+    });
+    await waitFor(() =>
+      expect(presetChip(s.presets.classic.name)).toHaveAttribute("aria-checked", "false"),
+    );
+  });
+
+  // ---------------------------------------------------------------------------
   // Confirm
   // ---------------------------------------------------------------------------
 
