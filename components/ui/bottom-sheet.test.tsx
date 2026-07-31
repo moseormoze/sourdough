@@ -159,6 +159,93 @@ describe("BottomSheet", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("does not move before the 5px drag threshold", () => {
+    const { container } = render(
+      <BottomSheet open={true} onClose={vi.fn()}>
+        content
+      </BottomSheet>,
+    );
+    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const dialog = screen.getByRole("dialog");
+    fireEvent.pointerDown(handle, { clientY: 0, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientY: 4, pointerId: 1 });
+    expect(dialog.style.transform).toBe("translateY(0)");
+  });
+
+  it("moves 1:1 below the dismiss threshold", () => {
+    const { container } = render(
+      <BottomSheet open={true} onClose={vi.fn()}>
+        content
+      </BottomSheet>,
+    );
+    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const dialog = screen.getByRole("dialog");
+    fireEvent.pointerDown(handle, { clientY: 0, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientY: 50, pointerId: 1 });
+    expect(dialog.style.transform).toBe("translateY(50px)");
+  });
+
+  it("applies resistance after 80px and caps the visual offset at 140px", () => {
+    const { container } = render(
+      <BottomSheet open={true} onClose={vi.fn()}>
+        content
+      </BottomSheet>,
+    );
+    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const dialog = screen.getByRole("dialog");
+    fireEvent.pointerDown(handle, { clientY: 0, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientY: 100, pointerId: 1 });
+    expect(dialog.style.transform).toBe("translateY(86px)");
+    fireEvent.pointerMove(handle, { clientY: 1000, pointerId: 1 });
+    expect(dialog.style.transform).toBe("translateY(140px)");
+  });
+
+  it("dismisses a short drag when its velocity exceeds 0.5px/ms", () => {
+    const onClose = vi.fn();
+    const { container } = render(
+      <BottomSheet open={true} onClose={onClose}>
+        content
+      </BottomSheet>,
+    );
+    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    let call = 0;
+    const now = vi
+      .spyOn(Date, "now")
+      .mockImplementation(() => (call++ === 0 ? 1_000 : 1_050));
+    fireEvent.pointerDown(handle, { clientY: 0, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientY: 30, pointerId: 1 });
+    fireEvent.pointerUp(handle, { clientY: 30, pointerId: 1 });
+    now.mockRestore();
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("snaps back without dismissing on pointer cancel", () => {
+    const onClose = vi.fn();
+    const { container } = render(
+      <BottomSheet open={true} onClose={onClose}>
+        content
+      </BottomSheet>,
+    );
+    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const dialog = screen.getByRole("dialog");
+    fireEvent.pointerDown(handle, { clientY: 0, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientY: 90, pointerId: 1 });
+    fireEvent.pointerCancel(handle, { clientY: 90, pointerId: 1 });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(dialog.style.transform).toBe("translateY(0)");
+    expect(dialog.style.transition).toContain("250ms");
+  });
+
+  it("gives the drag handle a 44px touch target", () => {
+    const { container } = render(
+      <BottomSheet open={true} onClose={vi.fn()}>
+        content
+      </BottomSheet>,
+    );
+    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    expect(handle).toHaveClass("min-h-touch");
+  });
+
   it("does not dismiss on drag below threshold", () => {
     const onClose = vi.fn();
     const { container } = render(

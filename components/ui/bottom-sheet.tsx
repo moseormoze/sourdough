@@ -11,8 +11,21 @@ export interface BottomSheetProps {
 }
 
 const DISMISS_THRESHOLD = 80; // px
+const DRAG_START_THRESHOLD = 5; // px
+const DRAG_RESISTANCE = 0.3;
+const MAX_DRAG_OFFSET = 140; // px
 const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
 const EXIT_MS = 200;
+const SNAP_MS = 250;
+
+function visualDragOffset(rawOffset: number): number {
+  if (rawOffset <= DRAG_START_THRESHOLD) return 0;
+  if (rawOffset <= DISMISS_THRESHOLD) return rawOffset;
+  return Math.min(
+    DISMISS_THRESHOLD + (rawOffset - DISMISS_THRESHOLD) * DRAG_RESISTANCE,
+    MAX_DRAG_OFFSET,
+  );
+}
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -46,8 +59,37 @@ export function BottomSheet({
   const reducedMotion = usePrefersReducedMotion();
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<Element | null>(null);
-  const drag = useRef<{ startY: number; startTime: number } | null>(null);
+  const drag = useRef<{
+    startY: number;
+    startTime: number;
+    isDragging: boolean;
+  } | null>(null);
+  const snapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const titleId = useId();
+
+  const clearSnapTimer = useCallback(() => {
+    if (snapTimerRef.current !== null) {
+      clearTimeout(snapTimerRef.current);
+      snapTimerRef.current = null;
+    }
+  }, []);
+
+  const snapBack = useCallback(() => {
+    clearSnapTimer();
+    setDragOffset(0);
+    setSnapping(true);
+    snapTimerRef.current = setTimeout(() => {
+      setSnapping(false);
+      snapTimerRef.current = null;
+    }, SNAP_MS);
+  }, [clearSnapTimer]);
+
+  useEffect(() => {
+    return () => {
+      drag.current = null;
+      clearSnapTimer();
+    };
+  }, [clearSnapTimer]);
 
   // Mount/unmount with animation gate
   useEffect(() => {
@@ -57,6 +99,10 @@ export function BottomSheet({
       const raf = requestAnimationFrame(() => setVisible(true));
       return () => cancelAnimationFrame(raf);
     } else {
+      drag.current = null;
+      setDragOffset(0);
+      setSnapping(false);
+      clearSnapTimer();
       setVisible(false);
       const t = setTimeout(() => {
         setMounted(false);
@@ -67,7 +113,7 @@ export function BottomSheet({
       }, EXIT_MS);
       return () => clearTimeout(t);
     }
-  }, [open]);
+  }, [clearSnapTimer, open]);
 
   // Body scroll lock while mounted
   useEffect(() => {
@@ -117,13 +163,22 @@ export function BottomSheet({
   }, [visible]);
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    drag.current = { startY: e.clientY, startTime: Date.now() };
+    clearSnapTimer();
+    setSnapping(false);
+    drag.current = {
+      startY: e.clientY,
+      startTime: Date.now(),
+      isDragging: false,
+    };
     e.currentTarget.setPointerCapture?.(e.pointerId);
-  }, []);
+  }, [clearSnapTimer]);
 
   const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!drag.current) return;
-    setDragOffset(Math.max(0, e.clientY - drag.current.startY));
+    const rawOffset = Math.max(0, e.clientY - drag.current.startY);
+    if (!drag.current.isDragging && rawOffset <= DRAG_START_THRESHOLD) return;
+    drag.current.isDragging = true;
+    setDragOffset(visualDragOffset(rawOffset));
   }, []);
 
   const onPointerUp = useCallback(
@@ -131,17 +186,31 @@ export function BottomSheet({
       if (!drag.current) return;
       const dy = Math.max(0, e.clientY - drag.current.startY);
       const elapsed = Math.max(1, Date.now() - drag.current.startTime);
+      const wasDragging = drag.current.isDragging;
       drag.current = null;
       setDragOffset(0);
+      if (!wasDragging) return;
       if (dy >= DISMISS_THRESHOLD || dy / elapsed > 0.5) {
+        setSnapping(false);
         onClose();
       } else {
-        setSnapping(true);
-        setTimeout(() => setSnapping(false), 250);
+        snapBack();
       }
     },
-    [onClose],
+    [onClose, snapBack],
   );
+
+  const onPointerCancel = useCallback(() => {
+    if (!drag.current) return;
+    const wasDragging = drag.current.isDragging;
+    drag.current = null;
+    if (wasDragging) {
+      snapBack();
+    } else {
+      setDragOffset(0);
+      setSnapping(false);
+    }
+  }, [snapBack]);
 
   if (!mounted) return null;
 
@@ -160,7 +229,7 @@ export function BottomSheet({
           dragOffset > 0
             ? "none"
             : snapping
-              ? `transform 250ms ${SPRING}`
+              ? `transform ${SNAP_MS}ms ${SPRING}`
               : visible
                 ? `transform 300ms ${SPRING}`
                 : `transform ${EXIT_MS}ms ease-in`,
@@ -193,11 +262,11 @@ export function BottomSheet({
       >
         {/* Drag handle — pointer capture enables drag-dismiss from here */}
         <div
-          className="flex justify-center pt-3 pb-2 shrink-0 touch-none cursor-grab"
+          className="flex min-h-touch justify-center items-center shrink-0 touch-none cursor-grab"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
+          onPointerCancel={onPointerCancel}
         >
           <div className="w-9 h-1 rounded-full bg-line" aria-hidden />
         </div>
