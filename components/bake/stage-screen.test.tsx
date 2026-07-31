@@ -171,9 +171,29 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText("השאור לפחות הוכפל בנפח")).toBeInTheDocument();
   });
 
-  it("stage 2 does NOT show a levain timer", () => {
+  it("stage 2 renders the existing 45-minute timer and wires its start action", () => {
     const stage = getStage(2)!;
-    render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
+    const api = makeApi();
+    const { unmount } = render(
+      <StageScreen stage={stage} activeBake={makeBake(2)} api={api} />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /התחל טיימר/ }));
+    expect(api.startTimer).toHaveBeenCalledOnce();
+    unmount();
+
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(2, { timerElapsedSeconds: 1 })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByText("44:59")).toBeInTheDocument();
+  });
+
+  it("stage 3 remains without a standalone timer", () => {
+    const stage = getStage(3)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(3)} api={makeApi()} />);
     expect(screen.queryByRole("button", { name: /התחל טיימר/ })).not.toBeInTheDocument();
   });
 

@@ -155,7 +155,7 @@ describe("stage 2 — autolyse main path pilot", () => {
     expect(stage().briefing).toEqual({
       heading: "מטרת השלב",
       blurb:
-        "לתת לקמח לספוג את המים ולהתחיל להתארגן, כדי שהערבוב בשלב הבא יהיה קל ואחיד יותר.",
+        "באוטוליזה מערבבים רק קמח ומים ונותנים להם לנוח: הקמח סופג את המים ורשת הגלוטן מתחילה להתפתח מעצמה, כך שהבצק דורש פחות לישה ונמתח בקלות רבה יותר בהמשך.",
       takeaways: [],
     });
   });
@@ -164,11 +164,15 @@ describe("stage 2 — autolyse main path pilot", () => {
     expect(stage().todo).toEqual({
       steps: [
         "שקלו {mixFlourBreakdown} לקערה גדולה.",
-        "הוסיפו {autolyseWaterGrams} מים. שקלו בנפרד {saltReserveWaterGrams} מים ושמרו לשלב הבא.",
-        "ערבבו ביד או בכף רק עד שכל הקמח רטוב ואין כיסים יבשים. לא לשים; הבצק אמור להישאר גס.",
+        "הוסיפו {autolyseWaterGrams} מים.",
+        "ערבבו ביד או בכף רגילה רק עד שכל הקמח רטוב ואין כיסים יבשים. לא לשים; הבצק אמור להישאר גס.",
         "כסו את הקערה במגבת לחה, ניילון נצמד או מכסה — כדי שפני הבצק לא יתייבשו ויקרמו — והניחו בטמפרטורת החדר 30–60 דקות.",
       ],
     });
+    expect(stage().todo?.steps.join(" ")).not.toContain("{saltReserveWaterGrams}");
+    expect(getStage(3)!.todo!.steps[1]).toBe(
+      "הוסיפו {saltGrams} מלח. שקלו והוסיפו {saltReserveWaterGrams} מים."
+    );
   });
 
   it("defines three observable signs and the immediate transition to final mix", () => {
@@ -178,15 +182,16 @@ describe("stage 2 — autolyse main path pilot", () => {
       "המרקם נראה מעט אחיד יותר, אבל עדיין יכול להיות גס ודביק",
     ]);
     expect(stage().transition).toBe(
-      "עכשיו עוברים ללישה ומוסיפים את השאור, המלח והמים ששמרתם — אין זמן המתנה נוסף."
+      "עכשיו עוברים ללישה ומוסיפים את השאור, המלח ויתרת המים — אין זמן המתנה נוסף."
     );
   });
 
-  it("removes the generated image while preserving the 30–60 minute stage window", () => {
+  it("removes generated media and provides the existing timer with a 45-minute default", () => {
     expect(stage().imageUrl).toBeUndefined();
     expect(stage().imageAlt).toBeUndefined();
     expect(stage().youtubeId).toBeUndefined();
     expect(stage().durationLabel).toBe("30–60 דקות");
+    expect(stage().durationSeconds).toBe(45 * 60);
   });
 
   it("does not alter the surrounding stage structures", () => {
@@ -371,12 +376,13 @@ describe("engine-review copy contracts", () => {
     expect(step).toContain("שעה-שעתיים");
   });
 
-  it("stage 2 reserve water is weighed separately, not held back from the measured water", () => {
-    const step = getStage(2)!.todo!.steps.find((s) =>
-      s.includes("{saltReserveWaterGrams}")
-    )!;
-    expect(step).toContain("בנפרד");
-    expect(step).not.toContain("(שמרו");
+  it("weighs the reserve water when it is used in stage 3, not during stage 2", () => {
+    expect(getStage(2)!.todo!.steps.join(" ")).not.toContain(
+      "{saltReserveWaterGrams}"
+    );
+    expect(getStage(3)!.todo!.steps.join(" ")).toContain(
+      "שקלו והוסיפו {saltReserveWaterGrams} מים"
+    );
   });
 
   it("stage 1 suggests building a ~10% spare before the weighing steps", () => {

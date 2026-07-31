@@ -87,12 +87,13 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     return strings.bake.stageDone;
   })();
 
-  const showBulkTimer = stage.type === "bulk" && durationSeconds !== undefined;
-  const showStandaloneTimer = stage.type === "timer" && durationSeconds !== undefined;
   const levainTimerSecs =
     stage.n === 1
       ? starterPeakSecs(activeBake.recipe.kitchenTemp, activeBake.feedRatio)
       : null;
+  const showBulkTimer = stage.type === "bulk" && durationSeconds !== undefined;
+  const showStandaloneTimer =
+    stage.type !== "bulk" && durationSeconds !== undefined && levainTimerSecs === null;
 
   return (
     <>
@@ -200,17 +201,6 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           </div>
         )}
 
-        {checks && checks.length > 0 && (
-          <ChecklistReference
-            items={checks}
-            imageUrl={stage.checkImageUrl}
-            imageAlt={stage.checkImageAlt}
-            imageWidth={stage.checkImageWidth}
-            imageHeight={stage.checkImageHeight}
-            transition={stage.transition}
-          />
-        )}
-
         {showStandaloneTimer && durationSeconds !== undefined && (
           <div className="self-start">
             <OptionalTimer
@@ -223,6 +213,17 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
               onReset={api.resetTimer}
             />
           </div>
+        )}
+
+        {checks && checks.length > 0 && (
+          <ChecklistReference
+            items={checks}
+            imageUrl={stage.checkImageUrl}
+            imageAlt={stage.checkImageAlt}
+            imageWidth={stage.checkImageWidth}
+            imageHeight={stage.checkImageHeight}
+            transition={stage.transition}
+          />
         )}
 
         {rescue && (
