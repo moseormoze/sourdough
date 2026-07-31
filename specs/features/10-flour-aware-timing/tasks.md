@@ -6,7 +6,7 @@
 
 ## Task List
 
-### T1 — איחוד המנוע (משמר-התנהגות, טמפ׳-בלבד)
+### T1 — איחוד המנוע (משמר-התנהגות, טמפ׳-בלבד) ✅
 **Goal:** לבנות מחדש את `lib/bake-timing.ts` סביב דגם stage-kind + מודיפיירים, **בלי לשנות פלט**. רק Q10 רשום כמודיפייר. מבטל את הכפילות (`levainStart` יחיד, `starterPeakSecs` יחיד).
 **Files likely touched:** `lib/bake-timing.ts`, `lib/bake-timing.test.ts`, `components/bake/bake-timeline.tsx` (קריאת `lowSecs/highSecs` מ-`BakeStep` במקום `durationRangeLabel` על אומדן).
 **Test strategy:** רשת-הביטחון היא 507 הבדיקות הקיימות — **חייבות לעבור ללא שינוי**. בנוסף: טסטים שמוודאים `kind` נכון לכל שלב, ש-`stageDuration` של שלב `fixed` מחזיר טווח-אפס, ושל ביולוגי מחזיר `[0.8×, 1×]`, ושהמודיפיירים חלים סלקטיבית (starter מקבל Q10 ולא קמח).
@@ -18,7 +18,7 @@
 - [ ] `calculateFeedingWindow` נגזר מ-`levainStart` היחיד; `starterPeakSecs` לא משוכפל.
 - [ ] כל 507 הבדיקות עוברות; פלט זהה להיום; `tsc` נקי.
 
-### T2 — מודיפייר הקמח (flour-aware בפועל)
+### T2 — מודיפייר הקמח (flour-aware בפועל) ✅
 **Goal:** להוסיף את מודיפייר `FLOUR` (`appliesTo: ["fermentation"]`) ואת `flourFactor(flour)` לפי המדע הנעול, ולחווט את `recipe.flour` ל-`FermentationParams` בכל הצרכנים.
 **Files likely touched:** `lib/bake-timing.ts` (`flourFactor` + רישום המודיפייר), `components/bake/bake-planner-screen.tsx` (העברת `recipe.flour`), `lib/bake-timing.test.ts`.
 **Test strategy:** טסט נכשל ראשון — מתכון 100% שיפון מציג bulk+levain קצרים מ-100% לבן באותה טמפ׳. טבלת ה-`flourFactor` (כל קמח), חתך 0.20 (100% שיפון → 0.80), רגרסיה: 100% לבן זהה ל-T1, ושיא-הסטארטר לא משתנה עם הקמח.

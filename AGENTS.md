@@ -1,4 +1,4 @@
-# Sourdough — Claude Orchestration Rules
+# Sourdough — Codex Orchestration Rules
 
 You are the single AI collaborator on this project, playing five distinct roles depending on the phase. The user is the sole decision-maker and reviewer.
 
@@ -44,19 +44,17 @@ Before responding to anything, read (in this order):
 
 Only skip this load when the user explicitly asks about something unrelated.
 
-**Resume first:** if this session maps to a feature or discovery topic — whether the user names it or you infer it — read its `specs/features/NN-name/_resume.md` (if present) *before doing anything else*, and state where we left off. See **Session Checkpoint & Resume** below.
-
 ## The Five Roles
 
-At any moment you are in exactly one role. State the role at the start of every response when acting on spec/code work. Roles and their rules live in `.claude/agents/`:
+At any moment you are in exactly one role. State the role at the start of every response when acting on spec/code work. Roles and their rules live in `.Codex/agents/`:
 
 | Role | File | When to enter |
 |---|---|---|
-| Discovery | `.claude/agents/discovery.md` | User brings a raw idea or question |
-| PM | `.claude/agents/pm.md` | Discovery is closed, time to write a brief |
-| Designer | `.claude/agents/designer.md` | Brief approved, UI/UX decisions needed |
-| Tech Lead | `.claude/agents/tech-lead.md` | Design approved, break into tasks |
-| Engineer | `.claude/agents/engineer.md` | One task selected, time to build |
+| Discovery | `.Codex/agents/discovery.md` | User brings a raw idea or question |
+| PM | `.Codex/agents/pm.md` | Discovery is closed, time to write a brief |
+| Designer | `.Codex/agents/designer.md` | Brief approved, UI/UX decisions needed |
+| Tech Lead | `.Codex/agents/tech-lead.md` | Design approved, break into tasks |
+| Engineer | `.Codex/agents/engineer.md` | One task selected, time to build |
 
 ## Workflow — The Pipeline
 
@@ -78,40 +76,10 @@ Features are numbered sequentially: `01-…`, `02-…`, etc. Number reflects pla
 
 ## Local Skills
 
-Project skills live under `.claude/skills/` (invoke with `/<name>`):
+Three project skills exist under `.Codex/skills/`:
 - `new-feature` — scaffolds `specs/features/NN-<name>/` with `brief.md`/`design.md`/`tasks.md` templates and the next available number
 - `ui-playbook` — loads `ui-playbook.md` when starting any UI feature
 - `rtl-check` — scans for non-logical spacing (`ml-`/`mr-`/`left-`/`right-`), hard-coded English in JSX, missing icon mirroring, and missing `dir="rtl"`
-- `checkpoint` — end-of-session ritual: writes the feature's `_resume.md` + runs the Curator learning pass. Run before `/clear`
-- `save` — quick mid-session learning capture (Curator only, no resume note)
-- `token-check` — session cost/health read + a one-line recommendation
-
-The **Curator** agent (`.claude/agents/curator.md`) is the knowledge keeper that `/checkpoint` and `/save` invoke — a cross-cutting persona, not one of the five pipeline roles.
-
-## Token Economy
-
-Every turn replays the full conversation, so cost grows roughly with `turns² × context`. Keep sessions cheap:
-- **Session length is the primary lever — you own the proposal.** At natural boundaries (a task/PR done, a topic switch, ~70+ turns), propose "checkpoint then clear?" — never leave it to the user to remember.
-- **Batch independent tool calls** (reads, greps, bash) into one message. Sequential calls each re-pay the full history cost.
-- **Expensive flags:** Figma MCP calls and subagent/Workflow spawns return or generate large blobs that replay every later turn. After a Figma call, extract what you need into the feature's `design.md`, then `/clear`. Run `/token-check` anytime for a health read.
-- **Verify in the browser preview only when the change is observable there** (per the harness rule) — don't burn a screenshot loop on non-visual changes.
-
-## Session Checkpoint & Resume
-
-Long sessions get compacted or cleared to save tokens. Two things must survive that boundary: **where we were** (continuity) and **what we learned** (durable knowledge). `/checkpoint` handles both — run it before `/clear`, or when a session is about to be compacted.
-
-- **`/checkpoint` does two things:** (1) writes/overwrites `specs/features/NN-name/_resume.md` for the active feature(s) — where we are, next step, open questions; and (2) runs the Curator learning pass (below) to persist durable lessons after you confirm.
-- **`_resume.md` is disposable:** a snapshot, never a log — overwritten each checkpoint, and **deleted when the feature's last task merges** (its real knowledge already lives in `brief`/`design`/`tasks` and the PR history).
-- **Resume-pickup rule:** when a session's topic maps to a feature or discovery doc, **read its `_resume.md` first if it exists** and state where we left off before doing anything else. This is how continuity survives a `/clear`.
-- **Two lifecycles in a feature folder:** durable docs (`brief.md`/`design.md`/`tasks.md`) accumulate and are kept; `_resume.md` is overwritten each session and deleted on ship.
-
-## Knowledge & Curation
-
-Durable knowledge lives in **seven homes**: auto-memory, this `CLAUDE.md`, `context/`, `specs/features/NN-name/`, `specs/discovery/`, `.claude/agents/`, `.claude/skills/`. The **Curator** (`.claude/agents/curator.md`) is the only thing that decides what new knowledge belongs where.
-
-- **Trigger:** manual only — via `/save`, `/checkpoint`, "@curator", or "save this to our process." Never auto-activate.
-- **Rule:** when the user asks to save knowledge, route through the Curator — never write to memory or process files directly. It inventories candidates, shows routing for one confirmation, then writes. Role-gated feature docs (`brief`/`design`/`tasks`) are *proposed*, never silently rewritten.
-- Auto-memory keeps its own index at `memory/MEMORY.md` — update it whenever a memory file is added or removed.
 
 ## Code Standards
 

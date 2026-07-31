@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "sourdough-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/tmp/sourdough-repro", "run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "sourdough-24",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "-p", "3001"],
+      "port": 3001
+    },
+    {
+      "name": "sourdough-25",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/private/tmp/claude-501/-Users-eilonz-Projects-sourdough/f1cc0121-a758-4956-9902-9392f37eec4c/scratchpad/wt-25", "run", "dev", "--", "-p", "3003"],
+      "port": 3003
+    }
+  ]
+}
