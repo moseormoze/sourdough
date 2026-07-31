@@ -133,6 +133,8 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             steps={todoData.steps}
             tip={todoData.tip}
             note={stage.todoNote}
+            title={todoData.title}
+            callout={todoData.callout}
             quantities={quantities}
           />
         )}
@@ -218,11 +220,13 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         {checks && checks.length > 0 && (
           <ChecklistReference
             items={checks}
+            title={stage.checksHeading}
             imageUrl={stage.checkImageUrl}
             imageAlt={stage.checkImageAlt}
             imageWidth={stage.checkImageWidth}
             imageHeight={stage.checkImageHeight}
             transition={stage.transition}
+            transitionHeading={stage.transitionHeading}
           />
         )}
 

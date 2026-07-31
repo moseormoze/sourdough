@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { InstructionCard } from "./instruction-card";
 import type { BakeQuantities } from "@/lib/bake-math";
 
@@ -47,6 +47,33 @@ describe("InstructionCard", () => {
   it("renders a custom title when provided", () => {
     render(<InstructionCard steps={["x"]} title="הוראות מיוחדות" />);
     expect(screen.getByText("הוראות מיוחדות")).toBeInTheDocument();
+  });
+
+  it("renders a callout directly inside its associated step", () => {
+    render(
+      <InstructionCard
+        steps={["שוקלים", "מוסיפים מים", "מערבבים", "מכסים"]}
+        callout={{
+          afterStep: 3,
+          heading: "איך יודעים מתי לעצור את הערבוב?",
+          body: "מפסיקים כשאין יותר קמח יבש.",
+        }}
+      />
+    );
+
+    const mixingStep = screen.getByText("מערבבים").closest("li");
+    expect(mixingStep).not.toBeNull();
+    const callout = screen.getByRole("complementary", {
+      name: "איך יודעים מתי לעצור את הערבוב?",
+    });
+    expect(mixingStep).toContainElement(callout);
+    expect(within(callout).getByText("מפסיקים כשאין יותר קמח יבש.")).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(4);
+  });
+
+  it("omits the callout when not provided", () => {
+    render(<InstructionCard steps={["מערבבים"]} />);
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
   });
 
   it("renders a tip when provided", () => {

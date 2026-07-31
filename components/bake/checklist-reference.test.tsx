@@ -57,8 +57,21 @@ describe("ChecklistReference", () => {
     expect(screen.queryAllByRole("link")).toHaveLength(0);
   });
 
+  it("renders an optional heading for the transition", () => {
+    render(
+      <ChecklistReference
+        items={["עברו 30–60 דקות"]}
+        transitionHeading="מה עושים בשלב הבא?"
+        transition="מוסיפים שאור, מלח ומעט מים."
+      />
+    );
+    expect(screen.getByText("מה עושים בשלב הבא?")).toBeInTheDocument();
+    expect(screen.getByText("מוסיפים שאור, מלח ומעט מים.")).toBeInTheDocument();
+  });
+
   it("omits the transition block when no transition is provided", () => {
     render(<ChecklistReference items={["בועות"]} />);
     expect(screen.queryByText(/עכשיו עוברים/)).not.toBeInTheDocument();
+    expect(screen.queryByText("מה עושים בשלב הבא?")).not.toBeInTheDocument();
   });
 });

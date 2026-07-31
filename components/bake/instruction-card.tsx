@@ -7,6 +7,11 @@ export interface InstructionCardProps {
   tip?: string;
   note?: string;
   title?: string;
+  callout?: {
+    afterStep: number;
+    heading: string;
+    body: string;
+  };
   quantities?: BakeQuantities;
 }
 
@@ -115,6 +120,7 @@ export function InstructionCard({
   tip,
   note,
   title = "מה לעשות",
+  callout,
   quantities,
 }: InstructionCardProps) {
   const tokens = quantities ? buildTokenMap(quantities) : null;
@@ -125,6 +131,19 @@ export function InstructionCard({
         {steps.map((step, i) => (
           <li key={i} className="ps-1">
             {renderStep(step, tokens, quantities ?? null, `s${i}`)}
+            {callout?.afterStep === i + 1 && (
+              <aside
+                aria-label={callout.heading}
+                className="mt-3 rounded-xl border border-accent-2 bg-accent-bg/70 p-3.5"
+              >
+                <p className="text-body font-semibold leading-relaxed text-ink">
+                  {callout.heading}
+                </p>
+                <p className="mt-1 text-small leading-relaxed text-ink-2">
+                  {renderInlineBold(callout.body, `callout-${i}`)}
+                </p>
+              </aside>
+            )}
           </li>
         ))}
       </ol>

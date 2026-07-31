@@ -131,10 +131,15 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText("מתי להמשיך לשלב הבא")).toBeInTheDocument();
   });
 
-  it("stage 2 checklist has title 'מתי להמשיך לשלב הבא'", () => {
+  it("stage 2 renders the approved content hierarchy", () => {
     const stage = getStage(2)!;
     render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
-    expect(screen.getByText("מתי להמשיך לשלב הבא")).toBeInTheDocument();
+    expect(screen.getByText("מה זה אוטוליזה ולמה עושים אותה?")).toBeInTheDocument();
+    expect(screen.getByText("מה עושים עכשיו?")).toBeInTheDocument();
+    expect(screen.getByText("איך יודעים מתי לעצור את הערבוב?")).toBeInTheDocument();
+    expect(screen.getByText("מתי ממשיכים לשלב הבא?")).toBeInTheDocument();
+    expect(screen.getByText("מה עושים בשלב הבא?")).toBeInTheDocument();
+    expect(screen.queryByText("מטרת השלב")).not.toBeInTheDocument();
   });
 
   it("stage 2 renders the immediate transition and no generated media", () => {
@@ -152,7 +157,9 @@ describe("StageScreen — basic stage", () => {
     const stage2Render = render(
       <StageScreen stage={stage2} activeBake={makeBake(2)} api={makeApi()} />
     );
-    expect(screen.getByLabelText("מטרת השלב").querySelector("ul")).toBeNull();
+    expect(
+      screen.getByLabelText("מה זה אוטוליזה ולמה עושים אותה?").querySelector("ul")
+    ).toBeNull();
     stage2Render.unmount();
 
     for (const n of [1, 3]) {

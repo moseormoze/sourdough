@@ -153,22 +153,28 @@ describe("stage 2 — autolyse main path pilot", () => {
 
   it("uses one purpose statement with no takeaway list", () => {
     expect(stage().briefing).toEqual({
-      heading: "מטרת השלב",
+      heading: "מה זה אוטוליזה ולמה עושים אותה?",
       blurb:
-        "אוטוליזה היא שלב מנוחה שבו מערבבים קמח ומים בלבד, לפני שמוסיפים את השאור והמלח. בזמן הזה הקמח סופג את המים ורשת הגלוטן מתחילה להתפתח מעצמה. כך נדרשת פחות לישה והבצק נמתח בקלות רבה יותר בהמשך.",
+        "אוטוליזה היא מנוחה קצרה של הקמח והמים בלבד, עוד לפני שמוסיפים את השאור והמלח. בזמן המנוחה הקמח סופג את המים ורשת הגלוטן מתחילה להיווצר מעצמה. המטרה היא לקבל בצק שנוח יותר לעבוד איתו, ולחסוך מכם מאמץ בשלב הלישה.",
       takeaways: [],
     });
   });
 
-  it("contains exactly five single-focus actions and no separate tip", () => {
+  it("contains five scannable actions and a stop-mixing callout after action 3", () => {
     expect(stage().todo).toEqual({
+      title: "מה עושים עכשיו?",
       steps: [
-        "שקלו {mixFlourBreakdown} לקערה גדולה.",
-        "הוסיפו {autolyseWaterGrams} מים.",
-        "ערבבו רק עד שכל הקמח רטוב ואין כיסים יבשים. אין צורך ללוש; הבצק אמור להישאר גס.",
-        "כסו את הקערה במכסה, בניילון נצמד או במגבת לחה, כדי שהבצק לא יתייבש.",
-        "הניחו בטמפרטורת החדר למשך 30–60 דקות.",
+        "**שוקלים:** מניחים קערה גדולה על המשקל ושוקלים {mixFlourBreakdown}.",
+        "**מוסיפים מים:** מוזגים לקערה {autolyseWaterGrams} מים.",
+        "**מערבבים:** מערבבים רק עד שכל הקמח נרטב.",
+        "**מכסים:** מכסים את הקערה במכסה או במגבת לחה כדי שהבצק לא יתייבש.",
+        "**מניחים למנוחה:** מניחים את הקערה בצד למשך 30–60 דקות. הטיימר באפליקציה מכוון ל-45 דקות.",
       ],
+      callout: {
+        afterStep: 3,
+        heading: "איך יודעים מתי לעצור את הערבוב?",
+        body: "מפסיקים לערבב ברגע שאין יותר קמח יבש בקערה. בשלב הזה לא מתחילים ללוש ולא מנסים להגיע למרקם חלק — זה תקין לחלוטין שהבצק נראה גס ודביק.",
+      },
     });
     expect(stage().todo?.steps.join(" ")).not.toContain("{saltReserveWaterGrams}");
     expect(getStage(3)!.todo!.steps[1]).toBe(
@@ -176,14 +182,15 @@ describe("stage 2 — autolyse main path pilot", () => {
     );
   });
 
-  it("defines three observable signs and the immediate transition to final mix", () => {
+  it("uses time as the progression criterion and previews final mix", () => {
+    expect(stage().checksHeading).toBe("מתי ממשיכים לשלב הבא?");
     expect(stage().checks).toEqual([
-      "אין כיסי קמח יבש",
-      "הבצק רך ונמתח מעט יותר בקלות",
-      "המרקם נראה מעט אחיד יותר, אבל עדיין יכול להיות גס ודביק",
+      "ממשיכים בתום 30–60 דקות המנוחה.",
+      "אין צורך לחפש בועות, לחכות שהבצק יתפח או לצפות שהוא יהיה חלק.",
     ]);
+    expect(stage().transitionHeading).toBe("מה עושים בשלב הבא?");
     expect(stage().transition).toBe(
-      "עכשיו עוברים ללישה ומוסיפים את השאור, המלח ויתרת המים — אין זמן המתנה נוסף."
+      "עוברים לשלב הלישה: מוסיפים לבצק את השאור שהכנתם מראש, את המלח ומעט מים — ומתחילים ללוש."
     );
   });
 
@@ -467,7 +474,7 @@ describe("cover instructions name their method", () => {
   const METHODS = /ניילון|מכסה|מגבת|שקית|כובע מקלחת|קערה הפוכה/;
 
   it("stage 2 (autolyse) covers with named methods and states the why once", () => {
-    const step = getStage(2)!.todo!.steps.find((s) => s.includes("כסו"))!;
+    const step = getStage(2)!.todo!.steps.find((s) => s.includes("מכסים"))!;
     expect(step).toMatch(METHODS);
     expect(step).toContain("יתייבש");
   });
