@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Check } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 
 export interface ChecklistReferenceProps {
   items: readonly string[];
@@ -8,6 +8,7 @@ export interface ChecklistReferenceProps {
   imageAlt?: string;
   imageWidth?: number;
   imageHeight?: number;
+  transition?: string;
 }
 
 /**
@@ -24,6 +25,7 @@ export function ChecklistReference({
   imageAlt,
   imageWidth = 1408,
   imageHeight = 768,
+  transition,
 }: ChecklistReferenceProps) {
   if (items.length === 0) return null;
   return (
@@ -49,6 +51,14 @@ export function ChecklistReference({
           </li>
         ))}
       </ul>
+      {transition && (
+        <div className="mt-4 border-t border-line/60 pt-4">
+          <p className="flex items-start gap-2 text-body font-medium leading-relaxed text-ink">
+            <ArrowLeft size={18} className="mt-0.5 shrink-0 text-accent" aria-hidden />
+            <span>{transition}</span>
+          </p>
+        </div>
+      )}
     </section>
   );
 }

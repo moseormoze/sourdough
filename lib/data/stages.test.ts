@@ -35,11 +35,11 @@ describe("STAGES data", () => {
     expect(getStage(12)?.type).toBe("done");
   });
 
-  it("every stage has Hebrew briefing with heading + blurb + takeaways", () => {
+  it("every stage has Hebrew briefing copy; non-pilot stages keep takeaways", () => {
     for (const s of STAGES) {
       expect(s.briefing.heading.length).toBeGreaterThan(0);
       expect(s.briefing.blurb.length).toBeGreaterThan(0);
-      expect(s.briefing.takeaways.length).toBeGreaterThan(0);
+      if (s.n !== 2) expect(s.briefing.takeaways.length).toBeGreaterThan(0);
     }
   });
 
@@ -145,6 +145,55 @@ describe("STAGES data", () => {
   it("other variant at stage 8 includes a safety warning", () => {
     const stage = getStage(8)!;
     expect(stage.byMethod?.["other"]?.warning).toMatch(/250°C/);
+  });
+});
+
+describe("stage 2 — autolyse main path pilot", () => {
+  const stage = () => getStage(2)!;
+
+  it("uses one purpose statement with no takeaway list", () => {
+    expect(stage().briefing).toEqual({
+      heading: "מטרת השלב",
+      blurb:
+        "לתת לקמח לספוג את המים ולהתחיל להתארגן, כדי שהערבוב בשלב הבא יהיה קל ואחיד יותר.",
+      takeaways: [],
+    });
+  });
+
+  it("contains exactly the four approved actions and no separate tip", () => {
+    expect(stage().todo).toEqual({
+      steps: [
+        "שקלו {mixFlourBreakdown} לקערה גדולה.",
+        "הוסיפו {autolyseWaterGrams} מים. שקלו בנפרד {saltReserveWaterGrams} מים ושמרו לשלב הבא.",
+        "ערבבו ביד או בכף רק עד שכל הקמח רטוב ואין כיסים יבשים. לא לשים; הבצק אמור להישאר גס.",
+        "כסו את הקערה במגבת לחה, ניילון נצמד או מכסה — כדי שפני הבצק לא יתייבשו ויקרמו — והניחו בטמפרטורת החדר 30–60 דקות.",
+      ],
+    });
+  });
+
+  it("defines three observable signs and the immediate transition to final mix", () => {
+    expect(stage().checks).toEqual([
+      "אין כיסי קמח יבש",
+      "הבצק רך ונמתח מעט יותר בקלות",
+      "המרקם נראה מעט אחיד יותר, אבל עדיין יכול להיות גס ודביק",
+    ]);
+    expect(stage().transition).toBe(
+      "עכשיו עוברים ללישה ומוסיפים את השאור, המלח והמים ששמרתם — אין זמן המתנה נוסף."
+    );
+  });
+
+  it("removes the generated image while preserving the 30–60 minute stage window", () => {
+    expect(stage().imageUrl).toBeUndefined();
+    expect(stage().imageAlt).toBeUndefined();
+    expect(stage().youtubeId).toBeUndefined();
+    expect(stage().durationLabel).toBe("30–60 דקות");
+  });
+
+  it("does not alter the surrounding stage structures", () => {
+    expect(getStage(1)!.briefing.takeaways).toHaveLength(3);
+    expect(getStage(1)!.imageUrl).toBe("/stages/1-levain.png");
+    expect(getStage(3)!.briefing.takeaways).toHaveLength(3);
+    expect(getStage(3)!.imageUrl).toBe("/stages/3-mixed-dough.png");
   });
 });
 

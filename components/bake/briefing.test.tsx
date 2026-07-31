@@ -22,6 +22,14 @@ describe("Briefing", () => {
     expect(items[0]).toHaveTextContent("נקודה ראשונה");
   });
 
+  it("omits the list entirely when the briefing has no takeaways", () => {
+    const { container } = render(
+      <Briefing briefing={{ ...sample, takeaways: [] }} />
+    );
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+    expect(container.querySelector("ul")).toBeNull();
+  });
+
   it("section has aria-label matching the heading", () => {
     render(<Briefing briefing={sample} />);
     expect(screen.getByLabelText(sample.heading)).toBeInTheDocument();

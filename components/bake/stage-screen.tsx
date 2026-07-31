@@ -207,6 +207,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             imageAlt={stage.checkImageAlt}
             imageWidth={stage.checkImageWidth}
             imageHeight={stage.checkImageHeight}
+            transition={stage.transition}
           />
         )}
 
@@ -292,4 +293,3 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     </>
   );
 }
-

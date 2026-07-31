@@ -42,4 +42,23 @@ describe("ChecklistReference", () => {
     const { container } = render(<ChecklistReference items={["בועות"]} />);
     expect(container.querySelector("img")).toBeNull();
   });
+
+  it("renders an optional transition after the signs without adding interaction", () => {
+    render(
+      <ChecklistReference
+        items={["אין כיסי קמח יבש"]}
+        transition="עכשיו עוברים ללישה — אין זמן המתנה נוסף."
+      />
+    );
+    expect(
+      screen.getByText("עכשיו עוברים ללישה — אין זמן המתנה נוסף.")
+    ).toBeInTheDocument();
+    expect(screen.queryAllByRole("button")).toHaveLength(0);
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+  });
+
+  it("omits the transition block when no transition is provided", () => {
+    render(<ChecklistReference items={["בועות"]} />);
+    expect(screen.queryByText(/עכשיו עוברים/)).not.toBeInTheDocument();
+  });
 });

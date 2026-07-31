@@ -137,6 +137,34 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText("מתי להמשיך לשלב הבא")).toBeInTheDocument();
   });
 
+  it("stage 2 renders the immediate transition and no generated media", () => {
+    const stage = getStage(2)!;
+    const { container } = render(
+      <StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />
+    );
+    expect(screen.getByText(stage.transition!)).toBeInTheDocument();
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("iframe")).toBeNull();
+  });
+
+  it("stage 2 purpose card has no takeaway list while stages 1 and 3 keep theirs", () => {
+    const stage2 = getStage(2)!;
+    const stage2Render = render(
+      <StageScreen stage={stage2} activeBake={makeBake(2)} api={makeApi()} />
+    );
+    expect(screen.getByLabelText("מטרת השלב").querySelector("ul")).toBeNull();
+    stage2Render.unmount();
+
+    for (const n of [1, 3]) {
+      const stage = getStage(n)!;
+      const rendered = render(
+        <StageScreen stage={stage} activeBake={makeBake(n)} api={makeApi()} />
+      );
+      expect(screen.getByLabelText(stage.briefing.heading).querySelector("ul")).not.toBeNull();
+      rendered.unmount();
+    }
+  });
+
   it("stage 1 check reads 'לפחות הוכפל בנפח'", () => {
     const stage = getStage(1)!;
     render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
