@@ -167,7 +167,7 @@ describe("stage 2 — autolyse main path pilot", () => {
         "**שוקלים:** מניחים קערה גדולה על המשקל ושוקלים {mixFlourBreakdown}.",
         "**מוסיפים מים:** מוזגים לקערה {autolyseWaterGrams} מים.",
         "**מערבבים:** מערבבים רק עד שכל הקמח נרטב.",
-        "**מכסים:** מכסים את הקערה במכסה או במגבת לחה כדי שהבצק לא יתייבש.",
+        "**מכסים:** מכסים את הקערה במגבת לחה או בניילון נצמד.",
         "**מניחים למנוחה:** מניחים את הקערה בצד למשך 30–60 דקות. הטיימר באפליקציה מכוון ל-45 דקות.",
       ],
       callout: {
@@ -468,15 +468,15 @@ describe("stage reality copy (discovery 20)", () => {
 
 // Feedback 2026-07-24: every dough-cover instruction must name its method
 // (plastic wrap / resting lid / damp towel / bag / shower cap / upturned bowl)
-// — "cover the bowl" alone leaves the baker guessing. The first cover mention
-// (autolyse) also states WHY: the surface must not dry into a skin.
+// — "cover the bowl" alone leaves the baker guessing. Autolyse uses the two
+// methods selected for this pilot: a damp towel or plastic wrap.
 describe("cover instructions name their method", () => {
   const METHODS = /ניילון|מכסה|מגבת|שקית|כובע מקלחת|קערה הפוכה/;
 
-  it("stage 2 (autolyse) covers with named methods and states the why once", () => {
+  it("stage 2 (autolyse) names a damp towel or plastic wrap", () => {
     const step = getStage(2)!.todo!.steps.find((s) => s.includes("מכסים"))!;
-    expect(step).toMatch(METHODS);
-    expect(step).toContain("יתייבש");
+    expect(step).toContain("מגבת לחה");
+    expect(step).toContain("ניילון נצמד");
   });
 
   it("stage 3's closing cover step names methods", () => {
