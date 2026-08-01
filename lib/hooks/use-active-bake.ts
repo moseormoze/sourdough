@@ -24,6 +24,7 @@ export interface UseActiveBakeApi {
   pauseTimer: () => void;
   resumeTimer: () => void;
   resetTimer: () => void;
+  setTimerDuration: (durationSeconds: number) => void;
 }
 
 export function useActiveBake(): UseActiveBakeApi {
@@ -89,6 +90,7 @@ export function useActiveBake(): UseActiveBakeApi {
         subStep: 0,
         timerStartedAt: null,
         timerElapsedSeconds: 0,
+        timerDurationSeconds: undefined,
       };
       saveActiveBake(next);
       track("stage_advanced", { from: current.currentStage, to: stage });
@@ -180,6 +182,20 @@ export function useActiveBake(): UseActiveBakeApi {
     });
   }, []);
 
+  const setTimerDuration = useCallback((durationSeconds: number) => {
+    setActiveBake((current) => {
+      if (!current) return current;
+      if (current.timerStartedAt !== null || current.timerElapsedSeconds > 0) return current;
+      if (!Number.isInteger(durationSeconds) || durationSeconds <= 0) return current;
+      const next: ActiveBake = {
+        ...current,
+        timerDurationSeconds: durationSeconds,
+      };
+      saveActiveBake(next);
+      return next;
+    });
+  }, []);
+
   return {
     activeBake,
     loading,
@@ -192,5 +208,6 @@ export function useActiveBake(): UseActiveBakeApi {
     pauseTimer,
     resumeTimer,
     resetTimer,
+    setTimerDuration,
   };
 }

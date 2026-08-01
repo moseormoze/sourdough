@@ -36,6 +36,7 @@ export interface StageScreenProps {
     | "pauseTimer"
     | "resumeTimer"
     | "resetTimer"
+    | "setTimerDuration"
   >;
 }
 
@@ -58,7 +59,8 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       : stage.briefingDisclosure;
   const todoData = methodOverride?.todo ?? stage.todo;
   const checks = methodOverride?.checks ?? stage.checks;
-  const durationSeconds = methodOverride?.durationSeconds ?? stage.durationSeconds;
+  const stageDurationSeconds = methodOverride?.durationSeconds ?? stage.durationSeconds;
+  const stageTimerOptions = methodOverride?.timerOptionsSeconds ?? stage.timerOptionsSeconds;
   const warning = methodOverride?.warning;
 
   const foldsRemaining =
@@ -91,9 +93,41 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     stage.n === 1
       ? starterPeakSecs(activeBake.recipe.kitchenTemp, activeBake.feedRatio)
       : null;
-  const showBulkTimer = stage.type === "bulk" && durationSeconds !== undefined;
-  const showStandaloneTimer =
-    stage.type !== "bulk" && durationSeconds !== undefined && levainTimerSecs === null;
+  const recommendedTimerSeconds =
+    levainTimerSecs ??
+    (stage.n === 7 ? activeBake.retardHours * 60 * 60 : stageDurationSeconds);
+  const selectedTimerSeconds =
+    activeBake.timerDurationSeconds ?? recommendedTimerSeconds;
+
+  function centeredOptions(
+    recommended: number,
+    offset: number,
+    min = offset,
+    max = Number.POSITIVE_INFINITY
+  ): number[] {
+    return Array.from(
+      new Set([
+        Math.max(min, recommended - offset),
+        recommended,
+        Math.min(max, recommended + offset),
+      ])
+    ).sort((a, b) => a - b);
+  }
+
+  const timerOptions = (() => {
+    if (recommendedTimerSeconds === undefined) return [];
+    const selected = selectedTimerSeconds ?? recommendedTimerSeconds;
+    const options =
+      stage.n === 1
+        ? centeredOptions(recommendedTimerSeconds, 60 * 60)
+        : stage.n === 7
+          ? centeredOptions(recommendedTimerSeconds, 4 * 60 * 60, 8 * 60 * 60, 48 * 60 * 60)
+          : [...(stageTimerOptions ?? [recommendedTimerSeconds])];
+    return Array.from(new Set([...options, selected])).sort((a, b) => a - b);
+  })();
+
+  const showBulkTimer = stage.type === "bulk" && selectedTimerSeconds !== undefined;
+  const showStandaloneTimer = stage.type !== "bulk" && selectedTimerSeconds !== undefined;
 
   return (
     <>
@@ -168,16 +202,19 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
                 בסימני ״מתי להמשיך״ שלמטה.
               </p>
             )}
-            {showBulkTimer && durationSeconds !== undefined && (
+            {showBulkTimer && selectedTimerSeconds !== undefined && recommendedTimerSeconds !== undefined && (
               <div className="mt-4 pt-4 border-t border-line/60">
                 <OptionalTimer
-                  durationSeconds={durationSeconds}
+                  durationSeconds={selectedTimerSeconds}
+                  recommendedDurationSeconds={recommendedTimerSeconds}
+                  durationOptionsSeconds={timerOptions}
                   startedAt={activeBake.timerStartedAt}
                   elapsedSeconds={activeBake.timerElapsedSeconds}
                   onStart={api.startTimer}
                   onPause={api.pauseTimer}
                   onResume={api.resumeTimer}
                   onReset={api.resetTimer}
+                  onDurationChange={api.setTimerDuration}
                 />
                 <p className="mt-2 text-tiny text-ink-3 leading-relaxed">
                   {foldsRemaining
@@ -189,30 +226,19 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           </section>
         )}
 
-        {levainTimerSecs !== null && (
+        {showStandaloneTimer && selectedTimerSeconds !== undefined && recommendedTimerSeconds !== undefined && (
           <div className="self-start">
             <OptionalTimer
-              durationSeconds={levainTimerSecs}
+              durationSeconds={selectedTimerSeconds}
+              recommendedDurationSeconds={recommendedTimerSeconds}
+              durationOptionsSeconds={timerOptions}
               startedAt={activeBake.timerStartedAt}
               elapsedSeconds={activeBake.timerElapsedSeconds}
               onStart={api.startTimer}
               onPause={api.pauseTimer}
               onResume={api.resumeTimer}
               onReset={api.resetTimer}
-            />
-          </div>
-        )}
-
-        {showStandaloneTimer && durationSeconds !== undefined && (
-          <div className="self-start">
-            <OptionalTimer
-              durationSeconds={durationSeconds}
-              startedAt={activeBake.timerStartedAt}
-              elapsedSeconds={activeBake.timerElapsedSeconds}
-              onStart={api.startTimer}
-              onPause={api.pauseTimer}
-              onResume={api.resumeTimer}
-              onReset={api.resetTimer}
+              onDurationChange={api.setTimerDuration}
             />
           </div>
         )}

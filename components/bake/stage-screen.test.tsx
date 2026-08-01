@@ -14,6 +14,7 @@ function makeApi() {
     pauseTimer: vi.fn(),
     resumeTimer: vi.fn(),
     resetTimer: vi.fn(),
+    setTimerDuration: vi.fn(),
     setDoughTemp: vi.fn(),
   };
 }
@@ -228,6 +229,42 @@ describe("StageScreen — basic stage", () => {
     fireEvent.click(screen.getByRole("button", { name: /^חזרה$/ }));
     expect(api.advanceTo).toHaveBeenCalledWith(2);
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/2");
+  });
+});
+
+describe("StageScreen — configurable wait timers", () => {
+  it.each([1, 2, 4, 5, 7, 8, 9, 10, 11])("stage %i shows a duration selector", (n) => {
+    render(<StageScreen stage={getStage(n)!} activeBake={makeBake(n)} api={makeApi()} />);
+    expect(screen.getByRole("combobox", { name: "משך הטיימר" })).toBeInTheDocument();
+  });
+
+  it.each([3, 6, 12])("stage %i does not show a timer", (n) => {
+    render(<StageScreen stage={getStage(n)!} activeBake={makeBake(n)} api={makeApi()} />);
+    expect(screen.queryByRole("combobox", { name: "משך הטיימר" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /התחל טיימר/ })).not.toBeInTheDocument();
+  });
+
+  it("uses and persists the selected duration", () => {
+    const api = makeApi();
+    render(<StageScreen stage={getStage(2)!} activeBake={makeBake(2, { timerDurationSeconds: 60 * 60 })} api={api} />);
+    const select = screen.getByRole("combobox", { name: "משך הטיימר" });
+    expect(select).toHaveValue(String(60 * 60));
+    fireEvent.change(select, { target: { value: String(30 * 60) } });
+    expect(api.setTimerDuration).toHaveBeenCalledWith(30 * 60);
+  });
+
+  it("uses the planned cold-retard duration as stage 7's recommended default", () => {
+    render(<StageScreen stage={getStage(7)!} activeBake={makeBake(7, { retardHours: 16 })} api={makeApi()} />);
+    const select = screen.getByRole("combobox", { name: "משך הטיימר" });
+    expect(select).toHaveValue(String(16 * 60 * 60));
+    expect(screen.getByRole("option", { name: "16 שעות — מומלץ" })).toBeInTheDocument();
+  });
+
+  it("uses the method-specific timer choices for oven preheating", () => {
+    render(<StageScreen stage={getStage(8)!} activeBake={makeBake(8, { bakingMethod: "open-with-steam" })} api={makeApi()} />);
+    const select = screen.getByRole("combobox", { name: "משך הטיימר" });
+    expect(select).toHaveValue(String(50 * 60));
+    expect(screen.getByRole("option", { name: "50 דקות — מומלץ" })).toBeInTheDocument();
   });
 });
 

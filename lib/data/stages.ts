@@ -25,6 +25,7 @@ export interface StageMethodContent {
   checks?: string[];
   durationLabel?: string;
   durationSeconds?: number;
+  timerOptionsSeconds?: readonly number[];
   warning?: string;
 }
 
@@ -48,6 +49,7 @@ export interface Stage {
   transition?: string;
   transitionHeading?: string;
   durationSeconds?: number;
+  timerOptionsSeconds?: readonly number[];
   subSteps?: number;
   imageUrl?: string;
   imageAlt?: string;
@@ -106,6 +108,7 @@ export const STAGES: readonly Stage[] = [
     type: "check",
     durationLabel: "30–60 דקות",
     durationSeconds: 45 * 60,
+    timerOptionsSeconds: [30 * 60, 45 * 60, 60 * 60],
     briefing: {
       heading: "מה זה?",
       blurb:
@@ -184,6 +187,7 @@ export const STAGES: readonly Stage[] = [
     tempSensitiveBaseSecs: 4 * 3600,
     durationLabelSuffix: " · 3–4 קיפולים",
     durationSeconds: 30 * 60,
+    timerOptionsSeconds: [15 * 60, 20 * 60, 30 * 60, 45 * 60],
     subSteps: 4,
     briefing: {
       heading: "כאן הלחם מקבל את האופי שלו",
@@ -222,6 +226,8 @@ export const STAGES: readonly Stage[] = [
     hint: "(pre-shape)",
     type: "check",
     durationLabel: "20–30 דקות",
+    durationSeconds: 25 * 60,
+    timerOptionsSeconds: [20 * 60, 25 * 60, 30 * 60],
     youtubeId: "IWA0RAAsBHg",
     videoCaption: "עיצוב כדור (boule) · The Perfect Loaf / Maurizio Leo",
     briefing: {
@@ -324,6 +330,7 @@ export const STAGES: readonly Stage[] = [
     type: "timer",
     durationLabel: "45 דקות",
     durationSeconds: 45 * 60,
+    timerOptionsSeconds: [30 * 60, 45 * 60, 60 * 60],
     briefing: {
       heading: "מחממים את התנור והסיר",
       blurb:
@@ -372,6 +379,7 @@ export const STAGES: readonly Stage[] = [
         ],
         durationLabel: "45–60 דקות",
         durationSeconds: 50 * 60,
+        timerOptionsSeconds: [45 * 60, 50 * 60, 60 * 60],
       },
       other: {
         briefing: {
@@ -401,6 +409,7 @@ export const STAGES: readonly Stage[] = [
         ],
         durationLabel: "30–60 דקות",
         durationSeconds: 45 * 60,
+        timerOptionsSeconds: [30 * 60, 45 * 60, 60 * 60],
         warning:
           "ודאו שכל הציוד שאתם משתמשים בו עמיד לחום של 250°C. מתכת (נירוסטה) או קרמיקה איכותית בטוחות. זכוכית רגילה תיסדק. פלסטיק יימס.",
       },
@@ -416,6 +425,7 @@ export const STAGES: readonly Stage[] = [
     videoCaption: "טכניקת חריצה · The Perfect Loaf / Maurizio Leo",
     durationLabel: "20 דקות",
     durationSeconds: 20 * 60,
+    timerOptionsSeconds: [20 * 60, 22 * 60, 25 * 60],
     briefing: {
       heading: "20 דקות בסיר סגור",
       blurb:
@@ -493,6 +503,7 @@ export const STAGES: readonly Stage[] = [
       "לחם בסיר ברזל יצוק בסוף האפייה — קרום חום-זהוב עמוק, ׳אוזן׳ כהה שנפתחה לאורך החריצה ושלפוחיות קטנות",
     durationLabel: "20–22 דקות",
     durationSeconds: 22 * 60,
+    timerOptionsSeconds: [20 * 60, 22 * 60, 25 * 60, 30 * 60],
     briefing: {
       heading: "מסירים את המכסה — צבע וקרום",
       blurb:
@@ -565,6 +576,7 @@ export const STAGES: readonly Stage[] = [
     type: "timer",
     durationLabel: "שעה",
     durationSeconds: 60 * 60,
+    timerOptionsSeconds: [60 * 60, 90 * 60, 120 * 60],
     briefing: {
       heading: "סבלנות — שעת קירור על רשת",
       blurb:

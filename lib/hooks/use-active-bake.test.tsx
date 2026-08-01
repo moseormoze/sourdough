@@ -145,6 +145,35 @@ describe("useActiveBake — 03 extensions", () => {
     expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
   });
 
+  it("persists a selected duration, preserves it on reset, and clears it on stage advance", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+
+    act(() => { result.current.setTimerDuration(2700); });
+    expect(result.current.activeBake?.timerDurationSeconds).toBe(2700);
+    expect(loadActiveBake()?.timerDurationSeconds).toBe(2700);
+
+    act(() => { result.current.resetTimer(); });
+    expect(result.current.activeBake?.timerDurationSeconds).toBe(2700);
+
+    act(() => { result.current.advanceTo(2); });
+    expect(result.current.activeBake?.timerDurationSeconds).toBeUndefined();
+    expect(loadActiveBake()?.timerDurationSeconds).toBeUndefined();
+  });
+
+  it("does not change the selected duration after the timer starts", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    act(() => { result.current.setTimerDuration(2700); });
+    act(() => { result.current.startTimer(); });
+    act(() => { result.current.setTimerDuration(3600); });
+    expect(result.current.activeBake?.timerDurationSeconds).toBe(2700);
+  });
+
   it("pauseTimer() accumulates elapsed and clears startedAt; resumeTimer() restores startedAt while preserving elapsed", async () => {
     const recipe = saveRecipe(sample);
     const { result } = renderHook(() => useActiveBake());

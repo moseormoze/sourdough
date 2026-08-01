@@ -200,6 +200,7 @@ describe("stage 2 — autolyse main path pilot", () => {
     expect(stage().youtubeId).toBeUndefined();
     expect(stage().durationLabel).toBe("30–60 דקות");
     expect(stage().durationSeconds).toBe(45 * 60);
+    expect(stage().timerOptionsSeconds).toEqual([30 * 60, 45 * 60, 60 * 60]);
   });
 
   it("does not alter the surrounding stage structures", () => {
@@ -207,6 +208,26 @@ describe("stage 2 — autolyse main path pilot", () => {
     expect(getStage(1)!.imageUrl).toBe("/stages/1-levain.png");
     expect(getStage(3)!.briefing.takeaways).toHaveLength(3);
     expect(getStage(3)!.imageUrl).toBe("/stages/3-mixed-dough.png");
+  });
+});
+
+describe("configurable wait timers", () => {
+  it("defines a 25-minute rest timer for pre-shape", () => {
+    const stage = getStage(5)!;
+    expect(stage.durationSeconds).toBe(25 * 60);
+    expect(stage.timerOptionsSeconds).toEqual([20 * 60, 25 * 60, 30 * 60]);
+  });
+
+  it("defines timer options for every static waiting stage", () => {
+    for (const n of [2, 4, 5, 8, 9, 10, 11]) {
+      expect(getStage(n)?.timerOptionsSeconds, `stage ${n}`).toBeDefined();
+    }
+  });
+
+  it("keeps active-work and done stages without timers", () => {
+    for (const n of [3, 6, 12]) {
+      expect(getStage(n)?.durationSeconds, `stage ${n}`).toBeUndefined();
+    }
   });
 });
 

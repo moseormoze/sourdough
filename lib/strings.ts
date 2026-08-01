@@ -100,6 +100,16 @@ export const strings = {
     timerResume: "המשך",
     timerReset: "אפס",
     timerFinished: "הסתיים",
+    timerDurationLabel: "משך הטיימר",
+    timerRecommended: "מומלץ",
+    timerDuration: (seconds: number) => {
+      const totalMinutes = Math.round(seconds / 60);
+      if (totalMinutes < 60) return `${totalMinutes} דקות`;
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const hoursLabel = hours === 1 ? "שעה" : hours === 2 ? "שעתיים" : `${hours} שעות`;
+      return minutes === 0 ? hoursLabel : `${hoursLabel} ו-${minutes} דקות`;
+    },
     // Dough temp shadow estimate (feature 22)
     doughTemp: {
       prompt: "יש מד-חום? מדדו את טמפ׳ הבצק",

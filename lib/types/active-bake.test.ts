@@ -62,6 +62,23 @@ describe("ActiveBakeSchema — timerElapsedSeconds", () => {
   });
 });
 
+describe("ActiveBakeSchema — timerDurationSeconds", () => {
+  it("keeps legacy active bakes valid when the selected duration is missing", () => {
+    const parsed = ActiveBakeSchema.parse(baseBake);
+    expect(parsed.timerDurationSeconds).toBeUndefined();
+  });
+
+  it("accepts a positive selected duration", () => {
+    const parsed = ActiveBakeSchema.parse({ ...baseBake, timerDurationSeconds: 2700 });
+    expect(parsed.timerDurationSeconds).toBe(2700);
+  });
+
+  it("rejects zero or negative durations", () => {
+    expect(() => ActiveBakeSchema.parse({ ...baseBake, timerDurationSeconds: 0 })).toThrow();
+    expect(() => ActiveBakeSchema.parse({ ...baseBake, timerDurationSeconds: -60 })).toThrow();
+  });
+});
+
 describe("ActiveBakeSchema — feedRatio (T4)", () => {
   it("defaults to 2 (1:2:2) when missing — backwards compatible with old saves", () => {
     const parsed = ActiveBakeSchema.parse(baseBake);

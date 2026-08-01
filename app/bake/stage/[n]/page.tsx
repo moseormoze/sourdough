@@ -19,6 +19,7 @@ export default function Page() {
     pauseTimer,
     resumeTimer,
     resetTimer,
+    setTimerDuration,
   } = useActiveBake();
 
   const requestedRaw = params.n;
@@ -51,7 +52,16 @@ export default function Page() {
     <StageScreen
       stage={stage}
       activeBake={activeBake}
-      api={{ advanceTo, advanceSubStep, setDoughTemp, startTimer, pauseTimer, resumeTimer, resetTimer }}
+      api={{
+        advanceTo,
+        advanceSubStep,
+        setDoughTemp,
+        startTimer,
+        pauseTimer,
+        resumeTimer,
+        resetTimer,
+        setTimerDuration,
+      }}
     />
   );
 }

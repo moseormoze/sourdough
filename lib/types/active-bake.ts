@@ -13,6 +13,7 @@ export const ActiveBakeSchema = z.object({
   subStep: z.number().int().min(0).default(0),
   timerStartedAt: z.number().int().nullable().default(null),
   timerElapsedSeconds: z.number().min(0).default(0),
+  timerDurationSeconds: z.number().int().positive().optional(),
   bakingMethod: BakingMethodSchema.default(DEFAULT_BAKING_METHOD),
   // Timestamps of the planned levain build; preserved for F17 adaptive timeline
   feedAt: z.number().int().nullable().default(null),
