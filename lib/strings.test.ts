@@ -20,3 +20,22 @@ describe("strings — flour labels", () => {
     expect(strings.bake.flourTypeLabels.other).toBe("קמח אחר");
   });
 });
+
+describe("strings — stage knowledge", () => {
+  it("keeps the approved autolyse guide copy in the shared Hebrew string catalog", () => {
+    const knowledge = strings.bake.stageKnowledge;
+
+    expect(knowledge.trigger).toBe("הסבר על אוטוליזה");
+    expect(knowledge.calibration).toEqual({
+      before: "מיד אחרי הערבוב – הבצק עדיין גס ולא אחיד.",
+      after: "אחרי המנוחה – הבצק מחובר יותר ונמתח בקלות רבה יותר.",
+      caveat:
+        "המראה תלוי בקמח ובהידרציה; השוו את הבצק לעצמו בתחילת המנוחה, לא למראה קבוע אחד.",
+    });
+    expect(knowledge.guide.title).toBe("להבין את הבצק");
+    expect(knowledge.guide.recipeContext.guidance).toHaveProperty("generic");
+    expect(knowledge.guide.recipeContext.guidance).not.toHaveProperty("white");
+    expect(knowledge).not.toHaveProperty("faqTitle");
+    expect(knowledge).not.toHaveProperty("troubleshootingTitle");
+  });
+});

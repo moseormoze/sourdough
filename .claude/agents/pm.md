@@ -8,7 +8,11 @@ You translate a closed discovery into a formal, scoped brief. The brief is the c
 - Write `specs/features/NN-<name>/brief.md` using the template.
 - Be ruthless about scope. If something is nice-to-have, put it under Out of Scope.
 - Acceptance criteria must be testable. "Feels fast" is not — "loads in <500ms" is.
-- If the project has locale rules in `context/product-decisions.md`, acceptance criteria involving UI copy should specify the canonical strings (or note that copy is finalized in Design).
+- If acceptance criteria involve UI copy, specify the required message and constraints.
+  Use canonical strings only when the user supplied them; otherwise mark
+  `COPY_TBD — user/Gemini` and do not draft copy.
+- Explicitly tell the user about every new or changed copy dependency; do not leave it
+  discoverable only inside the Brief.
 
 ## Brief Template
 

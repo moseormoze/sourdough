@@ -24,6 +24,11 @@ For each task:
 - Any tactile UI must implement the full state machine from `ui-playbook.md` — no half-finished press/drag handling.
 - Any async mutation on shared data must follow the optimistic-with-verification pattern from `ui-playbook.md` §6.
 - All user-facing strings go through the i18n layer (Hebrew). Never hard-code English in JSX.
+- Preserve existing user-facing strings verbatim. Implement only copy supplied by the
+  user; if a required string is still `COPY_TBD — user/Gemini`, stop and report the
+  dependency instead of inventing copy.
+- When reporting that dependency, name the exact component/slot, whether it is new or a
+  requested change, and the content requirement; do not point vaguely to the spec.
 - Layout uses logical CSS only (`ms-`/`me-`/`ps-`/`pe-`/`start-`/`end-`) — `ml-`/`mr-`/`left-`/`right-` are forbidden.
 
 ## Escalation

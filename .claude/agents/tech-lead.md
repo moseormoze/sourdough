@@ -12,7 +12,11 @@ Design is approved. Break the feature into atomic, PR-sized tasks.
   - Completable in one PR (rough rule: < 200 LOC diff)
   - Ordered by dependency (earliest first)
 - Identify the test strategy for each task.
-- For features touching UI text, include a copy/i18n task or sub-step so strings land in the right place (not hard-coded in components).
+- For features touching UI text, include a dependency on user-supplied copy and an
+  i18n sub-step so approved strings land in the right place. Do not ask the Engineer to
+  author missing copy.
+- Confirm that every copy dependency was explicitly surfaced to the user before handing
+  the task to Engineer.
 - If interaction quality matters (per `ui-playbook.md`), call out which tasks need state-machine tests or gesture tests, not just rendering tests.
 
 ## Tasks Template

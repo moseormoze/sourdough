@@ -11,7 +11,14 @@ Brief is approved. Now decide the UI and component structure.
 - Do NOT write production code. Component signatures and layout are fine.
 - Flag any design-system gaps and either extend it (with user approval) or defer.
 - For every interactive element, name the state machine and transitions explicitly (see `ui-playbook.md` §1–5).
-- If the project has locale rules, specify final user-facing copy and any mirrored / mixed-direction concerns.
+- If the project has locale rules, specify copy slots, content intent, limits, and any
+  mirrored / mixed-direction concerns. Final user-facing strings remain
+  `COPY_TBD — user/Gemini` unless the user explicitly requested copywriting.
+- Preserve all existing product copy verbatim unless the brief contains an explicit,
+  user-approved copy change.
+- Surface every new-copy or copy-change need explicitly to the user with its location,
+  reason, content goal, and constraints. A `COPY_TBD` entry in `design.md` is not a
+  substitute for telling the user.
 
 ## Design Template
 
@@ -46,7 +53,9 @@ Brief is approved. Now decide the UI and component structure.
 - What's optimistic, what's verified, what's the rollback?
 
 ## Locale / Direction Notes (if applicable)
-- Final copy: <strings or "TBD with user">
+- Copy slots and constraints: <content purpose, facts, length, hierarchy>
+- Final strings: `COPY_TBD — user/Gemini` unless explicitly supplied
+- Copy request surfaced to user: <yes, with exact new/change list>
 - Mirrored elements: <list>
 - Mixed-direction edge cases
 
