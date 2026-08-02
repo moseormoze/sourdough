@@ -16,12 +16,19 @@ import { OptionalTimer } from "./optional-timer";
 import { SafetyWarning } from "./safety-warning";
 import { StageCelebration } from "./stage-celebration";
 import { StageMedia } from "./stage-media";
+import { StageKnowledgeHub } from "./stage-knowledge-hub";
+import { StageKnowledgeSheet } from "./stage-knowledge-sheet";
 import {
   AutolyseTimer,
   DEFAULT_AUTOLYSE_DURATION_SECONDS,
 } from "./autolyse-timer";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
 import { getRescue } from "@/lib/data/rescue";
+import {
+  AUTOLYSE_KNOWLEDGE_ENTRIES,
+  getStageKnowledge,
+  type StageKnowledgeKind,
+} from "@/lib/data/stage-knowledge";
 import { computeBakeQuantities } from "@/lib/bake-math";
 import { FEED_RATIO_LABELS, starterPeakSecs } from "@/lib/bake-timing";
 import { strings } from "@/lib/strings";
@@ -48,7 +55,11 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const router = useRouter();
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [rescueOpen, setRescueOpen] = useState(false);
+  const [knowledgeOpen, setKnowledgeOpen] = useState(false);
+  const [activeKnowledgeKind, setActiveKnowledgeKind] =
+    useState<StageKnowledgeKind>("learn");
   const rescue = getRescue(stage.n);
+  const knowledge = getStageKnowledge(stage.n);
   const nextStage = getStage(stage.n + 1);
   const quantities = useMemo(
     () => computeBakeQuantities(activeBake.recipe, activeBake.feedRatio),
@@ -84,6 +95,11 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     if (stage.n <= 1) return;
     api.advanceTo(stage.n - 1);
     router.push(`/bake/stage/${stage.n - 1}`);
+  }
+
+  function openKnowledge(kind: StageKnowledgeKind) {
+    setActiveKnowledgeKind(kind);
+    setKnowledgeOpen(true);
   }
 
   const primaryLabel = (() => {
@@ -231,6 +247,13 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           />
         )}
 
+        {knowledge && (
+          <StageKnowledgeHub
+            entries={AUTOLYSE_KNOWLEDGE_ENTRIES}
+            onOpen={openKnowledge}
+          />
+        )}
+
         {showStandaloneTimer && durationSeconds !== undefined && (
           <div className="self-start">
             <OptionalTimer
@@ -303,6 +326,14 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       flour={activeBake.recipe.flour}
       onClose={() => setTimelineOpen(false)}
     />
+    {knowledge && (
+      <StageKnowledgeSheet
+        open={knowledgeOpen}
+        kind={activeKnowledgeKind}
+        content={knowledge}
+        onClose={() => setKnowledgeOpen(false)}
+      />
+    )}
     {rescue && (
       <RescueSheet
         stageN={stage.n}

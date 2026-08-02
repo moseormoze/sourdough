@@ -20,3 +20,15 @@ describe("strings — flour labels", () => {
     expect(strings.bake.flourTypeLabels.other).toBe("קמח אחר");
   });
 });
+
+describe("strings — stage knowledge", () => {
+  it("keeps the autolyse hub and sheet labels in the shared Hebrew string catalog", () => {
+    expect(strings.bake.stageKnowledge).toEqual({
+      hubTitle: "עוד על האוטוליזה",
+      faqTitle: "שאלות נפוצות",
+      troubleshootingTitle: "אבחון מהיר",
+      signsHeading: "מה רואים",
+      actionsHeading: "מה עושים עכשיו",
+    });
+  });
+});

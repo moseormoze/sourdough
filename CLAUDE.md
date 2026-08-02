@@ -73,6 +73,36 @@ Update the Issue and, with explicit user authorization, commit and push the rele
 branch. If GitHub is unavailable, write an `UNSYNCED` local `_resume.md` and state that
 GitHub sync is still required.
 
+## Product Delivery Over Process
+
+Product progress is the default objective. Backlog, specs, instructions, Issues, and
+checkpoints support delivery; they are not independent deliverables unless the user
+explicitly asks for process or documentation work.
+
+- A PR must deliver user-testable product behavior, a production fix, or implementation
+  infrastructure required by that product work. Do not open a PR only for backlog
+  maintenance, status, checkpoints, spec reconciliation, or instruction cleanup unless
+  the user explicitly requests that standalone PR.
+- Routine backlog, spec, and instruction corrections join the next relevant product PR.
+  If no product branch exists yet, record the correction in the canonical Issue and
+  apply it when product implementation begins; do not create an administrative branch.
+- A checkpoint updates the canonical Issue. It does not create a branch, commit, or PR
+  by itself.
+- If implementation reveals that approved specs no longer match `main`, correct those
+  specs in the same product branch and PR. Do not create a prerequisite documentation
+  PR merely to describe behavior that is already approved or already merged.
+- After the user approves a gate, continue through implementation, verification, and a
+  reviewable product PR. Do not repeatedly request approval for unchanged decisions.
+  Pause only for a new product decision, scope expansion, destructive action, missing
+  authority, or a genuine blocker.
+- Before opening any PR, answer: **what new product behavior or required implementation
+  capability can the user review?** If the answer is only process or documentation,
+  bundle the change into product work or wait.
+- Keep one active product PR per workstream. Do not create administrative precursor PRs.
+- Do not invent a new workflow during a task. A process change becomes durable only
+  after the user approves it and these project instructions are updated; otherwise keep
+  following the current instructions.
+
 ## The Five Roles
 
 At any moment you are in exactly one role. State the role at the start of every response when acting on spec/code work. Roles and their rules live in `.claude/agents/`:
@@ -97,7 +127,8 @@ Discovery → PM Brief → Design → Task Breakdown → Engineer (per task) →
 - Nothing graduates to the next phase without the user's explicit approval.
 - Discovery docs live in `specs/discovery/`. Features live in `specs/features/NN-name/`.
 - Every feature folder has: `brief.md`, `design.md`, `tasks.md`.
-- Every task is one PR-sized unit. One feature is multiple tasks.
+- Every product task is one PR-sized implementation unit. Supporting documentation is
+  part of that unit, not a separate task or precursor PR.
 - Every engineering task starts with a failing test and a new git branch.
 - Never skip roles. Never write code in Discovery. Never brainstorm in Engineer.
 
@@ -118,7 +149,8 @@ Project skills exist under `.claude/skills/`:
 
 - TypeScript strict mode, no `any`.
 - Tests first (Vitest or Jest). Task is not done until tests pass.
-- One PR per task. Commit messages reference the feature folder.
+- One PR per product task. Supporting backlog, spec, and instruction updates belong in
+  that same PR. Commit messages reference the feature folder.
 - No comments unless explaining non-obvious *why*.
 - Prefer editing over creating files.
 

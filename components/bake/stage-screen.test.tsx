@@ -207,6 +207,66 @@ describe("StageScreen — basic stage", () => {
   });
 });
 
+describe("StageScreen — stage knowledge pilot", () => {
+  it("shows the knowledge hub only on stage 2", () => {
+    const { rerender } = render(
+      <StageScreen stage={getStage(1)!} activeBake={makeBake(1)} api={makeApi()} />,
+    );
+    expect(screen.queryByText("עוד על האוטוליזה")).not.toBeInTheDocument();
+
+    rerender(
+      <StageScreen stage={getStage(2)!} activeBake={makeBake(2)} api={makeApi()} />,
+    );
+    expect(screen.getByRole("heading", { name: "עוד על האוטוליזה" })).toBeInTheDocument();
+
+    rerender(
+      <StageScreen stage={getStage(3)!} activeBake={makeBake(3)} api={makeApi()} />,
+    );
+    expect(screen.queryByText("עוד על האוטוליזה")).not.toBeInTheDocument();
+  });
+
+  it("opens one knowledge sheet without changing bake or timer actions", () => {
+    const api = makeApi();
+    const activeBake = makeBake(2, {
+      timerDurationSeconds: 45 * 60,
+      timerElapsedSeconds: 120,
+    });
+    render(<StageScreen stage={getStage(2)!} activeBake={activeBake} api={api} />);
+    const trigger = screen.getByRole("button", { name: /שאלות נפוצות/ });
+
+    fireEvent.pointerDown(trigger, { pointerId: 1, clientX: 0, clientY: 0 });
+    fireEvent.pointerUp(trigger, { pointerId: 1, clientX: 0, clientY: 0 });
+    fireEvent.click(trigger, { detail: 1 });
+
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    expect(screen.getByRole("heading", { name: "שאלות נפוצות" })).toBeInTheDocument();
+    expect(activeBake.currentStage).toBe(2);
+    expect(api.advanceTo).not.toHaveBeenCalled();
+    expect(api.startTimer).not.toHaveBeenCalled();
+    expect(api.pauseTimer).not.toHaveBeenCalled();
+    expect(api.resumeTimer).not.toHaveBeenCalled();
+    expect(api.resetTimer).not.toHaveBeenCalled();
+    expect(api.setTimerRemaining).not.toHaveBeenCalled();
+  });
+
+  it("keeps sheet content through exit and then returns focus to its trigger", async () => {
+    render(
+      <StageScreen stage={getStage(2)!} activeBake={makeBake(2)} api={makeApi()} />,
+    );
+    const trigger = screen.getByRole("button", { name: /מה קורה לבצק בזמן המנוחה/ });
+    trigger.focus();
+    fireEvent.click(trigger, { detail: 0 });
+
+    fireEvent.click(screen.getByRole("button", { name: "סגור" }));
+    expect(screen.getByText(/זו לא סתם המתנה/)).toBeInTheDocument();
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument(), {
+      timeout: 500,
+    });
+    expect(document.activeElement).toBe(trigger);
+  });
+});
+
 describe("StageScreen — bulk (stage 4) sub-step flow", () => {
   it("primary always shows 'הבא' (folds are optional)", () => {
     const stage = getStage(4)!;
@@ -505,7 +565,7 @@ describe("StageScreen — rescue entry (feature 20)", () => {
         <StageScreen stage={getStage(n)!} activeBake={makeBake(n)} api={makeApi()} />
       );
       expect(
-        screen.getByRole("button", { name: /משהו לא מסתדר/ }),
+        screen.getByRole("button", { name: /^משהו לא מסתדר\?$/ }),
         `stage ${n}`
       ).toBeInTheDocument();
       unmount();
@@ -518,7 +578,7 @@ describe("StageScreen — rescue entry (feature 20)", () => {
         <StageScreen stage={getStage(n)!} activeBake={makeBake(n)} api={makeApi()} />
       );
       expect(
-        screen.queryByRole("button", { name: /משהו לא מסתדר/ }),
+        screen.queryByRole("button", { name: /^משהו לא מסתדר\?$/ }),
         `stage ${n}`
       ).not.toBeInTheDocument();
       unmount();

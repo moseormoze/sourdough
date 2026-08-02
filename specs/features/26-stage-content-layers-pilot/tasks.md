@@ -116,17 +116,17 @@
 **Depends on:** T2.
 
 **Done when:**
-- [ ] branch נוצר לפני השינוי הראשון וכל שכבה מתחילה בחוזה נכשל רלוונטי.
-- [ ] ה-types strict וללא `any`; כל התוכן וה-labels מגיעים מ-data/strings.
-- [ ] state machine של ה-Hub הוא `Idle → Press → Open|Cancel → Idle`, ללא
+- [x] branch נוצר לפני השינוי הראשון וכל שכבה מתחילה בחוזה נכשל רלוונטי.
+- [x] ה-types strict וללא `any`; כל התוכן וה-labels מגיעים מ-data/strings.
+- [x] state machine של ה-Hub הוא `Idle → Press → Open|Cancel → Idle`, ללא
   double-fire אחרי גלילת touch.
-- [ ] יש `role="dialog"` אחד בלבד; ה-Sheet נשאר mounted ב-200ms של ה-exit ומחזיר
+- [x] יש `role="dialog"` אחד בלבד; ה-Sheet נשאר mounted ב-200ms של ה-exit ומחזיר
   focus לטריגר הנכון.
-- [ ] אין fetch, loading, mutation, toast, autoplay, תמונה או סרטון בפיילוט.
-- [ ] אין שינוי ב־`AutolyseTimer`, באפשרויותיו, ב־state שלו או במנוע התזמון.
-- [ ] בדיקת 375px מאשרת שאין גלישה או הסתרה מתחת לפעולות הדביקות וכל יעד מגע
+- [x] אין fetch, loading, mutation, toast, autoplay, תמונה או סרטון בפיילוט.
+- [x] אין שינוי ב־`AutolyseTimer`, באפשרויותיו, ב־state שלו או במנוע התזמון.
+- [x] בדיקת 375px מאשרת שאין גלישה או הסתרה מתחת לפעולות הדביקות וכל יעד מגע
   עומד במינימום 44px.
-- [ ] `rtl-check`, ‏`npm test`, ‏`npm run type-check` ו-`npm run lint` עוברים.
+- [x] `rtl-check`, ‏`npm test`, ‏`npm run type-check` ו-`npm run lint` עוברים.
 
 ## Build Order
 

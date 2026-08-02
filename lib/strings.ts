@@ -145,6 +145,13 @@ export const strings = {
     rescueSheetTitle: "אבחון מהיר",
     rescueSigns: "הסימנים",
     rescueSteps: "מה עושים",
+    stageKnowledge: {
+      hubTitle: "עוד על האוטוליזה",
+      faqTitle: "שאלות נפוצות",
+      troubleshootingTitle: "אבחון מהיר",
+      signsHeading: "מה רואים",
+      actionsHeading: "מה עושים עכשיו",
+    },
     flourTypeLabels: {
       white: "קמח לבן",
       wholeWheat: "קמח מלא",
