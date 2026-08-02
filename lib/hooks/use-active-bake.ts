@@ -21,8 +21,7 @@ export interface UseActiveBakeApi {
   advanceSubStep: () => void;
   setDoughTemp: (tempC: number | null) => void;
   setTimerDuration: (durationSeconds: number) => void;
-  setTimerRemaining: (durationSeconds: number) => void;
-  startTimer: (durationSeconds?: number) => void;
+  startTimer: () => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
   resetTimer: () => void;
@@ -133,6 +132,8 @@ export function useActiveBake(): UseActiveBakeApi {
   const setTimerDuration = useCallback((durationSeconds: number) => {
     setActiveBake((current) => {
       if (!current) return current;
+      if (current.timerStartedAt !== null || current.timerElapsedSeconds > 0) return current;
+      if (!Number.isInteger(durationSeconds) || durationSeconds <= 0) return current;
       const next: ActiveBake = {
         ...current,
         timerDurationSeconds: durationSeconds,
@@ -142,28 +143,13 @@ export function useActiveBake(): UseActiveBakeApi {
     });
   }, []);
 
-  const setTimerRemaining = useCallback((durationSeconds: number) => {
-    setActiveBake((current) => {
-      if (!current) return current;
-      const next: ActiveBake = {
-        ...current,
-        timerDurationSeconds: durationSeconds,
-        timerElapsedSeconds: 0,
-        timerStartedAt: current.timerStartedAt === null ? null : Date.now(),
-      };
-      saveActiveBake(next);
-      return next;
-    });
-  }, []);
-
-  const startTimer = useCallback((durationSeconds?: number) => {
+  const startTimer = useCallback(() => {
     setActiveBake((current) => {
       if (!current) return current;
       const next: ActiveBake = {
         ...current,
         timerStartedAt: Date.now(),
         timerElapsedSeconds: 0,
-        timerDurationSeconds: durationSeconds ?? current.timerDurationSeconds,
       };
       saveActiveBake(next);
       return next;
@@ -220,7 +206,6 @@ export function useActiveBake(): UseActiveBakeApi {
     advanceSubStep,
     setDoughTemp,
     setTimerDuration,
-    setTimerRemaining,
     startTimer,
     pauseTimer,
     resumeTimer,

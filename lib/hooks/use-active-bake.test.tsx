@@ -137,7 +137,8 @@ describe("useActiveBake — 03 extensions", () => {
     act(() => { result.current.start(recipe); });
     expect(result.current.activeBake?.timerStartedAt).toBeNull();
     expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
-    act(() => { result.current.startTimer(45 * 60); });
+    act(() => { result.current.setTimerDuration(45 * 60); });
+    act(() => { result.current.startTimer(); });
     expect(result.current.activeBake?.timerStartedAt).toBeTruthy();
     expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
     expect(result.current.activeBake?.timerDurationSeconds).toBe(45 * 60);
@@ -157,29 +158,16 @@ describe("useActiveBake — 03 extensions", () => {
     expect(loadActiveBake()?.timerDurationSeconds).toBe(60 * 60);
   });
 
-  it("setTimerRemaining() replaces the remaining countdown and preserves run state", async () => {
+  it("does not change the selected duration after the timer starts", async () => {
     const recipe = saveRecipe(sample);
     const { result } = renderHook(() => useActiveBake());
     await waitFor(() => expect(result.current.loading).toBe(false));
     act(() => { result.current.start(recipe); });
 
-    const t0 = 30_000_000;
-    vi.spyOn(Date, "now").mockReturnValue(t0);
-    act(() => { result.current.startTimer(45 * 60); });
-
-    vi.spyOn(Date, "now").mockReturnValue(t0 + 10 * 60 * 1000);
-    act(() => { result.current.setTimerRemaining(30 * 60); });
-    expect(result.current.activeBake?.timerDurationSeconds).toBe(30 * 60);
-    expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
-    expect(result.current.activeBake?.timerStartedAt).toBe(t0 + 10 * 60 * 1000);
-
-    act(() => { result.current.pauseTimer(); });
-    act(() => { result.current.setTimerRemaining(20 * 60); });
-    expect(result.current.activeBake?.timerDurationSeconds).toBe(20 * 60);
-    expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
-    expect(result.current.activeBake?.timerStartedAt).toBeNull();
-
-    vi.restoreAllMocks();
+    act(() => { result.current.setTimerDuration(45 * 60); });
+    act(() => { result.current.startTimer(); });
+    act(() => { result.current.setTimerDuration(60 * 60); });
+    expect(result.current.activeBake?.timerDurationSeconds).toBe(45 * 60);
   });
 
   it("pauseTimer() accumulates elapsed and clears startedAt; resumeTimer() restores startedAt while preserving elapsed", async () => {

@@ -20,3 +20,12 @@ describe("strings — flour labels", () => {
     expect(strings.bake.flourTypeLabels.other).toBe("קמח אחר");
   });
 });
+
+describe("strings — configurable timer", () => {
+  it("formats minute and hour choices in Hebrew", () => {
+    expect(strings.bake.timerDuration(45 * 60)).toBe("45 דקות");
+    expect(strings.bake.timerDuration(60 * 60)).toBe("שעה");
+    expect(strings.bake.timerDuration(90 * 60)).toBe("שעה ו-30 דקות");
+    expect(strings.bake.timerDuration(2 * 60 * 60)).toBe("שעתיים");
+  });
+});

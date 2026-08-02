@@ -100,29 +100,15 @@ export const strings = {
     timerResume: "המשך",
     timerReset: "אפס",
     timerFinished: "הסתיים",
-    autolyseTimer: {
-      heading: "זמן האוטוליזה",
-      idleHint: "אחרי שכל הקמח רטוב והקערה מכוסה, אפשר להפעיל טיימר למנוחה.",
-      setupTitle: "בחירת זמן",
-      editTitle: "עריכת זמן שנותר",
-      countdownTitle: "טיימר אוטוליזה",
-      setupHint: "כמה זמן לתת לבצק לנוח? בדרך כלל מומלץ לבחור 30–60 דקות.",
-      editHint: "בחרו כמה זמן יישאר בטיימר מרגע השמירה.",
-      hoursLabel: "שעות",
-      minutesLabel: "דקות",
-      hoursOption: (hours: number) => `${hours} ${hours === 1 ? "שעה" : "שעות"}`,
-      durationOption: (minutes: number) => `${minutes} דקות`,
-      start: "הפעל טיימר",
-      saveTime: "שמור זמן",
-      timeRemaining: "זמן שנותר",
-      openExpanded: "פתח טיימר מורחב",
-      edit: "עריכת זמן",
-      running: "הטיימר פועל",
-      paused: "הטיימר מושהה",
-      finished: "הטיימר הסתיים",
-      pause: "השהה",
-      resume: "המשך",
-      reset: "התחל מחדש",
+    timerDurationLabel: "משך הטיימר",
+    timerRecommended: "מומלץ",
+    timerDuration: (seconds: number) => {
+      const totalMinutes = Math.round(seconds / 60);
+      if (totalMinutes < 60) return `${totalMinutes} דקות`;
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const hoursLabel = hours === 1 ? "שעה" : hours === 2 ? "שעתיים" : `${hours} שעות`;
+      return minutes === 0 ? hoursLabel : `${hoursLabel} ו-${minutes} דקות`;
     },
     // Dough temp shadow estimate (feature 22)
     doughTemp: {

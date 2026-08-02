@@ -155,31 +155,23 @@ describe("STAGES data", () => {
 describe("stage 2 — Autolysis content-layers pilot main path", () => {
   const stage = () => getStage(2)!;
 
-  it("has one purpose, exactly four actions, and no redundant tip", () => {
-    expect(stage().briefing).toEqual({
-      heading: "מטרת השלב",
-      blurb:
-        "לתת לקמח לספוג את המים ולהתחיל להתארגן, כדי שהערבוב בשלב הבא יהיה קל ואחיד יותר.",
-      takeaways: [],
+  it("has the approved T2 structure", () => {
+    expect(stage().briefing.heading).toBe("מה זה?");
+    expect(stage().todo?.title).toBe("מה עושים עכשיו?");
+    expect(stage().todo?.steps).toHaveLength(5);
+    expect(stage().todo?.callout).toEqual({
+      afterStep: 3,
+      heading: "איך יודעים מתי לעצור את הערבוב?",
+      body: expect.stringContaining("אין יותר קמח יבש"),
     });
-    expect(stage().todo?.steps).toEqual([
-      "שקלו {mixFlourBreakdown} לקערה גדולה.",
-      "הוסיפו {autolyseWaterGrams} מים. שקלו בנפרד {saltReserveWaterGrams} מים ושמרו לשלב הבא.",
-      "ערבבו ביד או בכף רק עד שכל הקמח רטוב ואין כיסים יבשים. לא לשים; הבצק אמור להישאר גס.",
-      "כסו את הקערה במכסה, מגבת לחה או ניילון נצמד, כדי שפני הבצק לא יתייבשו, והניחו בטמפרטורת החדר 30–60 דקות.",
-    ]);
-    expect(stage().todo?.tip).toBeUndefined();
+    expect(stage().checksHeading).toBe("מתי ממשיכים לשלב הבא?");
+    expect(stage().checks).toHaveLength(2);
+    expect(stage().transitionHeading).toBe("מה עושים בשלב הבא?");
   });
 
-  it("has exactly three observable signs and one immediate transition", () => {
-    expect(stage().checks).toEqual([
-      "אין כיסי קמח יבש",
-      "הבצק רך ונמתח מעט יותר בקלות",
-      "המרקם נראה מעט אחיד יותר, אבל עדיין יכול להיות גס ודביק",
-    ]);
-    expect(stage().transition).toBe(
-      "עכשיו עוברים ללישה ומוסיפים את השאור, המלח והמים ששמרתם — אין זמן המתנה נוסף."
-    );
+  it("defines the 30, 45, and 60 minute timer contract", () => {
+    expect(stage().durationSeconds).toBe(45 * 60);
+    expect(stage().timerOptionsSeconds).toEqual([30 * 60, 45 * 60, 60 * 60]);
   });
 
   it("removes the AI image from stage 2 without changing neighboring stage media", () => {
@@ -187,6 +179,20 @@ describe("stage 2 — Autolysis content-layers pilot main path", () => {
     expect(stage().imageAlt).toBeUndefined();
     expect(getStage(1)?.imageUrl).toBe("/stages/1-levain.png");
     expect(getStage(3)?.imageUrl).toBe("/stages/3-mixed-dough.png");
+  });
+});
+
+describe("configurable wait timers", () => {
+  it("defines timer options for every static waiting stage", () => {
+    for (const n of [2, 4, 5, 8, 9, 10, 11]) {
+      expect(getStage(n)?.timerOptionsSeconds, `stage ${n}`).toBeDefined();
+    }
+  });
+
+  it("keeps active-work and done stages without timers", () => {
+    for (const n of [3, 6, 12]) {
+      expect(getStage(n)?.durationSeconds, `stage ${n}`).toBeUndefined();
+    }
   });
 });
 

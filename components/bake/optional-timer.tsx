@@ -7,6 +7,8 @@ import { strings } from "@/lib/strings";
 
 export interface OptionalTimerProps {
   durationSeconds: number;
+  recommendedDurationSeconds?: number;
+  durationOptionsSeconds?: readonly number[];
   /** epoch ms when the current run segment started, or null when not running */
   startedAt: number | null;
   /** total seconds accumulated across prior pause/resume cycles */
@@ -15,6 +17,7 @@ export interface OptionalTimerProps {
   onPause: () => void;
   onResume: () => void;
   onReset: () => void;
+  onDurationChange?: (durationSeconds: number) => void;
   className?: string;
 }
 
@@ -34,12 +37,15 @@ function format(secondsLeft: number, durationSeconds: number): string {
 
 export function OptionalTimer({
   durationSeconds,
+  recommendedDurationSeconds = durationSeconds,
+  durationOptionsSeconds = [durationSeconds],
   startedAt,
   elapsedSeconds,
   onStart,
   onPause,
   onResume,
   onReset,
+  onDurationChange,
   className,
 }: OptionalTimerProps) {
   const [now, setNow] = useState<number>(() => Date.now());
@@ -57,19 +63,38 @@ export function OptionalTimer({
 
   if (isIdle) {
     return (
-      <button
-        type="button"
-        onClick={onStart}
-        className={cn(
-          "pressable inline-flex items-center gap-2 min-h-touch px-4 rounded-full",
-          "bg-bg-2 text-ink-2 text-body hover:bg-line transition-colors",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-3 focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
-          className
-        )}
-      >
-        <Timer size={16} aria-hidden />
-        <span>{strings.bake.timerStart}</span>
-      </button>
+      <div className={cn("inline-flex flex-wrap items-center gap-2", className)}>
+        <select
+          aria-label={strings.bake.timerDurationLabel}
+          value={durationSeconds}
+          onChange={(event) => onDurationChange?.(Number(event.target.value))}
+          className={cn(
+            "min-h-touch rounded-full border border-line bg-bg-2 px-3 text-body text-ink-2",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-3 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          )}
+        >
+          {durationOptionsSeconds.map((seconds) => (
+            <option key={seconds} value={seconds}>
+              {strings.bake.timerDuration(seconds)}
+              {seconds === recommendedDurationSeconds
+                ? ` — ${strings.bake.timerRecommended}`
+                : ""}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={onStart}
+          className={cn(
+            "pressable inline-flex items-center gap-2 min-h-touch px-4 rounded-full",
+            "bg-bg-2 text-ink-2 text-body hover:bg-line transition-colors",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-3 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          )}
+        >
+          <Timer size={16} aria-hidden />
+          <span>{strings.bake.timerStart}</span>
+        </button>
+      </div>
     );
   }
 

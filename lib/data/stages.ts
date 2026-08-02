@@ -9,8 +9,14 @@ export interface StageBriefing {
 }
 
 export interface StageTodo {
+  title?: string;
   steps: string[];
   tip?: string;
+  callout?: {
+    afterStep: number;
+    heading: string;
+    body: string;
+  };
 }
 
 export interface StageMethodContent {
@@ -19,6 +25,7 @@ export interface StageMethodContent {
   checks?: string[];
   durationLabel?: string;
   durationSeconds?: number;
+  timerOptionsSeconds?: readonly number[];
   warning?: string;
 }
 
@@ -38,8 +45,11 @@ export interface Stage {
   todo?: StageTodo;
   todoNote?: string;
   checks?: string[];
+  checksHeading?: string;
   transition?: string;
+  transitionHeading?: string;
   durationSeconds?: number;
+  timerOptionsSeconds?: readonly number[];
   subSteps?: number;
   imageUrl?: string;
   imageAlt?: string;
@@ -97,27 +107,37 @@ export const STAGES: readonly Stage[] = [
     name: "אוטוליזה",
     type: "check",
     durationLabel: "30–60 דקות",
+    durationSeconds: 45 * 60,
+    timerOptionsSeconds: [30 * 60, 45 * 60, 60 * 60],
     briefing: {
-      heading: "מטרת השלב",
+      heading: "מה זה?",
       blurb:
-        "לתת לקמח לספוג את המים ולהתחיל להתארגן, כדי שהערבוב בשלב הבא יהיה קל ואחיד יותר.",
+        "אוטוליזה היא מנוחה קצרה של הקמח והמים בלבד, עוד לפני שמוסיפים את השאור והמלח. בזמן המנוחה הקמח סופג את המים ורשת הגלוטן מתחילה להיווצר מעצמה. המטרה היא לקבל בצק שנוח יותר לעבוד איתו, ולחסוך מכם מאמץ בשלב הלישה.",
       takeaways: [],
     },
     todo: {
+      title: "מה עושים עכשיו?",
       steps: [
-        "שקלו {mixFlourBreakdown} לקערה גדולה.",
-        "הוסיפו {autolyseWaterGrams} מים. שקלו בנפרד {saltReserveWaterGrams} מים ושמרו לשלב הבא.",
-        "ערבבו ביד או בכף רק עד שכל הקמח רטוב ואין כיסים יבשים. לא לשים; הבצק אמור להישאר גס.",
-        "כסו את הקערה במכסה, מגבת לחה או ניילון נצמד, כדי שפני הבצק לא יתייבשו, והניחו בטמפרטורת החדר 30–60 דקות.",
+        "**שוקלים:** מניחים קערה גדולה על המשקל ושוקלים {mixFlourBreakdown}.",
+        "**מוסיפים מים:** מוזגים לקערה {autolyseWaterGrams} מים ושוקלים בנפרד {saltReserveWaterGrams} מים לשלב הבא.",
+        "**מערבבים:** מערבבים רק עד שכל הקמח נרטב.",
+        "**מכסים:** כסו את הקערה במכסה, מגבת לחה או ניילון נצמד כדי שפני הבצק לא יתייבשו.",
+        "**מניחים למנוחה:** מניחים את הקערה בצד למשך 30–60 דקות.",
       ],
+      callout: {
+        afterStep: 3,
+        heading: "איך יודעים מתי לעצור את הערבוב?",
+        body: "מפסיקים לערבב ברגע שאין יותר קמח יבש בקערה. בשלב הזה לא מתחילים ללוש ולא מנסים להגיע למרקם חלק — זה תקין לחלוטין שהבצק נראה גס ודביק.",
+      },
     },
+    checksHeading: "מתי ממשיכים לשלב הבא?",
     checks: [
-      "אין כיסי קמח יבש",
-      "הבצק רך ונמתח מעט יותר בקלות",
-      "המרקם נראה מעט אחיד יותר, אבל עדיין יכול להיות גס ודביק",
+      "ממשיכים בתום 30–60 דקות המנוחה.",
+      "אין צורך לחפש בועות, לחכות שהבצק יתפח או לצפות שהוא יהיה חלק.",
     ],
+    transitionHeading: "מה עושים בשלב הבא?",
     transition:
-      "עכשיו עוברים ללישה ומוסיפים את השאור, המלח והמים ששמרתם — אין זמן המתנה נוסף.",
+      "עוברים לשלב הלישה: מוסיפים לבצק את השאור שהכנתם מראש, את המלח ומעט מים — ומתחילים ללוש.",
   },
   {
     n: 3,
@@ -167,6 +187,7 @@ export const STAGES: readonly Stage[] = [
     tempSensitiveBaseSecs: 4 * 3600,
     durationLabelSuffix: " · 3–4 קיפולים",
     durationSeconds: 30 * 60,
+    timerOptionsSeconds: [15 * 60, 20 * 60, 30 * 60, 45 * 60],
     subSteps: 4,
     briefing: {
       heading: "כאן הלחם מקבל את האופי שלו",
@@ -205,6 +226,8 @@ export const STAGES: readonly Stage[] = [
     hint: "(pre-shape)",
     type: "check",
     durationLabel: "20–30 דקות",
+    durationSeconds: 25 * 60,
+    timerOptionsSeconds: [20 * 60, 25 * 60, 30 * 60],
     youtubeId: "IWA0RAAsBHg",
     videoCaption: "עיצוב כדור (boule) · The Perfect Loaf / Maurizio Leo",
     briefing: {
@@ -307,6 +330,7 @@ export const STAGES: readonly Stage[] = [
     type: "timer",
     durationLabel: "45 דקות",
     durationSeconds: 45 * 60,
+    timerOptionsSeconds: [30 * 60, 45 * 60, 60 * 60],
     briefing: {
       heading: "מחממים את התנור והסיר",
       blurb:
@@ -355,6 +379,7 @@ export const STAGES: readonly Stage[] = [
         ],
         durationLabel: "45–60 דקות",
         durationSeconds: 50 * 60,
+        timerOptionsSeconds: [45 * 60, 50 * 60, 60 * 60],
       },
       other: {
         briefing: {
@@ -384,6 +409,7 @@ export const STAGES: readonly Stage[] = [
         ],
         durationLabel: "30–60 דקות",
         durationSeconds: 45 * 60,
+        timerOptionsSeconds: [30 * 60, 45 * 60, 60 * 60],
         warning:
           "ודאו שכל הציוד שאתם משתמשים בו עמיד לחום של 250°C. מתכת (נירוסטה) או קרמיקה איכותית בטוחות. זכוכית רגילה תיסדק. פלסטיק יימס.",
       },
@@ -399,6 +425,7 @@ export const STAGES: readonly Stage[] = [
     videoCaption: "טכניקת חריצה · The Perfect Loaf / Maurizio Leo",
     durationLabel: "20 דקות",
     durationSeconds: 20 * 60,
+    timerOptionsSeconds: [20 * 60, 22 * 60, 25 * 60],
     briefing: {
       heading: "20 דקות בסיר סגור",
       blurb:
@@ -476,6 +503,7 @@ export const STAGES: readonly Stage[] = [
       "לחם בסיר ברזל יצוק בסוף האפייה — קרום חום-זהוב עמוק, ׳אוזן׳ כהה שנפתחה לאורך החריצה ושלפוחיות קטנות",
     durationLabel: "20–22 דקות",
     durationSeconds: 22 * 60,
+    timerOptionsSeconds: [20 * 60, 22 * 60, 25 * 60, 30 * 60],
     briefing: {
       heading: "מסירים את המכסה — צבע וקרום",
       blurb:
@@ -548,6 +576,7 @@ export const STAGES: readonly Stage[] = [
     type: "timer",
     durationLabel: "שעה",
     durationSeconds: 60 * 60,
+    timerOptionsSeconds: [60 * 60, 90 * 60, 120 * 60],
     briefing: {
       heading: "סבלנות — שעת קירור על רשת",
       blurb:

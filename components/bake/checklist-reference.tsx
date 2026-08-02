@@ -9,6 +9,7 @@ export interface ChecklistReferenceProps {
   imageWidth?: number;
   imageHeight?: number;
   transition?: string;
+  transitionHeading?: string;
 }
 
 /**
@@ -26,6 +27,7 @@ export function ChecklistReference({
   imageWidth = 1408,
   imageHeight = 768,
   transition,
+  transitionHeading,
 }: ChecklistReferenceProps) {
   if (items.length === 0) return null;
   return (
@@ -52,9 +54,16 @@ export function ChecklistReference({
         ))}
       </ul>
       {transition && (
-        <div className="mt-4 flex items-start gap-2 border-t border-line-2 pt-4">
-          <ArrowLeft size={17} className="mt-0.5 shrink-0 text-accent" aria-hidden />
-          <p className="text-body font-medium leading-relaxed text-ink">{transition}</p>
+        <div className="mt-4 border-t border-line/60 pt-4">
+          {transitionHeading && (
+            <h4 className="text-body font-semibold leading-relaxed text-ink">
+              {transitionHeading}
+            </h4>
+          )}
+          <p className={`flex items-start gap-2 text-body font-medium leading-relaxed text-ink ${transitionHeading ? "mt-2" : ""}`}>
+            <ArrowLeft size={18} className="mt-0.5 shrink-0 text-accent" aria-hidden />
+            <span>{transition}</span>
+          </p>
         </div>
       )}
     </section>

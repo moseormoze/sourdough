@@ -46,6 +46,50 @@ describe("OptionalTimer", () => {
     expect(onStart).toHaveBeenCalledOnce();
   });
 
+  it("shows a native duration select in idle and reports a new choice", () => {
+    const onDurationChange = vi.fn();
+    render(
+      <OptionalTimer
+        durationSeconds={45 * 60}
+        recommendedDurationSeconds={45 * 60}
+        durationOptionsSeconds={[30 * 60, 45 * 60, 60 * 60]}
+        startedAt={null}
+        elapsedSeconds={0}
+        onDurationChange={onDurationChange}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+
+    const select = screen.getByRole("combobox", { name: "משך הטיימר" });
+    expect(select).toHaveClass("min-h-touch");
+    expect(select).toHaveValue(String(45 * 60));
+    expect(screen.getByRole("option", { name: "45 דקות — מומלץ" })).toBeInTheDocument();
+
+    fireEvent.change(select, { target: { value: String(60 * 60) } });
+    expect(onDurationChange).toHaveBeenCalledWith(60 * 60);
+  });
+
+  it("hides the duration select once the timer is no longer idle", () => {
+    render(
+      <OptionalTimer
+        durationSeconds={120}
+        recommendedDurationSeconds={120}
+        durationOptionsSeconds={[60, 120, 180]}
+        startedAt={Date.now()}
+        elapsedSeconds={0}
+        onDurationChange={noop}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+    expect(screen.queryByRole("combobox", { name: "משך הטיימר" })).not.toBeInTheDocument();
+  });
+
   it("renders MM:SS countdown and pause + reset buttons while running", () => {
     render(
       <OptionalTimer

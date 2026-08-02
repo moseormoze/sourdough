@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { StageScreen } from "./stage-screen";
 import { getStage } from "@/lib/data/stages";
 import { routerMock } from "../../vitest.setup";
@@ -12,7 +12,6 @@ function makeApi() {
     advanceSubStep: vi.fn(),
     startTimer: vi.fn(),
     setTimerDuration: vi.fn(),
-    setTimerRemaining: vi.fn(),
     pauseTimer: vi.fn(),
     resumeTimer: vi.fn(),
     resetTimer: vi.fn(),
@@ -108,12 +107,14 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText(/קמח מלא/)).toBeInTheDocument();
   });
 
-  it("stage 2 renders the compact pilot path without the old AI image", () => {
+  it("stage 2 renders the approved T2 path without the old AI image", () => {
     const stage = getStage(2)!;
     render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
 
-    expect(screen.getByRole("region", { name: "מטרת השלב" })).toBeInTheDocument();
-    expect(screen.getByText(/עכשיו עוברים ללישה ומוסיפים את השאור/)).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "מה זה?" })).toBeInTheDocument();
+    expect(screen.getByText("מה עושים עכשיו?")).toBeInTheDocument();
+    expect(screen.getByText("איך יודעים מתי לעצור את הערבוב?")).toBeInTheDocument();
+    expect(screen.getByText("מה עושים בשלב הבא?")).toBeInTheDocument();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 
@@ -143,10 +144,10 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText("מתי להמשיך לשלב הבא")).toBeInTheDocument();
   });
 
-  it("stage 2 checklist has title 'מתי להמשיך לשלב הבא'", () => {
+  it("stage 2 checklist has the approved T2 title", () => {
     const stage = getStage(2)!;
     render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
-    expect(screen.getByText("מתי להמשיך לשלב הבא")).toBeInTheDocument();
+    expect(screen.getByText("מתי ממשיכים לשלב הבא?")).toBeInTheDocument();
   });
 
   it("stage 1 check reads 'לפחות הוכפל בנפח'", () => {
@@ -155,29 +156,20 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText("השאור לפחות הוכפל בנפח")).toBeInTheDocument();
   });
 
-  it("stage 2 does NOT show the generic levain timer", () => {
-    const stage = getStage(2)!;
-    render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
-    expect(screen.queryByRole("button", { name: "התחל טיימר" })).not.toBeInTheDocument();
-  });
-
-  it("stage 2 shows the configurable Autolysis timer", () => {
+  it("stage 2 uses the shared timer with only 30, 45, and 60 minute choices", () => {
     const stage = getStage(2)!;
     const api = makeApi();
     render(<StageScreen stage={stage} activeBake={makeBake(2)} api={api} />);
-
-    fireEvent.click(screen.getByRole("button", { name: "הפעל טיימר" }));
-    const dialog = screen.getByRole("dialog", { name: "בחירת זמן" });
-    fireEvent.click(within(dialog).getByRole("button", { name: "הפעל טיימר" }));
-    expect(api.startTimer).toHaveBeenCalledWith(45 * 60);
-  });
-
-  it("does not show the Autolysis timer on other stages", () => {
-    const stage = getStage(3)!;
-    render(<StageScreen stage={stage} activeBake={makeBake(3)} api={makeApi()} />);
-    expect(
-      screen.queryByRole("button", { name: "הפעל טיימר" })
-    ).not.toBeInTheDocument();
+    const select = screen.getByRole("combobox", { name: "משך הטיימר" });
+    expect(select).toHaveValue(String(45 * 60));
+    expect(screen.getAllByRole("option").map((option) => option.getAttribute("value"))).toEqual([
+      String(30 * 60),
+      String(45 * 60),
+      String(60 * 60),
+    ]);
+    expect(screen.getByRole("option", { name: "45 דקות — מומלץ" })).toBeInTheDocument();
+    fireEvent.change(select, { target: { value: String(30 * 60) } });
+    expect(api.setTimerDuration).toHaveBeenCalledWith(30 * 60);
   });
 
   it("primary action moves to next stage", () => {
@@ -204,6 +196,47 @@ describe("StageScreen — basic stage", () => {
     fireEvent.click(screen.getByRole("button", { name: /^חזרה$/ }));
     expect(api.advanceTo).toHaveBeenCalledWith(2);
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/2");
+  });
+});
+
+describe("StageScreen — configurable wait timers", () => {
+  it.each([1, 2, 4, 5, 7, 8, 9, 10, 11])("stage %i shows a duration selector", (n) => {
+    render(<StageScreen stage={getStage(n)!} activeBake={makeBake(n)} api={makeApi()} />);
+    expect(screen.getByRole("combobox", { name: "משך הטיימר" })).toBeInTheDocument();
+  });
+
+  it.each([3, 6, 12])("stage %i does not show a timer", (n) => {
+    render(<StageScreen stage={getStage(n)!} activeBake={makeBake(n)} api={makeApi()} />);
+    expect(screen.queryByRole("combobox", { name: "משך הטיימר" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /התחל טיימר/ })).not.toBeInTheDocument();
+  });
+
+  it("uses the planned cold-retard duration as stage 7's recommended default", () => {
+    render(
+      <StageScreen
+        stage={getStage(7)!}
+        activeBake={makeBake(7, { retardHours: 16 })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByRole("combobox", { name: "משך הטיימר" })).toHaveValue(
+      String(16 * 60 * 60)
+    );
+    expect(screen.getByRole("option", { name: "16 שעות — מומלץ" })).toBeInTheDocument();
+  });
+
+  it("uses the method-specific timer choices for oven preheating", () => {
+    render(
+      <StageScreen
+        stage={getStage(8)!}
+        activeBake={makeBake(8, { bakingMethod: "open-with-steam" })}
+        api={makeApi()}
+      />
+    );
+    expect(screen.getByRole("combobox", { name: "משך הטיימר" })).toHaveValue(
+      String(50 * 60)
+    );
+    expect(screen.getByRole("option", { name: "50 דקות — מומלץ" })).toBeInTheDocument();
   });
 });
 
