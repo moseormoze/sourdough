@@ -108,6 +108,15 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText(/קמח מלא/)).toBeInTheDocument();
   });
 
+  it("stage 2 renders the compact pilot path without the old AI image", () => {
+    const stage = getStage(2)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
+
+    expect(screen.getByRole("region", { name: "מטרת השלב" })).toBeInTheDocument();
+    expect(screen.getByText(/עכשיו עוברים ללישה ומוסיפים את השאור/)).toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+
   it("stage 3 renders salt as a bolded number", () => {
     const stage = getStage(3)!;
     render(<StageScreen stage={stage} activeBake={makeBake(3)} api={makeApi()} />);

@@ -35,11 +35,15 @@ describe("STAGES data", () => {
     expect(getStage(12)?.type).toBe("done");
   });
 
-  it("every stage has Hebrew briefing with heading + blurb + takeaways", () => {
+  it("every stage has a Hebrew briefing; only the Autolysis pilot omits takeaways", () => {
     for (const s of STAGES) {
       expect(s.briefing.heading.length).toBeGreaterThan(0);
       expect(s.briefing.blurb.length).toBeGreaterThan(0);
-      expect(s.briefing.takeaways.length).toBeGreaterThan(0);
+      if (s.n === 2) {
+        expect(s.briefing.takeaways).toEqual([]);
+      } else {
+        expect(s.briefing.takeaways.length).toBeGreaterThan(0);
+      }
     }
   });
 
@@ -145,6 +149,44 @@ describe("STAGES data", () => {
   it("other variant at stage 8 includes a safety warning", () => {
     const stage = getStage(8)!;
     expect(stage.byMethod?.["other"]?.warning).toMatch(/250°C/);
+  });
+});
+
+describe("stage 2 — Autolysis content-layers pilot main path", () => {
+  const stage = () => getStage(2)!;
+
+  it("has one purpose, exactly four actions, and no redundant tip", () => {
+    expect(stage().briefing).toEqual({
+      heading: "מטרת השלב",
+      blurb:
+        "לתת לקמח לספוג את המים ולהתחיל להתארגן, כדי שהערבוב בשלב הבא יהיה קל ואחיד יותר.",
+      takeaways: [],
+    });
+    expect(stage().todo?.steps).toEqual([
+      "שקלו {mixFlourBreakdown} לקערה גדולה.",
+      "הוסיפו {autolyseWaterGrams} מים. שקלו בנפרד {saltReserveWaterGrams} מים ושמרו לשלב הבא.",
+      "ערבבו ביד או בכף רק עד שכל הקמח רטוב ואין כיסים יבשים. לא לשים; הבצק אמור להישאר גס.",
+      "כסו את הקערה במכסה, מגבת לחה או ניילון נצמד, כדי שפני הבצק לא יתייבשו, והניחו בטמפרטורת החדר 30–60 דקות.",
+    ]);
+    expect(stage().todo?.tip).toBeUndefined();
+  });
+
+  it("has exactly three observable signs and one immediate transition", () => {
+    expect(stage().checks).toEqual([
+      "אין כיסי קמח יבש",
+      "הבצק רך ונמתח מעט יותר בקלות",
+      "המרקם נראה מעט אחיד יותר, אבל עדיין יכול להיות גס ודביק",
+    ]);
+    expect(stage().transition).toBe(
+      "עכשיו עוברים ללישה ומוסיפים את השאור, המלח והמים ששמרתם — אין זמן המתנה נוסף."
+    );
+  });
+
+  it("removes the AI image from stage 2 without changing neighboring stage media", () => {
+    expect(stage().imageUrl).toBeUndefined();
+    expect(stage().imageAlt).toBeUndefined();
+    expect(getStage(1)?.imageUrl).toBe("/stages/1-levain.png");
+    expect(getStage(3)?.imageUrl).toBe("/stages/3-mixed-dough.png");
   });
 });
 

@@ -42,4 +42,16 @@ describe("ChecklistReference", () => {
     const { container } = render(<ChecklistReference items={["בועות"]} />);
     expect(container.querySelector("img")).toBeNull();
   });
+
+  it("renders an optional non-interactive transition after the signs", () => {
+    render(
+      <ChecklistReference
+        items={["אין כיסי קמח יבש"]}
+        transition="עכשיו עוברים ללישה ומוסיפים את השאור"
+      />
+    );
+    expect(screen.getByText("עכשיו עוברים ללישה ומוסיפים את השאור")).toBeInTheDocument();
+    expect(screen.queryAllByRole("button")).toHaveLength(0);
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+  });
 });
