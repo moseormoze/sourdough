@@ -16,6 +16,10 @@ import { OptionalTimer } from "./optional-timer";
 import { SafetyWarning } from "./safety-warning";
 import { StageCelebration } from "./stage-celebration";
 import { StageMedia } from "./stage-media";
+import {
+  AutolyseTimer,
+  DEFAULT_AUTOLYSE_DURATION_SECONDS,
+} from "./autolyse-timer";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
 import { getRescue } from "@/lib/data/rescue";
 import { computeBakeQuantities } from "@/lib/bake-math";
@@ -32,6 +36,7 @@ export interface StageScreenProps {
     | "advanceTo"
     | "advanceSubStep"
     | "setDoughTemp"
+    | "setTimerRemaining"
     | "startTimer"
     | "pauseTimer"
     | "resumeTimer"
@@ -133,6 +138,21 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             tip={todoData.tip}
             note={stage.todoNote}
             quantities={quantities}
+          />
+        )}
+
+        {stage.n === 2 && (
+          <AutolyseTimer
+            durationSeconds={
+              activeBake.timerDurationSeconds ?? DEFAULT_AUTOLYSE_DURATION_SECONDS
+            }
+            startedAt={activeBake.timerStartedAt}
+            elapsedSeconds={activeBake.timerElapsedSeconds}
+            onStart={(durationSeconds) => api.startTimer(durationSeconds)}
+            onPause={api.pauseTimer}
+            onResume={api.resumeTimer}
+            onReset={api.resetTimer}
+            onSetRemaining={api.setTimerRemaining}
           />
         )}
 
@@ -292,4 +312,3 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     </>
   );
 }
-

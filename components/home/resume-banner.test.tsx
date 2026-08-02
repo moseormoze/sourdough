@@ -26,6 +26,7 @@ const activeBake: ActiveBake = {
   subStep: 0,
   timerStartedAt: null,
   timerElapsedSeconds: 0,
+  timerDurationSeconds: null,
   bakingMethod: "closed-vessel",
   feedAt: null,
   peakAt: null,

@@ -62,6 +62,24 @@ describe("ActiveBakeSchema — timerElapsedSeconds", () => {
   });
 });
 
+describe("ActiveBakeSchema — timerDurationSeconds", () => {
+  it("defaults to null when missing from a legacy active bake", () => {
+    const parsed = ActiveBakeSchema.parse(baseBake);
+    expect(parsed.timerDurationSeconds).toBeNull();
+  });
+
+  it("accepts a positive duration", () => {
+    const parsed = ActiveBakeSchema.parse({ ...baseBake, timerDurationSeconds: 2700 });
+    expect(parsed.timerDurationSeconds).toBe(2700);
+  });
+
+  it("rejects a zero duration", () => {
+    expect(() =>
+      ActiveBakeSchema.parse({ ...baseBake, timerDurationSeconds: 0 })
+    ).toThrow();
+  });
+});
+
 describe("ActiveBakeSchema — feedRatio (T4)", () => {
   it("defaults to 2 (1:2:2) when missing — backwards compatible with old saves", () => {
     const parsed = ActiveBakeSchema.parse(baseBake);
