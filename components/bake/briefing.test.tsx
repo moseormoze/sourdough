@@ -22,6 +22,14 @@ describe("Briefing", () => {
     expect(items[0]).toHaveTextContent("נקודה ראשונה");
   });
 
+  it("renders no empty list when a compact briefing has no takeaways", () => {
+    const { container } = render(
+      <Briefing briefing={{ ...sample, takeaways: [] }} />
+    );
+    expect(container.querySelector("ul")).toBeNull();
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+  });
+
   it("section has aria-label matching the heading", () => {
     render(<Briefing briefing={sample} />);
     expect(screen.getByLabelText(sample.heading)).toBeInTheDocument();

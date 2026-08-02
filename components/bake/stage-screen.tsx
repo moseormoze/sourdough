@@ -16,6 +16,10 @@ import { OptionalTimer } from "./optional-timer";
 import { SafetyWarning } from "./safety-warning";
 import { StageCelebration } from "./stage-celebration";
 import { StageMedia } from "./stage-media";
+import {
+  AutolyseTimer,
+  DEFAULT_AUTOLYSE_DURATION_SECONDS,
+} from "./autolyse-timer";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
 import { getRescue } from "@/lib/data/rescue";
 import { computeBakeQuantities } from "@/lib/bake-math";
@@ -32,6 +36,7 @@ export interface StageScreenProps {
     | "advanceTo"
     | "advanceSubStep"
     | "setDoughTemp"
+    | "setTimerRemaining"
     | "startTimer"
     | "pauseTimer"
     | "resumeTimer"
@@ -136,6 +141,21 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           />
         )}
 
+        {stage.n === 2 && (
+          <AutolyseTimer
+            durationSeconds={
+              activeBake.timerDurationSeconds ?? DEFAULT_AUTOLYSE_DURATION_SECONDS
+            }
+            startedAt={activeBake.timerStartedAt}
+            elapsedSeconds={activeBake.timerElapsedSeconds}
+            onStart={(durationSeconds) => api.startTimer(durationSeconds)}
+            onPause={api.pauseTimer}
+            onResume={api.resumeTimer}
+            onReset={api.resetTimer}
+            onSetRemaining={api.setTimerRemaining}
+          />
+        )}
+
         {stage.type === "bulk" && typeof stage.subSteps === "number" && (
           <section className="rounded-2xl bg-paper shadow-sm p-5">
             <h3 className="text-heading text-ink">קיפולים</h3>
@@ -207,6 +227,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             imageAlt={stage.checkImageAlt}
             imageWidth={stage.checkImageWidth}
             imageHeight={stage.checkImageHeight}
+            transition={stage.transition}
           />
         )}
 
@@ -292,4 +313,3 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     </>
   );
 }
-

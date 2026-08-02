@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { StageScreen } from "./stage-screen";
 import { getStage } from "@/lib/data/stages";
 import { routerMock } from "../../vitest.setup";
@@ -11,6 +11,8 @@ function makeApi() {
     advanceTo: vi.fn(),
     advanceSubStep: vi.fn(),
     startTimer: vi.fn(),
+    setTimerDuration: vi.fn(),
+    setTimerRemaining: vi.fn(),
     pauseTimer: vi.fn(),
     resumeTimer: vi.fn(),
     resetTimer: vi.fn(),
@@ -41,6 +43,7 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
     subStep: 0,
     timerStartedAt: null,
     timerElapsedSeconds: 0,
+    timerDurationSeconds: null,
     bakingMethod: "closed-vessel",
     feedAt: null,
     peakAt: null,
@@ -105,6 +108,15 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText(/קמח מלא/)).toBeInTheDocument();
   });
 
+  it("stage 2 renders the compact pilot path without the old AI image", () => {
+    const stage = getStage(2)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
+
+    expect(screen.getByRole("region", { name: "מטרת השלב" })).toBeInTheDocument();
+    expect(screen.getByText(/עכשיו עוברים ללישה ומוסיפים את השאור/)).toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+
   it("stage 3 renders salt as a bolded number", () => {
     const stage = getStage(3)!;
     render(<StageScreen stage={stage} activeBake={makeBake(3)} api={makeApi()} />);
@@ -143,10 +155,29 @@ describe("StageScreen — basic stage", () => {
     expect(screen.getByText("השאור לפחות הוכפל בנפח")).toBeInTheDocument();
   });
 
-  it("stage 2 does NOT show a levain timer", () => {
+  it("stage 2 does NOT show the generic levain timer", () => {
     const stage = getStage(2)!;
     render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
-    expect(screen.queryByRole("button", { name: /התחל טיימר/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "התחל טיימר" })).not.toBeInTheDocument();
+  });
+
+  it("stage 2 shows the configurable Autolysis timer", () => {
+    const stage = getStage(2)!;
+    const api = makeApi();
+    render(<StageScreen stage={stage} activeBake={makeBake(2)} api={api} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "הפעל טיימר" }));
+    const dialog = screen.getByRole("dialog", { name: "בחירת זמן" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "הפעל טיימר" }));
+    expect(api.startTimer).toHaveBeenCalledWith(45 * 60);
+  });
+
+  it("does not show the Autolysis timer on other stages", () => {
+    const stage = getStage(3)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(3)} api={makeApi()} />);
+    expect(
+      screen.queryByRole("button", { name: "הפעל טיימר" })
+    ).not.toBeInTheDocument();
   });
 
   it("primary action moves to next stage", () => {

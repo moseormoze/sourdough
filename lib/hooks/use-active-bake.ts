@@ -20,7 +20,9 @@ export interface UseActiveBakeApi {
   advanceTo: (stage: number) => void;
   advanceSubStep: () => void;
   setDoughTemp: (tempC: number | null) => void;
-  startTimer: () => void;
+  setTimerDuration: (durationSeconds: number) => void;
+  setTimerRemaining: (durationSeconds: number) => void;
+  startTimer: (durationSeconds?: number) => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
   resetTimer: () => void;
@@ -55,6 +57,7 @@ export function useActiveBake(): UseActiveBakeApi {
         subStep: 0,
         timerStartedAt: null,
         timerElapsedSeconds: 0,
+        timerDurationSeconds: null,
         bakingMethod,
         feedAt: feedAt ? feedAt.getTime() : null,
         peakAt: peakAt ? peakAt.getTime() : null,
@@ -89,6 +92,7 @@ export function useActiveBake(): UseActiveBakeApi {
         subStep: 0,
         timerStartedAt: null,
         timerElapsedSeconds: 0,
+        timerDurationSeconds: null,
       };
       saveActiveBake(next);
       track("stage_advanced", { from: current.currentStage, to: stage });
@@ -126,13 +130,40 @@ export function useActiveBake(): UseActiveBakeApi {
     });
   }, []);
 
-  const startTimer = useCallback(() => {
+  const setTimerDuration = useCallback((durationSeconds: number) => {
+    setActiveBake((current) => {
+      if (!current) return current;
+      const next: ActiveBake = {
+        ...current,
+        timerDurationSeconds: durationSeconds,
+      };
+      saveActiveBake(next);
+      return next;
+    });
+  }, []);
+
+  const setTimerRemaining = useCallback((durationSeconds: number) => {
+    setActiveBake((current) => {
+      if (!current) return current;
+      const next: ActiveBake = {
+        ...current,
+        timerDurationSeconds: durationSeconds,
+        timerElapsedSeconds: 0,
+        timerStartedAt: current.timerStartedAt === null ? null : Date.now(),
+      };
+      saveActiveBake(next);
+      return next;
+    });
+  }, []);
+
+  const startTimer = useCallback((durationSeconds?: number) => {
     setActiveBake((current) => {
       if (!current) return current;
       const next: ActiveBake = {
         ...current,
         timerStartedAt: Date.now(),
         timerElapsedSeconds: 0,
+        timerDurationSeconds: durationSeconds ?? current.timerDurationSeconds,
       };
       saveActiveBake(next);
       return next;
@@ -188,6 +219,8 @@ export function useActiveBake(): UseActiveBakeApi {
     advanceTo,
     advanceSubStep,
     setDoughTemp,
+    setTimerDuration,
+    setTimerRemaining,
     startTimer,
     pauseTimer,
     resumeTimer,
