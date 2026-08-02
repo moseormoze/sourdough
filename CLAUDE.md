@@ -1,6 +1,6 @@
 # Sourdough — Claude Orchestration Rules
 
-You are the single AI collaborator on this project, playing five distinct roles depending on the phase. The user is the sole decision-maker and reviewer.
+Several AI conversations may work in parallel. Each conversation owns one workstream; the user is the sole decision-maker and reviewer.
 
 ## Project Snapshot
 
@@ -40,9 +40,38 @@ Before responding to anything, read (in this order):
 4. `context/product-decisions.md` — locked product decisions
 5. `context/design-system.md` — visual & component standards
 6. `context/tech-stack.md` — technical stack and constraints
-7. `ui-playbook.md` — interaction quality principles (read before any UI work)
+7. `context/backlog.md` — strategic work order and future ideas
+8. `ui-playbook.md` — interaction quality principles (read before any UI work)
 
 Only skip this load when the user explicitly asks about something unrelated.
+
+**Resume first:** fetch the workstream's canonical GitHub Issue before doing anything
+else and state where it left off. Read `_resume.md` only when marked `UNSYNCED` as the
+fallback for a failed GitHub checkpoint.
+
+## GitHub Work Tracking
+
+The live backlog is [GitHub Issues](https://github.com/moseormoze/sourdough/issues).
+A GitHub Project may provide the board view, but Issues remain canonical.
+
+- **Issue:** live status, dependency, owner/workstream, branch/PR, last checkpoint,
+  next action, and blockers.
+- **Repository docs:** durable product decisions, approved scope, design, and task
+  contracts. No durable decision may live only in a conversation or Issue comment.
+- **Git branch/PR:** implementation and verification evidence. Link every PR to its
+  Issue; use `Closes #<issue>` when merge completes the task.
+- **`context/backlog.md`:** strategic sequence and future ideas only; never duplicate
+  live execution status there.
+
+At workstream start, fetch the Issue, verify it is ready, and record the conversation,
+branch, and worktree. Update it at every meaningful state change and checkpoint with
+completed work, commit/PR evidence, the single next action, blockers, and timestamp.
+One Issue may have only one active conversation/branch/worktree.
+
+A checkpoint is not cross-computer safe while code, docs, or status exist only locally.
+Update the Issue and, with explicit user authorization, commit and push the relevant
+branch. If GitHub is unavailable, write an `UNSYNCED` local `_resume.md` and state that
+GitHub sync is still required.
 
 ## The Five Roles
 
@@ -63,6 +92,8 @@ Discovery → PM Brief → Design → Task Breakdown → Engineer (per task) →
 ```
 
 **Hard rules:**
+- No project work starts or resumes without a canonical GitHub Issue.
+- Never let two conversations actively own the same Issue or branch.
 - Nothing graduates to the next phase without the user's explicit approval.
 - Discovery docs live in `specs/discovery/`. Features live in `specs/features/NN-name/`.
 - Every feature folder has: `brief.md`, `design.md`, `tasks.md`.
@@ -76,10 +107,12 @@ Features are numbered sequentially: `01-…`, `02-…`, etc. Number reflects pla
 
 ## Local Skills
 
-Three project skills exist under `.claude/skills/`:
+Project skills exist under `.claude/skills/`:
 - `new-feature` — scaffolds `specs/features/NN-<name>/` with `brief.md`/`design.md`/`tasks.md` templates and the next available number
 - `ui-playbook` — loads `ui-playbook.md` when starting any UI feature
 - `rtl-check` — scans for non-logical spacing (`ml-`/`mr-`/`left-`/`right-`), hard-coded English in JSX, missing icon mirroring, and missing `dir="rtl"`
+- `checkpoint` — syncs the live handoff to the canonical GitHub Issue and verifies
+  cross-computer safety before `/clear` or session end
 
 ## Code Standards
 
