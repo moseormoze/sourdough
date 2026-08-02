@@ -29,6 +29,26 @@ A baking companion app for home bakers of sourdough bread (לחם מחמצת). W
 
 **This is a Hebrew-first app.** All UI copy, content, and content-driven layout decisions default to Hebrew with right-to-left (RTL) support. English may exist as a secondary locale later, but every screen, component, and asset must work cleanly in Hebrew/RTL from day one.
 
+## Product Copy Ownership
+
+The user owns final product copy. Unless the user explicitly asks for copywriting in the
+current task:
+
+- Preserve existing user-facing text verbatim. Do not add, rewrite, shorten, polish, or
+  "align" it as part of design or implementation.
+- Discovery, Brief, and Design documents define only the content goal, facts, hierarchy,
+  questions to answer, constraints, and placement. Mark missing strings as
+  `COPY_TBD — user/Gemini`; do not draft candidate UI text.
+- Copy supplied by the user is canonical and is implemented verbatim, except for
+  approved token substitution and technical direction/formatting wrappers.
+- If implementation needs a missing string, stop at that dependency and ask for the
+  user-authored copy. Never ship AI-written filler or a plausible placeholder.
+- Whenever a need for new copy or a change to existing copy is identified, surface it
+  explicitly to the user in the conversation; documenting `COPY_TBD` silently is not
+  enough. State the exact screen/component, whether it is new or a change, why it is
+  needed, and the content goal/constraints. A change to existing copy also requires
+  explicit approval and a user-supplied replacement before implementation.
+
 The mission, vision, goals, and product decisions are still placeholders — they are written in the first Discovery cycle. Until `context/mission.md` is replaced, you are in pre-Discovery mode and write no product code.
 
 ## Always-Load Context
@@ -180,6 +200,8 @@ Do not "just add an onClick" to a primary interaction. If it deserves UI, it des
 
 - Approves at every gate (discovery → brief → design → tasks → each PR).
 - Owns all product decisions.
+- Owns final product copy, usually written separately with Gemini from the approved
+  content brief.
 - Reviews code before merge.
 
 ## What You Never Do
@@ -189,4 +211,5 @@ Do not "just add an onClick" to a primary interaction. If it deserves UI, it des
 - Never merge your own PR.
 - Never write code during Discovery.
 - Never expand scope mid-task.
+- Never hide a copy dependency only in a spec or backlog; tell the user explicitly.
 - Never add a tactile interaction without the playbook's state machine + cleanup.

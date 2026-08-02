@@ -1,36 +1,25 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { AUTOLYSE_KNOWLEDGE_ENTRIES } from "@/lib/data/stage-knowledge";
-import { StageKnowledgeHub } from "./stage-knowledge-hub";
+import { StageKnowledgeTrigger } from "./stage-knowledge-hub";
 
-describe("StageKnowledgeHub", () => {
-  it("renders the three full-row entries as accessible buttons", () => {
-    render(
-      <StageKnowledgeHub
-        entries={AUTOLYSE_KNOWLEDGE_ENTRIES}
-        onOpen={() => {}}
-      />,
-    );
+describe("StageKnowledgeTrigger", () => {
+  it("renders one direct, accessible entry to the guide", () => {
+    render(<StageKnowledgeTrigger onOpen={() => {}} />);
 
-    expect(screen.getByRole("heading", { name: "עוד על האוטוליזה" })).toBeInTheDocument();
-    const buttons = screen.getAllByRole("button");
-    expect(buttons).toHaveLength(3);
-    expect(buttons[0]).toHaveAccessibleName(/מה קורה לבצק בזמן המנוחה/);
-    expect(buttons[1]).toHaveAccessibleName(/שאלות נפוצות/);
-    expect(buttons[2]).toHaveAccessibleName(/משהו לא מסתדר/);
-
-    for (const button of buttons) {
-      expect(button).toHaveClass("min-h-cta");
-      expect(button.className).toContain("focus-visible:ring-2");
-    }
+    const button = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(button).toHaveClass("min-h-touch");
+    expect(button.className).toContain("focus-visible:ring-2");
+    expect(button.querySelector("svg")).toHaveClass("lucide-graduation-cap");
+    expect(button.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(screen.queryByText("שאלות נפוצות")).not.toBeInTheDocument();
+    expect(screen.queryByText("משהו לא מסתדר?")).not.toBeInTheDocument();
   });
 
   it("opens exactly once after a tap", () => {
     const onOpen = vi.fn();
-    render(
-      <StageKnowledgeHub entries={AUTOLYSE_KNOWLEDGE_ENTRIES} onOpen={onOpen} />,
-    );
-    const button = screen.getByRole("button", { name: /מה קורה לבצק בזמן המנוחה/ });
+    render(<StageKnowledgeTrigger onOpen={onOpen} />);
+    const button = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
 
     fireEvent.pointerDown(button, { pointerId: 1, clientX: 10, clientY: 10 });
     expect(button).toHaveClass("scale-[0.965]");
@@ -38,48 +27,24 @@ describe("StageKnowledgeHub", () => {
     fireEvent.click(button, { detail: 1 });
 
     expect(onOpen).toHaveBeenCalledOnce();
-    expect(onOpen).toHaveBeenCalledWith("learn");
     expect(button).not.toHaveClass("scale-[0.965]");
   });
 
-  it("lets the native button open from keyboard activation", () => {
+  it("opens from native keyboard activation", () => {
     const onOpen = vi.fn();
-    render(
-      <StageKnowledgeHub entries={AUTOLYSE_KNOWLEDGE_ENTRIES} onOpen={onOpen} />,
-    );
+    render(<StageKnowledgeTrigger onOpen={onOpen} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /שאלות נפוצות/ }), {
+    fireEvent.click(screen.getByRole("button", { name: "הסבר על אוטוליזה" }), {
       detail: 0,
     });
 
     expect(onOpen).toHaveBeenCalledOnce();
-    expect(onOpen).toHaveBeenCalledWith("faq");
-  });
-
-  it("opens a different row when blur from the previously focused row arrives mid-press", () => {
-    const onOpen = vi.fn();
-    render(
-      <StageKnowledgeHub entries={AUTOLYSE_KNOWLEDGE_ENTRIES} onOpen={onOpen} />,
-    );
-    const learn = screen.getByRole("button", { name: /מה קורה לבצק בזמן המנוחה/ });
-    const faq = screen.getByRole("button", { name: /שאלות נפוצות/ });
-    learn.focus();
-
-    fireEvent.pointerDown(faq, { pointerId: 1, clientX: 0, clientY: 0 });
-    fireEvent.blur(learn);
-    fireEvent.pointerUp(faq, { pointerId: 1, clientX: 0, clientY: 0 });
-    fireEvent.click(faq, { detail: 1 });
-
-    expect(onOpen).toHaveBeenCalledOnce();
-    expect(onOpen).toHaveBeenCalledWith("faq");
   });
 
   it("suppresses opening when pointer movement exceeds 5px", () => {
     const onOpen = vi.fn();
-    render(
-      <StageKnowledgeHub entries={AUTOLYSE_KNOWLEDGE_ENTRIES} onOpen={onOpen} />,
-    );
-    const button = screen.getByRole("button", { name: /משהו לא מסתדר/ });
+    render(<StageKnowledgeTrigger onOpen={onOpen} />);
+    const button = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
 
     fireEvent.pointerDown(button, { pointerId: 1, clientX: 10, clientY: 10 });
     fireEvent.pointerMove(button, { pointerId: 1, clientX: 10, clientY: 16 });
@@ -94,10 +59,8 @@ describe("StageKnowledgeHub", () => {
     "cleans press state and does not open after %s",
     (eventName) => {
       const onOpen = vi.fn();
-      render(
-        <StageKnowledgeHub entries={AUTOLYSE_KNOWLEDGE_ENTRIES} onOpen={onOpen} />,
-      );
-      const button = screen.getByRole("button", { name: /שאלות נפוצות/ });
+      render(<StageKnowledgeTrigger onOpen={onOpen} />);
+      const button = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
 
       fireEvent.pointerDown(button, { pointerId: 1, clientX: 0, clientY: 0 });
       if (eventName === "pointerCancel") {

@@ -22,13 +22,20 @@ describe("strings — flour labels", () => {
 });
 
 describe("strings — stage knowledge", () => {
-  it("keeps the autolyse hub and sheet labels in the shared Hebrew string catalog", () => {
-    expect(strings.bake.stageKnowledge).toEqual({
-      hubTitle: "עוד על האוטוליזה",
-      faqTitle: "שאלות נפוצות",
-      troubleshootingTitle: "אבחון מהיר",
-      signsHeading: "מה רואים",
-      actionsHeading: "מה עושים עכשיו",
+  it("keeps the approved autolyse guide copy in the shared Hebrew string catalog", () => {
+    const knowledge = strings.bake.stageKnowledge;
+
+    expect(knowledge.trigger).toBe("הסבר על אוטוליזה");
+    expect(knowledge.calibration).toEqual({
+      before: "מיד אחרי הערבוב – הבצק עדיין גס ולא אחיד.",
+      after: "אחרי המנוחה – הבצק מחובר יותר ונמתח בקלות רבה יותר.",
+      caveat:
+        "המראה תלוי בקמח ובהידרציה; השוו את הבצק לעצמו בתחילת המנוחה, לא למראה קבוע אחד.",
     });
+    expect(knowledge.guide.title).toBe("להבין את הבצק");
+    expect(knowledge.guide.recipeContext.guidance).toHaveProperty("generic");
+    expect(knowledge.guide.recipeContext.guidance).not.toHaveProperty("white");
+    expect(knowledge).not.toHaveProperty("faqTitle");
+    expect(knowledge).not.toHaveProperty("troubleshootingTitle");
   });
 });

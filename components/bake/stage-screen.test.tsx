@@ -208,38 +208,63 @@ describe("StageScreen — basic stage", () => {
 });
 
 describe("StageScreen — stage knowledge pilot", () => {
-  it("shows the knowledge hub only on stage 2", () => {
+  it("shows the single guide trigger only on stage 2", () => {
     const { rerender } = render(
       <StageScreen stage={getStage(1)!} activeBake={makeBake(1)} api={makeApi()} />,
     );
-    expect(screen.queryByText("עוד על האוטוליזה")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "הסבר על אוטוליזה" })).not.toBeInTheDocument();
 
     rerender(
       <StageScreen stage={getStage(2)!} activeBake={makeBake(2)} api={makeApi()} />,
     );
-    expect(screen.getByRole("heading", { name: "עוד על האוטוליזה" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "הסבר על אוטוליזה" })).toBeInTheDocument();
+    expect(screen.queryByText("שאלות נפוצות")).not.toBeInTheDocument();
+    expect(screen.queryByText("משהו לא מסתדר?")).not.toBeInTheDocument();
 
     rerender(
       <StageScreen stage={getStage(3)!} activeBake={makeBake(3)} api={makeApi()} />,
     );
-    expect(screen.queryByText("עוד על האוטוליזה")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "הסבר על אוטוליזה" })).not.toBeInTheDocument();
   });
 
-  it("opens one knowledge sheet without changing bake or timer actions", () => {
+  it("places calibration between the locked instructions and the timer", () => {
+    render(
+      <StageScreen stage={getStage(2)!} activeBake={makeBake(2)} api={makeApi()} />,
+    );
+
+    const instructions = screen.getByRole("heading", { name: "מה לעשות" }).closest("section");
+    const calibration = screen.getByTestId("autolyse-calibration");
+    const timer = screen.getByRole("heading", { name: "זמן האוטוליזה" }).closest("section");
+
+    expect(instructions).not.toBeNull();
+    expect(timer).not.toBeNull();
+    expect(
+      instructions!.compareDocumentPosition(calibration) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      calibration.compareDocumentPosition(timer!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.getByText("מיד אחרי הערבוב – הבצק עדיין גס ולא אחיד.")).toBeInTheDocument();
+    expect(
+      screen.getByText("אחרי המנוחה – הבצק מחובר יותר ונמתח בקלות רבה יותר."),
+    ).toBeInTheDocument();
+  });
+
+  it("opens one deep guide without changing bake or timer actions", () => {
     const api = makeApi();
     const activeBake = makeBake(2, {
       timerDurationSeconds: 45 * 60,
       timerElapsedSeconds: 120,
     });
     render(<StageScreen stage={getStage(2)!} activeBake={activeBake} api={api} />);
-    const trigger = screen.getByRole("button", { name: /שאלות נפוצות/ });
+    const trigger = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
 
     fireEvent.pointerDown(trigger, { pointerId: 1, clientX: 0, clientY: 0 });
     fireEvent.pointerUp(trigger, { pointerId: 1, clientX: 0, clientY: 0 });
     fireEvent.click(trigger, { detail: 1 });
 
     expect(screen.getAllByRole("dialog")).toHaveLength(1);
-    expect(screen.getByRole("heading", { name: "שאלות נפוצות" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "להבין את הבצק" })).toBeInTheDocument();
     expect(activeBake.currentStage).toBe(2);
     expect(api.advanceTo).not.toHaveBeenCalled();
     expect(api.startTimer).not.toHaveBeenCalled();
@@ -253,17 +278,43 @@ describe("StageScreen — stage knowledge pilot", () => {
     render(
       <StageScreen stage={getStage(2)!} activeBake={makeBake(2)} api={makeApi()} />,
     );
-    const trigger = screen.getByRole("button", { name: /מה קורה לבצק בזמן המנוחה/ });
+    const trigger = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
     trigger.focus();
     fireEvent.click(trigger, { detail: 0 });
 
     fireEvent.click(screen.getByRole("button", { name: "סגור" }));
-    expect(screen.getByText(/זו לא סתם המתנה/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/המטרה בשלב הזה היא לא לפתח את הבצק עד הסוף/),
+    ).toBeInTheDocument();
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument(), {
       timeout: 500,
     });
     expect(document.activeElement).toBe(trigger);
+  });
+
+  it("keeps all existing stage-2 main-path copy unchanged", () => {
+    const stage = getStage(2)!;
+    expect(stage.briefing).toEqual({
+      heading: "מטרת השלב",
+      blurb:
+        "לתת לקמח לספוג את המים ולהתחיל להתארגן, כדי שהערבוב בשלב הבא יהיה קל ואחיד יותר.",
+      takeaways: [],
+    });
+    expect(stage.todo?.steps).toEqual([
+      "שקלו {mixFlourBreakdown} לקערה גדולה.",
+      "הוסיפו {autolyseWaterGrams} מים. שקלו בנפרד {saltReserveWaterGrams} מים ושמרו לשלב הבא.",
+      "ערבבו ביד או בכף רק עד שכל הקמח רטוב ואין כיסים יבשים. לא לשים; הבצק אמור להישאר גס.",
+      "כסו את הקערה במכסה, מגבת לחה או ניילון נצמד, כדי שפני הבצק לא יתייבשו, והניחו בטמפרטורת החדר 30–60 דקות.",
+    ]);
+    expect(stage.checks).toEqual([
+      "אין כיסי קמח יבש",
+      "הבצק רך ונמתח מעט יותר בקלות",
+      "המרקם נראה מעט אחיד יותר, אבל עדיין יכול להיות גס ודביק",
+    ]);
+    expect(stage.transition).toBe(
+      "עכשיו עוברים ללישה ומוסיפים את השאור, המלח והמים ששמרתם — אין זמן המתנה נוסף.",
+    );
   });
 });
 
