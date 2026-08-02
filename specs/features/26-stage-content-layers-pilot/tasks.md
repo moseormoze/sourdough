@@ -32,19 +32,20 @@
 **Depends on:** אין.
 
 **Done when:**
-- [ ] branch נוצר לפני השינוי הראשון.
-- [ ] בדיקות המחווה החדשות נכתבו ונכשלו לפני המימוש.
-- [ ] state machine הוא `Idle → HandlePress → Drag → Dismiss|SnapBack → Idle` וכל
+- [x] branch נוצר לפני השינוי הראשון.
+- [x] בדיקות המחווה החדשות נכתבו ונכשלו לפני המימוש.
+- [x] state machine הוא `Idle → HandlePress → Drag → Dismiss|SnapBack → Idle` וכל
   ה-state מתנקה גם ב-cancel וב-unmount.
-- [ ] אין Framer Motion או dependency חדש; הפיזיקה היא CSS + pointer events.
-- [ ] כל בדיקות `BottomSheet` עוברות.
-- [ ] `npm run type-check` עובר.
+- [x] אין Framer Motion או dependency חדש; הפיזיקה היא CSS + pointer events.
+- [x] כל בדיקות `BottomSheet` עוברות.
+- [x] `npm run type-check` עובר.
 
 ### T2 — המסלול הראשי המזוקק של אוטוליזה
 
-**Goal:** להחליף בשלב 2 את הקופי הראשי במטרה אחת, ארבע פעולות, שלושה סימני המשך
-ומשפט מעבר; להסיר את הפניית תמונת ה-AI; ולהוסיף את שתי הרחבות הרינדור הקטנות
-שנדרשות בלי לשנות את יתר השלבים.
+**Goal:** להחליף בשלב 2 את הקופי הראשי בפסקת מטרה קצרה, חמש פעולות, callout אחרי
+הערבוב, קריטריון זמן והבהרה, וכותרת ומשפט מעבר; להסיר את הפניית תמונת ה-AI;
+להציג את הטיימר הקיים ל-45 דקות; ולהוסיף את הרחבות הרינדור הקטנות שנדרשות בלי
+לשנות את יתר השלבים.
 
 **Branch:** `codex/feature/26-stage-content-layers-pilot/T2-autolyse-main-path`
 
@@ -60,155 +61,71 @@
 
 **Test strategy:** חוזי data + component/integration tests. להתחיל בבדיקות נכשלות
 שמוכיחות:
-- שלב 2 מכיל בדיוק 0 takeaways, ‏4 פעולות, 3 סימנים ומשפט מעבר לא-ריק.
+- שלב 2 מכיל בדיוק 0 takeaways, ‏5 פעולות, callout אחרי פעולה 3, שני פריטי המשך
+  ומשפט מעבר לא-ריק עם כותרת.
 - הקופי הוא הקופי הסופי מ-`design.md`, כולל טוקני הכמויות הקיימים.
 - `Briefing` ללא takeaways אינו מרנדר `<ul>` או רווח ריק; שלב 1 עדיין מרנדר את
   רשימת ה-takeaways הקיימת.
-- `ChecklistReference` מציג transition רק כשה-prop קיים ונשאר לא-אינטראקטיבי.
+- `ChecklistReference` מציג transition וכותרת מעבר רק כשה-props קיימים ונשאר
+  לא-אינטראקטיבי.
 - `/stages/2-autolyse.png` אינו קיים עוד בנתוני שלב 2 ואינו מרונדר במסך.
-- שלבים 1 ו-3 שומרים את התוכן והמבנה הקיימים.
+- שלב 2 מציג את `OptionalTimer` הקיים עם ברירת מחדל של 45 דקות; שלב 3 נשאר ללא
+  טיימר עצמאי.
+- שלב 1 שומר את התוכן והמבנה הקיימים; בשלב 3 משתנה רק ניסוח שקילת יתרת המים.
 
 **Depends on:** T1 (ה-branch מתחיל מהמצב שאחרי מיזוג T1; אין תלות פונקציונלית).
 
 **Done when:**
-- [ ] branch נוצר לפני השינוי הראשון.
-- [ ] בדיקות המסלול הראשי נכתבו ונכשלו לפני המימוש.
-- [ ] כל הקופי נשמר ב-`lib/data/stages.ts`, לא hard-coded ב-JSX.
-- [ ] מנוע התזמון והאומדן של 45 דקות אינם משתנים.
-- [ ] הקובץ `public/stages/2-autolyse.png` אינו חייב להימחק; הוא פשוט אינו מיוחס
+- [x] branch נוצר לפני השינוי הראשון.
+- [x] בדיקות המסלול הראשי נכתבו ונכשלו לפני המימוש.
+- [x] כל הקופי נשמר ב-`lib/data/stages.ts`, לא hard-coded ב-JSX.
+- [x] מנוע התזמון והאומדן של 45 דקות אינם משתנים.
+- [x] הקובץ `public/stages/2-autolyse.png` אינו חייב להימחק; הוא פשוט אינו מיוחס
   או מרונדר בפיילוט.
-- [ ] הבדיקות הממוקדות עוברות ו-`npm run type-check` עובר.
+- [x] הטיימר הקיים מרונדר בשלב 2 עם 45 דקות ומחובר לפעולות הטיימר של הבייק.
+- [x] הבדיקות הממוקדות עוברות ו-`npm run type-check` עובר.
 
-### T3 — מודל ותוכן ההעמקה
+### T3 — שכבת הידע המלאה וחיבור לשלב 2
 
-**Goal:** להוסיף מודל תוכן סטטי ורב-שלבי לשימוש עתידי, אך לאכלס אותו רק לשלב 2
-עם חמשת מקטעי ההעמקה, חמש השאלות ושני תרחישי החילוץ שאושרו.
+**Goal:** לספק vertical slice שלם לשכבת הידע: מודל ותוכן סטטיים לשלב 2, כרטיס
+שלוש הכניסות, שלושת מצבי ה-`BottomSheet` והחיבור למסך האוטוליזה — בלי לחשוף את
+הארכיטקטורה בשלבים אחרים ובלי לשנות את מצב הבייק.
 
-**Branch:** `codex/feature/26-stage-content-layers-pilot/T3-stage-knowledge-data`
+**Branch:** `codex/feature/26-stage-content-layers-pilot/T3-stage-knowledge-pilot`
 
 **Files likely touched:**
-- `lib/data/stage-knowledge.ts`
-- `lib/data/stage-knowledge.test.ts`
-- `lib/strings.ts`
-- `lib/strings.test.ts`
+- `lib/data/stage-knowledge.ts` + test
+- `lib/strings.ts` + test
+- `components/bake/stage-knowledge-hub.tsx` + test
+- `components/bake/stage-knowledge-sheet.tsx` + test
+- `components/bake/stage-screen.tsx` + test
 
-**Test strategy:** unit/data-contract tests. להתחיל בבדיקות נכשלות שמוכיחות:
-- `getStageKnowledge(2)` מחזיר תוכן ויתר המספרים מחזירים `null`.
-- יש בדיוק 5 מקטעי learn, ‏5 FAQs ו-2 תרחישי troubleshooting.
-- לכל מקטע יש heading/body, לכל FAQ שאלה/תשובה ולכל תרחיש signs/actions לא-ריקים.
-- בכל תרחיש יש לפחות צעד קונקרטי אחד; אין placeholder או מחרוזת ריקה.
-- labels, descriptions וכותרות ה-Sheet נמצאים ב-`lib/strings.ts` ולא ברכיבי JSX.
-- טקסטי החובה: ״בלי שאור ומלח״, מגבלת הציפייה לחלקות/בועות, אי-הוספת קמח
-  ופעולת המעבר המיידית קיימים בחוזי התוכן.
+**Test strategy:** חוזי data, בדיקות רכיבים ובדיקות אינטגרציה. להתחיל בבדיקות
+נכשלות שמוכיחות:
+- רק `getStageKnowledge(2)` מחזיר תוכן: 5 מקטעי learn, ‏6 FAQs ו-2 תרחישי חילוץ
+  מלאים, עם הקופי הסופי והפעולות שאושרו.
+- ה-Hub מציג שלושה `<button>` נגישים; tap/מקלדת פותחים פעם אחת, בעוד תנועה מעל
+  5px, ‏cancel או blur מנקים press ואינם פותחים.
+- כל שורה היא יעד של 56px לפחות עם press feedback, ‏focus-visible ו-RTL לוגי.
+- ה-Sheet מציג kind יחיד בכל פעם בגובה full, ללא אקורדיונים, media או dialog
+  מקונן; הטווחים המספריים נשמרים ב-LTR.
+- רק שלב 2 מציג Hub; פתיחה וסגירה מחזירות focus לטריגר, שומרות את התוכן בזמן
+  exit ואינן משנות `activeBake`, ‏`currentStage`, טיימרים או פעולות ניווט.
+- שלבים 1 ו-3–12 אינם מציגים את שכבת הידע; המדיה והתוכן שלהם נשארים ללא שינוי.
 
 **Depends on:** T2.
 
 **Done when:**
-- [ ] branch נוצר לפני השינוי הראשון.
-- [ ] חוזי התוכן נכתבו ונכשלו לפני הוספת הנתונים.
-- [ ] ה-types הם strict וללא `any`; המפות הן `readonly`/`as const` היכן שמתאים.
-- [ ] אין content מתקדם לשלבים שאינם 2.
-- [ ] הקופי תואם ל-`design.md` ואינו מוסיף טענות מדעיות חדשות.
-- [ ] הבדיקות הממוקדות עוברות ו-`npm run type-check` עובר.
-
-### T4 — כרטיס `StageKnowledgeHub`
-
-**Goal:** לבנות את כרטיס הכניסה היחיד עם שלוש שורות נגישות, משוב לחיצה מלא
-והגנה מפני פתיחה מקרית בזמן גלילת המסך.
-
-**Branch:** `codex/feature/26-stage-content-layers-pilot/T4-knowledge-hub`
-
-**Files likely touched:**
-- `components/bake/stage-knowledge-hub.tsx`
-- `components/bake/stage-knowledge-hub.test.tsx`
-
-**Test strategy:** React Testing Library עם state-machine tests. להתחיל בבדיקות
-נכשלות שמוכיחות:
-- מרונדר heading ושלושה `<button>` עם label/description הנכונים.
-- pointer press רגיל קורא `onOpen` פעם אחת עם ה-kind הנכון.
-- תנועה מעל 5px לפני release מבטלת press וה-click שאחריו ואינה פותחת.
-- `pointercancel`, ‏blur ו-unmount מנקים `isPressed` ואינם משאירים transform.
-- הפעלת מקלדת Enter/Space פותחת פעם אחת ולא נפגעת מהגנת pointer.
-- כל שורה היא target בגובה 56px לפחות, עם focus-visible ו-press feedback
-  `scale(0.965)` / 120ms; reduced motion אינו תלוי באנימציית JS.
-- האייקונים מסומנים `aria-hidden` ואין מחרוזת אנגלית hard-coded.
-
-**Depends on:** T3.
-
-**Done when:**
-- [ ] branch נוצר לפני השינוי הראשון.
-- [ ] בדיקות `Idle → Press → Release/Open|Cancel → Idle` נכשלו לפני המימוש.
-- [ ] גלילת touch אינה מפעילה קטגוריה בטעות ואין double-fire של pointer + click.
-- [ ] נעשה שימוש במאפייני CSS לוגיים בלבד וביעדי מגע לפי §10.
-- [ ] בדיקות הרכיב עוברות ו-`npm run type-check` עובר.
-
-### T5 — `StageKnowledgeSheet` ושלושת סוגי התוכן
-
-**Goal:** לרנדר learn, ‏FAQ ו-troubleshooting בתוך אותו `BottomSheet` מלא, ללא
-אקורדיונים או overlays נוספים, עם RTL תקין למספרים וטווחים.
-
-**Branch:** `codex/feature/26-stage-content-layers-pilot/T5-knowledge-sheet`
-
-**Files likely touched:**
-- `components/bake/stage-knowledge-sheet.tsx`
-- `components/bake/stage-knowledge-sheet.test.tsx`
-- אופציונלי: helper מקומי קטן לרינדור טווחים מספריים ב-LTR
-
-**Test strategy:** component tests. להתחיל בבדיקות נכשלות שמוכיחות:
-- `kind="learn"` מציג פתיח וחמישה מקטעים בלבד.
-- `kind="faq"` מציג את כל חמש השאלות והתשובות יחד, ללא disclosure נוסף.
-- `kind="troubleshooting"` מציג שני כרטיסים עם ״מה רואים״ ו״מה עושים עכשיו״
-  ורשימות צעדים ממוספרות.
-- כל kind משתמש ב-`BottomSheet size="full"` ובכותרת העברית הנכונה.
-- קיים `role="dialog"` אחד בלבד ואין dialog/Sheet מקונן.
-- הטווחים `30–60` ו-`5–10` מרונדרים בתוך `dir="ltr"` עם `num`.
-- כפתור הסגירה קורא `onClose`; focus trap, Escape ו-reduced motion מכוסים
-  בבדיקות ה-primitive מ-T1 ולא משוכפלים כאן.
-
-**Depends on:** T1, T3.
-
-**Done when:**
-- [ ] branch נוצר לפני השינוי הראשון.
-- [ ] בדיקות שלושת מצבי הרינדור נכשלו לפני המימוש.
-- [ ] כל התוכן מגיע מה-data/strings ואינו hard-coded ברכיב.
-- [ ] אין fetch, loading state, autoplay, תמונה או video iframe.
-- [ ] בדיקות הרכיב עוברות ו-`npm run type-check` עובר.
-
-### T6 — חיבור הפיילוט לשלב 2 ורגרסיית RTL
-
-**Goal:** לחבר Hub ו-Sheet למסך האוטוליזה בלבד, לשמר focus ו-state, ולהוכיח שכל
-יתר מסכי השלבים נשארים ללא ארכיטקטורת התוכן החדשה.
-
-**Branch:** `codex/feature/26-stage-content-layers-pilot/T6-stage-2-integration`
-
-**Files likely touched:**
-- `components/bake/stage-screen.tsx`
-- `components/bake/stage-screen.test.tsx`
-- `lib/strings.ts` / `lib/strings.test.ts` רק אם חיבור הרכיבים חושף label חסר
-
-**Test strategy:** integration tests ב-React Testing Library + בדיקת RTL ידנית
-ב-375px. להתחיל בבדיקות נכשלות שמוכיחות:
-- שלב 2 מציג את heading ״עוד על האוטוליזה״ ושלוש כניסות; ה-Sheet סגור כברירת
-  מחדל.
-- כל כניסה פותחת את ה-kind הנכון בפעולה אחת; לא נפתח יותר מ-dialog אחד.
-- סגירה ב-✕ וב-Escape מחזירה focus בדיוק לשורה שפתחה את ה-Sheet.
-- פתיחה/סגירה אינה קוראת לאף API של `activeBake`, אינה משנה `currentStage`
-  ואינה פוגעת בכפתורי ״חזרה״/״הבא״.
-- שלבים 1 ו-3–12 אינם מציגים את heading של ה-Hub.
-- שלב 2 אינו מרנדר `<img>` או `<iframe>`; יתר מדיית השלבים נשארת ללא שינוי.
-- ה-Sheet שומר את התוכן בזמן exit ואינו מהבהב/נעלם לפני סיום 200ms.
-
-**Depends on:** T2, T4, T5.
-
-**Done when:**
-- [ ] branch נוצר לפני השינוי הראשון.
-- [ ] בדיקות האינטגרציה נכתבו ונכשלו לפני החיבור.
-- [ ] `activeKnowledgeKind` נשמר בזמן exit ורק `knowledgeOpen` נסגר.
-- [ ] אין שינוי ב-`activeBake` schema, ‏localStorage, timing או ניווט השלבים.
-- [ ] בדיקת 375px מאשרת שאין גלישה, שהתוכן אינו מוסתר מתחת ל-sticky actions
-  ושכל יעד מגע ≥44px.
-- [ ] `rtl-check` עובר ללא physical CSS properties או מחרוזות JSX חדשות.
-- [ ] `npm test` ו-`npm run type-check` עוברים במלואם.
+- [ ] branch נוצר לפני השינוי הראשון וכל שכבה מתחילה בחוזה נכשל רלוונטי.
+- [ ] ה-types strict וללא `any`; כל התוכן וה-labels מגיעים מ-data/strings.
+- [ ] state machine של ה-Hub הוא `Idle → Press → Open|Cancel → Idle`, ללא
+  double-fire אחרי גלילת touch.
+- [ ] יש `role="dialog"` אחד בלבד; ה-Sheet נשאר mounted ב-200ms של ה-exit ומחזיר
+  focus לטריגר הנכון.
+- [ ] אין fetch, loading, mutation, toast, autoplay, תמונה או סרטון בפיילוט.
+- [ ] בדיקת 375px מאשרת שאין גלישה או הסתרה מתחת לפעולות הדביקות וכל יעד מגע
+  עומד במינימום 44px.
+- [ ] `rtl-check`, ‏`npm test`, ‏`npm run type-check` ו-`npm run lint` עוברים.
 
 ## Build Order
 
@@ -217,30 +134,25 @@ T1 BottomSheet gesture
   ↓
 T2 main path
   ↓
-T3 knowledge data
-  ↓
-T4 KnowledgeHub ─┐
-                 ├→ T6 Stage 2 integration
-T5 KnowledgeSheet┘
+T3 knowledge layer — data + Hub + Sheet + integration
 ```
 
-סדר העבודה וה-PRs: `T1 → T2 → T3 → T4 → T5 → T6`.
+סדר העבודה וה-PRs: `T1 → T2 → T3`.
 
 ## Project Precondition
 
-`context/mission.md` עדיין מסומן כ-Placeholder. לפי `AGENTS.md`, אסור להתחיל
-כתיבת קוד מוצר כל עוד הוא לא הוחלף במסמך מאושר. אפשר לאשר את פירוק המשימות כעת,
-אבל לפני branch של T1 נדרש לסגור את חסם ה-Discovery הפרויקטלי הזה.
+**הושלם לפני T1:** `context/mission.md` הוחלף במסמך שאושר על-ידי המשתמש, ולכן
+חסם ה-pre-Discovery הוסר.
 
 ## Risks
 
 - **השפעה רוחבית של T1:** שינוי ה-rubber-band חל על כל צרכני `BottomSheet`.
   נדרשת הרצת כל בדיקות ה-primitive והצרכנים הקיימים, לא רק בדיקות הפיילוט.
 - **double-fire ב-touch:** שורת Hub שמטפלת גם ב-pointer events וגם ב-click עלולה
-  לפתוח פעמיים. T4 חייב להוכיח suppression אחרי scroll ופתיחה יחידה אחרי tap.
+  לפתוח פעמיים. T3 חייבת להוכיח suppression אחרי scroll ופתיחה יחידה אחרי tap.
 - **focus אחרי exit:** איפוס מוקדם של `activeKnowledgeKind` יפרק את התוכן לפני
-  אנימציית הסגירה ויכול לשבור החזרת focus. T6 בודק את חלון ה-200ms.
-- **mixed direction:** טווחים מספריים בתוך פסקאות עבריות עלולים להתהפך. T5
+  אנימציית הסגירה ויכול לשבור החזרת focus. T3 בודקת את חלון ה-200ms.
+- **mixed direction:** טווחים מספריים בתוך פסקאות עבריות עלולים להתהפך. T3
   עוטף ובודק אותם במפורש.
 - **זחילת מדיה:** אין להוסיף ״רק בינתיים״ תמונה או סרטון שלא עברו את תנאי
   הרישיון והדיוק שב-`design.md`.
