@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Info } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { usePressActivation } from "@/lib/hooks/use-press-activation";
 import { strings } from "@/lib/strings";
 import { StarterPeakSheet } from "./starter-peak-sheet";
 
@@ -20,34 +21,16 @@ interface OptionProps {
 }
 
 function ToggleOption({ label, optionValue, selected, onSelect }: OptionProps) {
-  const [isPressed, setIsPressed] = useState(false);
-
-  function handlePointerDown() {
-    setIsPressed(true);
-  }
-
-  function handlePointerUp() {
-    setIsPressed(false);
-    onSelect(optionValue);
-  }
-
-  function handlePointerLeave() {
-    setIsPressed(false);
-  }
-
-  function handlePointerCancel() {
-    setIsPressed(false);
-  }
+  const { isPressed, pressProps } = usePressActivation<HTMLButtonElement>(
+    () => onSelect(optionValue),
+  );
 
   return (
     <button
       type="button"
       role="radio"
       aria-checked={selected}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerLeave={handlePointerLeave}
-      onPointerCancel={handlePointerCancel}
+      {...pressProps}
       className={cn(
         "flex-1 min-h-touch flex items-center justify-center rounded-2xl px-4",
         "text-body font-medium",

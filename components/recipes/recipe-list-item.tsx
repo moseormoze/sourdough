@@ -4,6 +4,7 @@ import { useRef, useState, type PointerEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { usePressActivation } from "@/lib/hooks/use-press-activation";
 import type { Recipe } from "@/lib/types/recipe";
 
 export interface RecipeListItemProps {
@@ -66,9 +67,12 @@ export function RecipeListItem({ recipe, onCommitDelete }: RecipeListItemProps) 
 
   const [offset, setOffset] = useState(0);
   const [snapping, setSnapping] = useState(false);
-  const [pressed, setPressed] = useState(false);
+  const { isPressed: pressed, pressProps } = usePressActivation<HTMLButtonElement>(
+    () => router.push(`/recipes/${recipe.id}/edit`),
+  );
 
   function handlePointerDown(e: PointerEvent<HTMLButtonElement>) {
+    pressProps.onPointerDown(e);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -79,12 +83,11 @@ export function RecipeListItem({ recipe, onCommitDelete }: RecipeListItemProps) 
     };
     lastDeltaXRef.current = 0;
     lastDtRef.current = 1;
-    setPressed(true);
     setSnapping(false);
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   }
 
   function handlePointerMove(e: PointerEvent<HTMLButtonElement>) {
+    pressProps.onPointerMove(e);
     const state = dragRef.current;
     if (!state) return;
 
@@ -99,11 +102,9 @@ export function RecipeListItem({ recipe, onCommitDelete }: RecipeListItemProps) 
       // Vertical-dominant motion → cancel press, allow scroll
       if (ady > adx) {
         dragRef.current = null;
-        setPressed(false);
         return;
       }
       state.dragging = true;
-      setPressed(false);
     }
 
     if (!state.dragging) return;
@@ -117,23 +118,17 @@ export function RecipeListItem({ recipe, onCommitDelete }: RecipeListItemProps) 
     setOffset(applyRubberBand(dx));
   }
 
-  function handlePointerUp() {
+  function handlePointerUp(e: PointerEvent<HTMLButtonElement>) {
+    pressProps.onPointerUp(e);
     const state = dragRef.current;
     dragRef.current = null;
 
-    if (!state) {
-      setPressed(false);
-      return;
-    }
+    if (!state) return;
 
     if (!state.dragging) {
-      // Treat as tap
-      setPressed(false);
-      router.push(`/recipes/${recipe.id}/edit`);
       return;
     }
 
-    setPressed(false);
     const distance = state.lastX - state.startX;
     const velocity = lastDeltaXRef.current / lastDtRef.current;
 
@@ -150,18 +145,11 @@ export function RecipeListItem({ recipe, onCommitDelete }: RecipeListItemProps) 
     }
   }
 
-  function handlePointerCancel() {
+  function handlePointerCancel(e: PointerEvent<HTMLButtonElement>) {
+    pressProps.onPointerCancel(e);
     dragRef.current = null;
-    setPressed(false);
     setSnapping(true);
     setOffset(0);
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      router.push(`/recipes/${recipe.id}/edit`);
-    }
   }
 
   const committed = offset >= SWIPE_OPEN_PX;
@@ -187,7 +175,8 @@ export function RecipeListItem({ recipe, onCommitDelete }: RecipeListItemProps) 
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
         onPointerLeave={handlePointerCancel}
-        onKeyDown={handleKeyDown}
+        onBlur={pressProps.onBlur}
+        onClick={pressProps.onClick}
         data-recipe-id={recipe.id}
         data-pressed={pressed ? "" : undefined}
         data-offset={offset}

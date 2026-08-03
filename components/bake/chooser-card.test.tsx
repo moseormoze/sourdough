@@ -27,6 +27,7 @@ describe("ChooserCard", () => {
     const btn = screen.getByRole("button");
     fireEvent.pointerDown(btn, { clientX: 10, clientY: 10 });
     fireEvent.pointerUp(btn, { clientX: 10, clientY: 10 });
+    fireEvent.click(btn, { detail: 1 });
     expect(onSelect).toHaveBeenCalledOnce();
   });
 
@@ -37,13 +38,14 @@ describe("ChooserCard", () => {
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
     fireEvent.pointerMove(btn, { clientX: 30, clientY: 0 });
     fireEvent.pointerUp(btn, { clientX: 30, clientY: 0 });
+    fireEvent.click(btn, { detail: 1 });
     expect(onSelect).not.toHaveBeenCalled();
   });
 
-  it("fires onSelect on Enter key", () => {
+  it("fires onSelect from native keyboard activation", () => {
     const onSelect = vi.fn();
     render(<ChooserCard name="x" summary="y" onSelect={onSelect} />);
-    fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
+    fireEvent.click(screen.getByRole("button"), { detail: 0 });
     expect(onSelect).toHaveBeenCalledOnce();
   });
 });

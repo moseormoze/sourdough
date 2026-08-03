@@ -757,6 +757,7 @@ describe("StageScreen — in-bake timeline sheet", () => {
     const button = screen.getByLabelText("פתח טיימליין");
     fireEvent.pointerDown(button, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(button, { clientX: 0, clientY: 0 });
+    fireEvent.click(button, { detail: 1 });
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
@@ -766,6 +767,7 @@ describe("StageScreen — in-bake timeline sheet", () => {
     const button = screen.getByLabelText("פתח טיימליין");
     fireEvent.pointerDown(button, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(button, { clientX: 0, clientY: 0 });
+    fireEvent.click(button, { detail: 1 });
     fireEvent.click(screen.getByLabelText("סגור טיימליין"));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });

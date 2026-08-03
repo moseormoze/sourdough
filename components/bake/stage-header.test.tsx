@@ -71,6 +71,17 @@ describe("StageHeader", () => {
     const button = screen.getByLabelText("פתח טיימליין");
     fireEvent.pointerDown(button, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(button, { clientX: 0, clientY: 0 });
+    fireEvent.click(button, { detail: 1 });
+    expect(onTimelineOpen).toHaveBeenCalledOnce();
+  });
+
+  it("opens from a native assistive-technology click", () => {
+    const onTimelineOpen = vi.fn();
+    const stage = getStage(4)!;
+    render(<StageHeader stage={stage} totalStages={12} onTimelineOpen={onTimelineOpen} />);
+
+    fireEvent.click(screen.getByLabelText("פתח טיימליין"), { detail: 0 });
+
     expect(onTimelineOpen).toHaveBeenCalledOnce();
   });
 
@@ -82,6 +93,7 @@ describe("StageHeader", () => {
     fireEvent.pointerDown(button, { clientX: 0, clientY: 0 });
     fireEvent.pointerMove(button, { clientX: 20, clientY: 20 });
     fireEvent.pointerUp(button, { clientX: 20, clientY: 20 });
+    fireEvent.click(button, { detail: 1 });
     expect(onTimelineOpen).not.toHaveBeenCalled();
   });
 

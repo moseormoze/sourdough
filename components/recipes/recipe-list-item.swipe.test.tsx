@@ -45,6 +45,7 @@ describe("RecipeListItem — swipe state machine", () => {
     const btn = screen.getByRole("button");
     fireEvent.pointerDown(btn, { clientX: 10, clientY: 10 });
     fireEvent.pointerUp(btn, { clientX: 10, clientY: 10 });
+    fireEvent.click(btn, { detail: 1 });
     expect(routerMock.push).toHaveBeenCalledWith("/recipes/r-1/edit");
     expect(onCommit).not.toHaveBeenCalled();
   });
@@ -60,6 +61,7 @@ describe("RecipeListItem — swipe state machine", () => {
     fireEvent.pointerMove(btn, { clientX: 50, clientY: 10 });
     advance(200);
     fireEvent.pointerUp(btn, { clientX: 50, clientY: 10 });
+    fireEvent.click(btn, { detail: 1 });
     // distance 40 < 60 and velocity 20/200 = 0.1 < 0.5 → no commit
     expect(onCommit).not.toHaveBeenCalled();
     expect(routerMock.push).not.toHaveBeenCalled();
@@ -78,6 +80,7 @@ describe("RecipeListItem — swipe state machine", () => {
     fireEvent.pointerMove(btn, { clientX: 130, clientY: 10 });
     advance(50);
     fireEvent.pointerUp(btn, { clientX: 130, clientY: 10 });
+    fireEvent.click(btn, { detail: 1 });
     expect(onCommit).toHaveBeenCalledWith(recipe);
     expect(routerMock.push).not.toHaveBeenCalled();
   });
@@ -94,6 +97,7 @@ describe("RecipeListItem — swipe state machine", () => {
     fireEvent.pointerMove(btn, { clientX: 60, clientY: 10 });
     advance(10);
     fireEvent.pointerUp(btn, { clientX: 60, clientY: 10 });
+    fireEvent.click(btn, { detail: 1 });
     expect(onCommit).toHaveBeenCalled();
   });
 
@@ -104,6 +108,7 @@ describe("RecipeListItem — swipe state machine", () => {
     fireEvent.pointerDown(btn, { clientX: 10, clientY: 10 });
     fireEvent.pointerMove(btn, { clientX: 12, clientY: 60 });
     fireEvent.pointerUp(btn, { clientX: 12, clientY: 60 });
+    fireEvent.click(btn, { detail: 1 });
     expect(onCommit).not.toHaveBeenCalled();
     expect(routerMock.push).not.toHaveBeenCalled();
   });

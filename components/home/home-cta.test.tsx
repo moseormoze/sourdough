@@ -29,11 +29,12 @@ describe("HomeCta", () => {
     expect(screen.getByText("3")).toBeInTheDocument();
   });
 
-  it("navigates to href on pointer up (without drag)", () => {
+  it("navigates from the click produced by a tap", () => {
     render(<HomeCta href="/recipes" icon={<svg />} label="x" />);
     const btn = screen.getByRole("button");
     fireEvent.pointerDown(btn, { clientX: 10, clientY: 10 });
     fireEvent.pointerUp(btn, { clientX: 10, clientY: 10 });
+    fireEvent.click(btn, { detail: 1 });
     expect(routerMock.push).toHaveBeenCalledWith("/recipes");
   });
 
@@ -43,6 +44,7 @@ describe("HomeCta", () => {
     fireEvent.pointerDown(btn, { clientX: 10, clientY: 10 });
     fireEvent.pointerMove(btn, { clientX: 30, clientY: 10 });
     fireEvent.pointerUp(btn, { clientX: 30, clientY: 10 });
+    fireEvent.click(btn, { detail: 1 });
     expect(routerMock.push).not.toHaveBeenCalled();
   });
 
@@ -56,15 +58,9 @@ describe("HomeCta", () => {
     expect(btn).not.toHaveAttribute("data-pressed");
   });
 
-  it("navigates on Enter key", () => {
+  it("navigates from native keyboard activation", () => {
     render(<HomeCta href="/recipes" icon={<svg />} label="x" />);
-    fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
-    expect(routerMock.push).toHaveBeenCalledWith("/recipes");
-  });
-
-  it("navigates on Space key", () => {
-    render(<HomeCta href="/recipes" icon={<svg />} label="x" />);
-    fireEvent.keyDown(screen.getByRole("button"), { key: " " });
+    fireEvent.click(screen.getByRole("button"), { detail: 0 });
     expect(routerMock.push).toHaveBeenCalledWith("/recipes");
   });
 });

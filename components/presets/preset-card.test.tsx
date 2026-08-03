@@ -18,12 +18,13 @@ describe("PresetCard", () => {
     expect(screen.getByText(/הידרציה/)).toBeInTheDocument();
   });
 
-  it("fires onSelect on pointer up without drag", () => {
+  it("fires onSelect from the click produced by a tap", () => {
     const onSelect = vi.fn();
     render(<PresetCard preset={sample} onSelect={onSelect} />);
     const btn = screen.getByRole("button");
     fireEvent.pointerDown(btn, { clientX: 10, clientY: 10 });
     fireEvent.pointerUp(btn, { clientX: 10, clientY: 10 });
+    fireEvent.click(btn, { detail: 1 });
     expect(onSelect).toHaveBeenCalledWith(sample);
   });
 
@@ -34,6 +35,7 @@ describe("PresetCard", () => {
     fireEvent.pointerDown(btn, { clientX: 10, clientY: 10 });
     fireEvent.pointerMove(btn, { clientX: 25, clientY: 10 });
     fireEvent.pointerUp(btn, { clientX: 25, clientY: 10 });
+    fireEvent.click(btn, { detail: 1 });
     expect(onSelect).not.toHaveBeenCalled();
   });
 
@@ -51,10 +53,10 @@ describe("PresetCard", () => {
     expect(screen.getByRole("button")).toHaveAttribute("data-preset-id", sample.id);
   });
 
-  it("fires onSelect on Enter key", () => {
+  it("fires onSelect from native keyboard activation", () => {
     const onSelect = vi.fn();
     render(<PresetCard preset={sample} onSelect={onSelect} />);
-    fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
+    fireEvent.click(screen.getByRole("button"), { detail: 0 });
     expect(onSelect).toHaveBeenCalledWith(sample);
   });
 

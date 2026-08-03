@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import Image from "next/image";
 import { Wheat } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { usePressActivation } from "@/lib/hooks/use-press-activation";
 import { strings } from "@/lib/strings";
 
 export interface ChooserCardProps {
@@ -14,8 +15,6 @@ export interface ChooserCardProps {
   onSelect: () => void;
 }
 
-const DRAG_CANCEL_THRESHOLD_PX = 5;
-
 function PlaceholderTile(): ReactNode {
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-bg-2 text-ink-3">
@@ -25,61 +24,12 @@ function PlaceholderTile(): ReactNode {
 }
 
 export function ChooserCard({ name, summary, imageSrc, mine, onSelect }: ChooserCardProps) {
-  const pressedRef = useRef(false);
-  const [pressed, setPressed] = useState(false);
-  const startRef = useRef<{ x: number; y: number } | null>(null);
-
-  function setPressedBoth(value: boolean) {
-    pressedRef.current = value;
-    setPressed(value);
-  }
-
-  function handlePointerDown(e: PointerEvent<HTMLButtonElement>) {
-    startRef.current = { x: e.clientX, y: e.clientY };
-    setPressedBoth(true);
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-  }
-
-  function handlePointerMove(e: PointerEvent<HTMLButtonElement>) {
-    if (!pressedRef.current) return;
-    const start = startRef.current;
-    if (!start) return;
-    const dx = Math.abs(e.clientX - start.x);
-    const dy = Math.abs(e.clientY - start.y);
-    if (dx > DRAG_CANCEL_THRESHOLD_PX || dy > DRAG_CANCEL_THRESHOLD_PX) {
-      setPressedBoth(false);
-      startRef.current = null;
-    }
-  }
-
-  function handlePointerUp() {
-    const wasPressed = pressedRef.current;
-    setPressedBoth(false);
-    startRef.current = null;
-    if (wasPressed) onSelect();
-  }
-
-  function handlePointerCancel() {
-    setPressedBoth(false);
-    startRef.current = null;
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onSelect();
-    }
-  }
+  const { isPressed: pressed, pressProps } = usePressActivation<HTMLButtonElement>(onSelect);
 
   return (
     <button
       type="button"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
-      onPointerLeave={handlePointerCancel}
-      onKeyDown={handleKeyDown}
+      {...pressProps}
       data-pressed={pressed ? "" : undefined}
       data-mine={mine ? "" : undefined}
       aria-label={mine ? `${name} (${strings.bake.myBadge})` : name}

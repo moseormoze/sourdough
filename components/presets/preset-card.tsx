@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, type PointerEvent } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/cn";
+import { usePressActivation } from "@/lib/hooks/use-press-activation";
 import type { Preset } from "@/lib/presets";
 
 export interface PresetCardProps {
@@ -10,66 +10,17 @@ export interface PresetCardProps {
   onSelect: (preset: Preset) => void;
 }
 
-const DRAG_CANCEL_THRESHOLD_PX = 5;
-
 export function PresetCard({ preset, onSelect }: PresetCardProps) {
-  const pressedRef = useRef(false);
-  const [pressed, setPressed] = useState(false);
-  const startRef = useRef<{ x: number; y: number } | null>(null);
-
-  function setPressedBoth(value: boolean) {
-    pressedRef.current = value;
-    setPressed(value);
-  }
-
-  function handlePointerDown(e: PointerEvent<HTMLButtonElement>) {
-    startRef.current = { x: e.clientX, y: e.clientY };
-    setPressedBoth(true);
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-  }
-
-  function handlePointerMove(e: PointerEvent<HTMLButtonElement>) {
-    if (!pressedRef.current) return;
-    const start = startRef.current;
-    if (!start) return;
-    const dx = Math.abs(e.clientX - start.x);
-    const dy = Math.abs(e.clientY - start.y);
-    if (dx > DRAG_CANCEL_THRESHOLD_PX || dy > DRAG_CANCEL_THRESHOLD_PX) {
-      setPressedBoth(false);
-      startRef.current = null;
-    }
-  }
-
-  function handlePointerUp() {
-    const wasPressed = pressedRef.current;
-    setPressedBoth(false);
-    startRef.current = null;
-    if (wasPressed) onSelect(preset);
-  }
-
-  function handlePointerCancel() {
-    setPressedBoth(false);
-    startRef.current = null;
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onSelect(preset);
-    }
-  }
+  const { isPressed: pressed, pressProps } = usePressActivation<HTMLButtonElement>(
+    () => onSelect(preset),
+  );
 
   const flourSummary = formatFlourSummary(preset);
 
   return (
     <button
       type="button"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
-      onPointerLeave={handlePointerCancel}
-      onKeyDown={handleKeyDown}
+      {...pressProps}
       data-pressed={pressed ? "" : undefined}
       data-preset-id={preset.id}
       aria-label={preset.name}

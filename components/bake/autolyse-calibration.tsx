@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { Check, Play } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { usePressActivation } from "@/lib/hooks/use-press-activation";
 import { strings } from "@/lib/strings";
 
 const AUTOLYSE_VIDEO_URL = "https://www.youtube.com/shorts/0JzkxDMnDhI";
@@ -11,62 +11,9 @@ export interface AutolyseCalibrationProps {
   initialCheck: string;
 }
 
-interface PointerState {
-  startX: number;
-  startY: number;
-  active: boolean;
-  suppressClick: boolean;
-}
-
 export function AutolyseCalibration({ initialCheck }: AutolyseCalibrationProps) {
-  const [pressed, setPressed] = useState(false);
-  const pointer = useRef<PointerState>({
-    startX: 0,
-    startY: 0,
-    active: false,
-    suppressClick: false,
-  });
+  const { isPressed: pressed, pressProps } = usePressActivation<HTMLAnchorElement>();
   const copy = strings.bake.stageKnowledge.calibration;
-
-  function beginPress(event: React.PointerEvent<HTMLAnchorElement>) {
-    pointer.current = {
-      startX: event.clientX,
-      startY: event.clientY,
-      active: true,
-      suppressClick: false,
-    };
-    setPressed(true);
-  }
-
-  function movePress(event: React.PointerEvent<HTMLAnchorElement>) {
-    if (!pointer.current.active) return;
-    const dx = Math.abs(event.clientX - pointer.current.startX);
-    const dy = Math.abs(event.clientY - pointer.current.startY);
-    if (dx <= 5 && dy <= 5) return;
-    pointer.current.active = false;
-    pointer.current.suppressClick = true;
-    setPressed(false);
-  }
-
-  function cancelPress() {
-    pointer.current.active = false;
-    pointer.current.suppressClick = true;
-    setPressed(false);
-  }
-
-  function releasePress() {
-    pointer.current.active = false;
-    setPressed(false);
-  }
-
-  function activate(event: React.MouseEvent<HTMLAnchorElement>) {
-    if (event.detail !== 0 && pointer.current.suppressClick) {
-      pointer.current.suppressClick = false;
-      event.preventDefault();
-      return;
-    }
-    pointer.current.suppressClick = false;
-  }
 
   return (
     <section
@@ -88,13 +35,7 @@ export function AutolyseCalibration({ initialCheck }: AutolyseCalibrationProps) 
         href={AUTOLYSE_VIDEO_URL}
         target="_blank"
         rel="noreferrer"
-        onPointerDown={beginPress}
-        onPointerMove={movePress}
-        onPointerUp={releasePress}
-        onPointerCancel={cancelPress}
-        onPointerLeave={cancelPress}
-        onBlur={cancelPress}
-        onClick={activate}
+        {...pressProps}
         className={cn(
           "relative mt-4 block w-full overflow-hidden rounded-2xl border border-ink/[0.06] bg-ink/[0.035] p-4 text-start",
           "transition-[transform,background-color] duration-fast ease-out",

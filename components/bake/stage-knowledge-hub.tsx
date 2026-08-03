@@ -1,83 +1,23 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { GraduationCap } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { usePressActivation } from "@/lib/hooks/use-press-activation";
 import { strings } from "@/lib/strings";
 
 export interface StageKnowledgeTriggerProps {
   onOpen: () => void;
 }
 
-interface PointerState {
-  startX: number;
-  startY: number;
-  active: boolean;
-  suppressClick: boolean;
-}
-
 export function StageKnowledgeTrigger({ onOpen }: StageKnowledgeTriggerProps) {
-  const [pressed, setPressed] = useState(false);
-  const pointer = useRef<PointerState>({
-    startX: 0,
-    startY: 0,
-    active: false,
-    suppressClick: false,
-  });
-
-  function beginPress(event: React.PointerEvent<HTMLButtonElement>) {
-    pointer.current = {
-      startX: event.clientX,
-      startY: event.clientY,
-      active: true,
-      suppressClick: false,
-    };
-    setPressed(true);
-  }
-
-  function movePress(event: React.PointerEvent<HTMLButtonElement>) {
-    if (!pointer.current.active) return;
-    const dx = Math.abs(event.clientX - pointer.current.startX);
-    const dy = Math.abs(event.clientY - pointer.current.startY);
-    if (dx <= 5 && dy <= 5) return;
-    pointer.current.active = false;
-    pointer.current.suppressClick = true;
-    setPressed(false);
-  }
-
-  function releasePress() {
-    pointer.current.active = false;
-    setPressed(false);
-  }
-
-  function cancelPress() {
-    pointer.current.active = false;
-    pointer.current.suppressClick = true;
-    setPressed(false);
-  }
-
-  function activate(event: React.MouseEvent<HTMLButtonElement>) {
-    if (event.detail !== 0 && pointer.current.suppressClick) {
-      pointer.current.suppressClick = false;
-      event.preventDefault();
-      return;
-    }
-    pointer.current.suppressClick = false;
-    onOpen();
-  }
+  const { isPressed: pressed, pressProps } = usePressActivation<HTMLButtonElement>(onOpen);
 
   return (
     <div className="border-t border-line/70">
       <button
         data-manual-press="true"
         type="button"
-        onPointerDown={beginPress}
-        onPointerMove={movePress}
-        onPointerUp={releasePress}
-        onPointerCancel={cancelPress}
-        onPointerLeave={cancelPress}
-        onBlur={cancelPress}
-        onClick={activate}
+        {...pressProps}
         className={cn(
           "flex min-h-touch w-full items-center gap-2 rounded-xl px-2 text-start text-small font-medium text-ink-2",
           "transition-[transform,background-color,color] duration-fast ease-out",

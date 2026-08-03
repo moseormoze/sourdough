@@ -34,6 +34,7 @@ function tapCard(cardName: string) {
   const btn = screen.getByRole("button", { name: cardName });
   fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
   fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+  fireEvent.click(btn, { detail: 1 });
 }
 
 describe("ChooserScreen", () => {
@@ -91,6 +92,7 @@ describe("ChooserScreen", () => {
     const card = await screen.findByText("שיפון מותאם");
     fireEvent.pointerDown(card, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(card, { clientX: 0, clientY: 0 });
+    fireEvent.click(card, { detail: 1 });
 
     await waitFor(() => {
       expect(routerMock.push).toHaveBeenCalledWith("/bake/plan");
