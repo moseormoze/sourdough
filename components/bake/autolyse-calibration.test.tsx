@@ -4,9 +4,10 @@ import { AutolyseCalibration } from "./autolyse-calibration";
 
 describe("AutolyseCalibration", () => {
   it("keeps both approved comparison captions visible in the text fallback", () => {
-    render(<AutolyseCalibration />);
+    render(<AutolyseCalibration initialCheck="אין כיסי קמח יבש" />);
 
     expect(screen.getByTestId("autolyse-calibration")).toBeInTheDocument();
+    expect(screen.getByText("אין כיסי קמח יבש")).toBeInTheDocument();
     expect(screen.getByText("מיד אחרי הערבוב – הבצק עדיין גס ולא אחיד.")).toBeInTheDocument();
     expect(
       screen.getByText("אחרי המנוחה – הבצק מחובר יותר ונמתח בקלות רבה יותר."),
@@ -18,21 +19,20 @@ describe("AutolyseCalibration", () => {
     ).toBeInTheDocument();
   });
 
-  it("embeds the approved Short without autoplay or a local media copy", () => {
-    render(<AutolyseCalibration />);
+  it("links the compact calibration entry to the approved Short without a broken embed", () => {
+    render(<AutolyseCalibration initialCheck="אין כיסי קמח יבש" />);
 
-    const player = screen.getByTitle(
-      "מיד אחרי הערבוב – הבצק עדיין גס ולא אחיד. אחרי המנוחה – הבצק מחובר יותר ונמתח בקלות רבה יותר.",
-    );
-
-    expect(player.tagName).toBe("IFRAME");
-    expect(player).toHaveAttribute(
-      "src",
-      "https://www.youtube-nocookie.com/embed/8PpC8eZPTgY?playsinline=1&rel=0",
-    );
-    expect(player).toHaveAttribute("loading", "lazy");
-    expect(player).toHaveAttribute("allowfullscreen");
-    expect(player.getAttribute("src")).not.toContain("autoplay=1");
-    expect(document.querySelector("video")).not.toBeInTheDocument();
+    const link = screen.getByRole("link", {
+      name: /מיד אחרי הערבוב.*אחרי המנוחה/,
+    });
+    expect(link).toHaveAttribute("href", "https://www.youtube.com/shorts/0JzkxDMnDhI");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noreferrer");
+    expect(link).toHaveAttribute("data-surface", "inset");
+    expect(link).toHaveClass("bg-ink/[0.035]");
+    expect(link).not.toHaveClass("shadow-sm");
+    expect(link).toHaveClass("block");
+    expect(screen.queryByTitle(/מיד אחרי הערבוב/)).not.toBeInTheDocument();
+    expect(document.querySelector("iframe")).not.toBeInTheDocument();
   });
 });

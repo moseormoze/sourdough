@@ -92,4 +92,28 @@ describe("StageHeader", () => {
     rerender(<StageHeader stage={stage} totalStages={12} onTimelineOpen={vi.fn()} />);
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
+
+  it("keeps tiny pilot navigation copy at readable contrast", () => {
+    const stage = getStage(2)!;
+    render(
+      <StageHeader
+        stage={stage}
+        totalStages={12}
+        variant="pilot"
+        onTimelineOpen={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("2/12")).toHaveClass("text-ink-2");
+    expect(screen.getByText("טיימליין").parentElement).toHaveClass("text-ink-2");
+    expect(screen.getByLabelText("פתח טיימליין")).toHaveAttribute(
+      "data-manual-press",
+      "true",
+    );
+    expect(screen.getByRole("link")).toHaveClass("hover:bg-ink/[0.04]");
+    expect(screen.getByRole("link")).not.toHaveClass("hover:bg-bg-2");
+    expect(screen.getByLabelText("פתח טיימליין")).toHaveClass(
+      "hover:bg-ink/[0.04]",
+    );
+  });
 });

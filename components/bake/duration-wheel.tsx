@@ -76,10 +76,10 @@ function WheelColumn({
               aria-label={optionLabel(option)}
               onClick={() => onChange(option)}
               className={cn(
-                "relative z-[2] flex min-h-14 w-full snap-center items-center justify-center rounded-xl px-2 font-mono tabular-nums transition-[color,font-size,opacity] duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink-3 motion-reduce:transition-none",
+                "relative z-[2] flex min-h-14 w-full snap-center items-center justify-center rounded-xl px-2 font-mono tabular-nums transition-[color,font-size,opacity,background-color] duration-fast ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink-3 motion-reduce:transition-none",
                 selected
                   ? "text-display-sm text-ink opacity-100"
-                  : "text-body-lg text-ink-3 opacity-55 hover:text-ink-2 hover:opacity-100"
+                  : "text-body-lg text-ink-3 opacity-55 hover:bg-ink/[0.04] hover:text-ink-2 hover:opacity-100"
               )}
             >
               <span dir="ltr" className="num">
@@ -120,18 +120,22 @@ export function DurationWheel({ valueMinutes, onChange }: DurationWheelProps) {
   }
 
   return (
-    <div className="relative mx-auto max-w-[18rem] overflow-hidden rounded-2xl bg-bg-2 px-4 pt-2">
+    <div
+      data-testid="autolyse-duration-wheel"
+      data-surface="glass"
+      className="relative mx-auto max-w-[18rem] overflow-hidden rounded-[1.75rem] border border-paper/55 bg-paper/25 px-4 pt-2 backdrop-blur-sm"
+    >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-4 top-[calc(50%+0.875rem)] z-raised h-14 -translate-y-1/2 rounded-xl border-y border-line-2 bg-paper/80"
+        className="pointer-events-none absolute inset-x-4 top-[calc(50%+0.875rem)] z-raised h-14 -translate-y-1/2 rounded-2xl border border-paper/70 bg-paper/80 shadow-sm"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-7 z-raised h-14 bg-gradient-to-b from-bg-2 via-bg-2/85 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-7 z-raised h-14 bg-gradient-to-b from-paper/60 via-paper/35 to-transparent"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-raised h-14 bg-gradient-to-t from-bg-2 via-bg-2/85 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-raised h-14 bg-gradient-to-t from-paper/60 via-paper/35 to-transparent"
       />
 
       <div className="relative flex items-start gap-3" dir="ltr">

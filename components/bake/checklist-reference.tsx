@@ -1,7 +1,9 @@
 import Image from "next/image";
 import { ArrowLeft, Check } from "lucide-react";
+import { cn } from "@/lib/cn";
 
 export interface ChecklistReferenceProps {
+  id?: string;
   items: readonly string[];
   title?: string;
   imageUrl?: string;
@@ -9,6 +11,8 @@ export interface ChecklistReferenceProps {
   imageWidth?: number;
   imageHeight?: number;
   transition?: string;
+  variant?: "default" | "pilot";
+  emphasized?: boolean;
 }
 
 /**
@@ -19,6 +23,7 @@ export interface ChecklistReferenceProps {
  * so "what done looks like" is visible right where the decision is made.
  */
 export function ChecklistReference({
+  id,
   items,
   title = "מתי להמשיך לשלב הבא",
   imageUrl,
@@ -26,10 +31,23 @@ export function ChecklistReference({
   imageWidth = 1408,
   imageHeight = 768,
   transition,
+  variant = "default",
+  emphasized = false,
 }: ChecklistReferenceProps) {
   if (items.length === 0) return null;
   return (
-    <section className="rounded-2xl bg-bg-2/50 p-5">
+    <section
+      id={id}
+      aria-label={title}
+      data-surface={variant === "pilot" ? "glass" : undefined}
+      className={cn(
+        variant === "pilot"
+          ? "rounded-[2rem] border p-5 shadow-sm transition-[background-color,border-color] duration-base ease-out"
+          : "rounded-2xl bg-bg-2/50 p-5",
+        variant === "pilot" && !emphasized && "border-paper/55 bg-paper/35 backdrop-blur-md",
+        variant === "pilot" && emphasized && "border-sage/45 bg-sage-bg/30 backdrop-blur-md",
+      )}
+    >
       <h3 className="text-heading text-ink">{title}</h3>
       {imageUrl && (
         <div className="mt-3 overflow-hidden rounded-xl">
@@ -46,7 +64,15 @@ export function ChecklistReference({
       <ul role="list" className="mt-3 space-y-2">
         {items.map((item, i) => (
           <li key={i} className="flex items-start gap-2 text-body text-ink-2">
-            <Check size={16} className="text-sage-2 shrink-0 mt-1" aria-hidden />
+            {variant === "pilot" ? (
+              <span
+                data-indicator="reference"
+                aria-hidden
+                className="mt-2 size-2 shrink-0 rounded-full bg-ink-2/70"
+              />
+            ) : (
+              <Check size={16} className="mt-1 shrink-0 text-sage-2" aria-hidden />
+            )}
             <span>{item}</span>
           </li>
         ))}

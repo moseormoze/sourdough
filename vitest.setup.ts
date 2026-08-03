@@ -35,10 +35,11 @@ const routerMock = {
 };
 
 const paramsMock: Record<string, string> = {};
+const pathnameMock = vi.fn(() => "/");
 
 vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
-  usePathname: () => "/",
+  usePathname: pathnameMock,
   useSearchParams: () => new URLSearchParams(),
   useParams: () => paramsMock,
   notFound: () => {
@@ -46,4 +47,4 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-export { routerMock, paramsMock };
+export { routerMock, paramsMock, pathnameMock };

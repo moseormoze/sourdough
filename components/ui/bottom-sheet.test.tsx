@@ -102,6 +102,32 @@ describe("BottomSheet", () => {
     expect(screen.getByRole("dialog").className).toContain("88svh");
   });
 
+  it("applies the redesigned pilot shell without changing the default shell", () => {
+    const { rerender } = render(
+      <BottomSheet open={true} variant="pilot" title="הסבר" onClose={vi.fn()}>
+        content
+      </BottomSheet>,
+    );
+    expect(screen.getByRole("dialog")).toHaveAttribute("data-variant", "pilot");
+    expect(screen.getByRole("dialog")).toHaveClass("rounded-t-[2.25rem]");
+    expect(screen.getByRole("dialog")).toHaveClass(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
+    );
+    expect(screen.getByRole("dialog")).not.toHaveClass("from-[#FFFDF9]");
+    expect(screen.getByRole("heading", { name: "הסבר" })).toHaveClass("text-display-sm");
+    expect(screen.getByRole("button", { name: "סגור" })).toHaveClass(
+      "hover:bg-ink/[0.04]",
+    );
+
+    rerender(
+      <BottomSheet open={true} title="ברירת מחדל" onClose={vi.fn()}>
+        content
+      </BottomSheet>,
+    );
+    expect(screen.getByRole("dialog")).toHaveAttribute("data-variant", "default");
+    expect(screen.getByRole("heading", { name: "ברירת מחדל" })).toHaveClass("text-heading");
+  });
+
   it("removes dialog from DOM after close animation", async () => {
     const { rerender, container } = render(
       <BottomSheet open={true} onClose={vi.fn()}>

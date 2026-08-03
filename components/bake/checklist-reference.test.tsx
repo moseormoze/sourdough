@@ -20,6 +20,24 @@ describe("ChecklistReference", () => {
     expect(screen.queryAllByRole("checkbox")).toHaveLength(0);
   });
 
+  it("uses neutral reference markers in the pilot instead of verified checkmarks", () => {
+    const { container } = render(
+      <ChecklistReference items={["בועות", "תפיחה"]} variant="pilot" />,
+    );
+    expect(container.querySelectorAll("svg")).toHaveLength(0);
+    expect(container.querySelectorAll('[data-indicator="reference"]')).toHaveLength(2);
+    expect(screen.getByRole("region", { name: "מתי להמשיך לשלב הבא" })).toHaveAttribute(
+      "data-surface",
+      "glass",
+    );
+  });
+
+  it("keeps established checkmarks outside the pilot", () => {
+    const { container } = render(<ChecklistReference items={["בועות", "תפיחה"]} />);
+    expect(container.querySelectorAll("svg")).toHaveLength(2);
+    expect(container.querySelectorAll('[data-indicator="reference"]')).toHaveLength(0);
+  });
+
   it("uses a custom title when provided", () => {
     render(<ChecklistReference items={["x"]} title="סימנים" />);
     expect(screen.getByText("סימנים")).toBeInTheDocument();

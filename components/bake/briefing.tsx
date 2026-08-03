@@ -1,16 +1,22 @@
 import { Info } from "lucide-react";
 import type { StageBriefing } from "@/lib/data/stages";
+import { cn } from "@/lib/cn";
 
 export interface BriefingProps {
   briefing: StageBriefing;
   disclosure?: string;
+  variant?: "default" | "pilot";
 }
 
-export function Briefing({ briefing, disclosure }: BriefingProps) {
+export function Briefing({ briefing, disclosure, variant = "default" }: BriefingProps) {
   return (
     <section
       aria-label={briefing.heading}
-      className="rounded-2xl bg-gradient-to-br from-accent-bg to-accent-2/30 p-5"
+      className={cn(
+        variant === "pilot"
+          ? "bg-transparent"
+          : "rounded-2xl bg-gradient-to-br from-accent-bg to-accent-2/30 p-5",
+      )}
     >
       <h2 className="text-heading text-ink">{briefing.heading}</h2>
       <p className="mt-2 text-body-lg text-ink">{briefing.blurb}</p>

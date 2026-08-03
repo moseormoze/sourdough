@@ -113,7 +113,7 @@ describe("StageScreen — basic stage", () => {
     render(<StageScreen stage={stage} activeBake={makeBake(2)} api={makeApi()} />);
 
     expect(screen.getByRole("region", { name: "מטרת השלב" })).toBeInTheDocument();
-    expect(screen.getByText(/עכשיו עוברים ללישה ומוסיפים את השאור/)).toBeInTheDocument();
+    expect(screen.queryByText(/עכשיו עוברים ללישה ומוסיפים את השאור/)).not.toBeInTheDocument();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 
@@ -208,6 +208,18 @@ describe("StageScreen — basic stage", () => {
 });
 
 describe("StageScreen — stage knowledge pilot", () => {
+  it("applies the redesign only to the autolyse stage", () => {
+    const { rerender } = render(
+      <StageScreen stage={getStage(2)!} activeBake={makeBake(2)} api={makeApi()} />,
+    );
+    expect(screen.getByTestId("autolyse-redesign-pilot")).toBeInTheDocument();
+
+    rerender(
+      <StageScreen stage={getStage(3)!} activeBake={makeBake(3)} api={makeApi()} />,
+    );
+    expect(screen.queryByTestId("autolyse-redesign-pilot")).not.toBeInTheDocument();
+  });
+
   it("shows the single guide trigger only on stage 2", () => {
     const { rerender } = render(
       <StageScreen stage={getStage(1)!} activeBake={makeBake(1)} api={makeApi()} />,
@@ -234,7 +246,7 @@ describe("StageScreen — stage knowledge pilot", () => {
 
     const instructions = screen.getByRole("heading", { name: "מה לעשות" }).closest("section");
     const calibration = screen.getByTestId("autolyse-calibration");
-    const timer = screen.getByRole("heading", { name: "זמן האוטוליזה" }).closest("section");
+    const timer = screen.getByRole("heading", { name: "טיימר" }).closest("section");
 
     expect(instructions).not.toBeNull();
     expect(timer).not.toBeNull();
@@ -248,6 +260,155 @@ describe("StageScreen — stage knowledge pilot", () => {
     expect(
       screen.getByText("אחרי המנוחה – הבצק מחובר יותר ונמתח בקלות רבה יותר."),
     ).toBeInTheDocument();
+  });
+
+  it("separates the initial mix check from the end-of-rest decision cues", () => {
+    render(
+      <StageScreen stage={getStage(2)!} activeBake={makeBake(2)} api={makeApi()} />,
+    );
+
+    const calibration = screen.getByTestId("autolyse-calibration");
+    const readiness = screen.getByRole("region", { name: "מתי להמשיך לשלב הבא" });
+
+    expect(within(calibration).getByText("אין כיסי קמח יבש")).toBeInTheDocument();
+    expect(within(readiness).queryByText("אין כיסי קמח יבש")).not.toBeInTheDocument();
+    expect(
+      within(readiness).getByText("הבצק רך ונמתח מעט יותר בקלות"),
+    ).toBeInTheDocument();
+    expect(
+      within(readiness).getByText("המרקם נראה מעט אחיד יותר, אבל עדיין יכול להיות גס ודביק"),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps stage chrome outside the first content card when the baker returns", () => {
+    render(
+      <StageScreen
+        stage={getStage(2)!}
+        activeBake={makeBake(2, {
+          timerDurationSeconds: 45 * 60,
+          timerElapsedSeconds: 60,
+        })}
+        api={makeApi()}
+      />,
+    );
+
+    expect(screen.queryByTestId("autolyse-reentry-cue")).not.toBeInTheDocument();
+    const page = screen.getByTestId("autolyse-redesign-pilot");
+    const stageHeader = screen.getByTestId("autolyse-stage-header");
+    const purposeCard = screen.getByTestId("autolyse-purpose-card");
+
+    expect(page).toHaveAttribute(
+      "data-colorway",
+      "ambient-gradient",
+    );
+    expect(stageHeader).toHaveAttribute("data-surface", "none");
+    expect(within(stageHeader).getByText("2/12")).toBeInTheDocument();
+    expect(within(stageHeader).getByRole("button", { name: "פתח טיימליין" })).toBeInTheDocument();
+    expect(within(stageHeader).getByRole("heading", { name: "אוטוליזה" })).toBeInTheDocument();
+    expect(purposeCard).toHaveAttribute(
+      "data-surface",
+      "glass",
+    );
+    expect(within(purposeCard).getByRole("heading", { name: "מטרת השלב" })).toBeInTheDocument();
+    expect(within(purposeCard).queryByText("2/12")).not.toBeInTheDocument();
+    expect(screen.getByTestId("autolyse-instructions-surface")).toHaveAttribute(
+      "data-surface",
+      "glass",
+    );
+    const timer = screen.getByTestId("autolyse-timer");
+    expect(within(timer).getByRole("heading", { name: "טיימר" })).toBeInTheDocument();
+    expect(within(timer).getByRole("status")).toHaveTextContent("הטיימר מושהה");
+    expect(within(timer).getByText("44:00")).toHaveAttribute("dir", "ltr");
+  });
+
+  it("keeps finished state in the page card and readiness criteria neutral", () => {
+    render(
+      <StageScreen
+        stage={getStage(2)!}
+        activeBake={makeBake(2, {
+          timerDurationSeconds: 45 * 60,
+          timerElapsedSeconds: 45 * 60,
+        })}
+        api={makeApi()}
+      />,
+    );
+
+    expect(screen.queryByTestId("autolyse-reentry-cue")).not.toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("autolyse-timer")).getByRole("heading", { name: "טיימר" }),
+    ).toBeInTheDocument();
+    expect(within(screen.getByTestId("autolyse-timer")).getByRole("status")).toHaveTextContent(
+      "הטיימר הסתיים",
+    );
+    expect(screen.getByRole("region", { name: "מתי להמשיך לשלב הבא" })).not.toHaveClass(
+      "border-sage/60",
+    );
+    expect(screen.getByText(/עכשיו עוברים ללישה ומוסיפים את השאור/)).toBeInTheDocument();
+  });
+
+  it("keeps Next secondary and asks for confirmation before the timer finishes", () => {
+    const api = makeApi();
+    render(
+      <StageScreen
+        stage={getStage(2)!}
+        activeBake={makeBake(2, {
+          timerDurationSeconds: 45 * 60,
+          timerElapsedSeconds: 60,
+        })}
+        api={api}
+      />,
+    );
+
+    const next = screen.getByRole("button", { name: /^הבא$/ });
+    expect(next).toHaveAttribute("data-priority", "secondary");
+    expect(next).toHaveClass("flex-1");
+    expect(next).toHaveClass("hover:!bg-paper/75");
+    expect(screen.getByRole("button", { name: /^חזרה$/ })).toHaveClass(
+      "hover:!bg-ink/[0.04]",
+    );
+    fireEvent.click(next);
+
+    expect(api.advanceTo).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("dialog", { name: "אוטוליזה" });
+    expect(dialog).toHaveAttribute("data-variant", "pilot");
+    expect(within(dialog).getByTestId("autolyse-advance-status")).toHaveAttribute(
+      "data-surface",
+      "inset",
+    );
+    expect(within(dialog).getByText("הטיימר מושהה")).toBeInTheDocument();
+    expect(within(dialog).getByText("44:00")).toHaveAttribute("dir", "ltr");
+    expect(within(dialog).queryByText(/עכשיו עוברים/)).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: /^הבא$/ })).toHaveClass("!text-ink");
+    fireEvent.click(within(dialog).getByRole("button", { name: /^ביטול$/ }));
+    expect(api.advanceTo).not.toHaveBeenCalled();
+
+    fireEvent.click(next);
+    const reopenedDialog = screen.getByRole("dialog", { name: "אוטוליזה" });
+    fireEvent.click(within(reopenedDialog).getByRole("button", { name: /^הבא$/ }));
+    expect(api.advanceTo).toHaveBeenCalledWith(3);
+    expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/3");
+  });
+
+  it("advances directly after the timer finishes without implying the dough was verified", () => {
+    const api = makeApi();
+    render(
+      <StageScreen
+        stage={getStage(2)!}
+        activeBake={makeBake(2, {
+          timerDurationSeconds: 45 * 60,
+          timerElapsedSeconds: 45 * 60,
+        })}
+        api={api}
+      />,
+    );
+
+    const next = screen.getByRole("button", { name: /^הבא$/ });
+    expect(next).toHaveAttribute("data-priority", "secondary");
+    expect(next).toHaveClass("flex-1");
+    fireEvent.click(next);
+
+    expect(api.advanceTo).toHaveBeenCalledWith(3);
+    expect(screen.queryByRole("dialog", { name: "אוטוליזה" })).not.toBeInTheDocument();
   });
 
   it("opens one deep guide without changing bake or timer actions", () => {
