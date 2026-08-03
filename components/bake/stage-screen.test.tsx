@@ -11,7 +11,6 @@ function makeApi() {
     advanceTo: vi.fn(),
     advanceSubStep: vi.fn(),
     startTimer: vi.fn(),
-    setTimerDuration: vi.fn(),
     setTimerRemaining: vi.fn(),
     pauseTimer: vi.fn(),
     resumeTimer: vi.fn(),

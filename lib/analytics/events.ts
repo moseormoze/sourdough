@@ -20,5 +20,3 @@ export type AnalyticsEvent =
   | { name: "dough_temp_recorded"; props: { doughTempC: number; kitchenTempC: number } };
 
 export type InstallBannerVariant = "android" | "ios" | "fb-in-app";
-
-export type AnalyticsEventName = AnalyticsEvent["name"];

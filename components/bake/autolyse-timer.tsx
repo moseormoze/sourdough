@@ -60,20 +60,6 @@ function nearestWheelMinutes(seconds: number): number {
   return Math.min(23 * 60 + 55, Math.max(5, Math.round(seconds / 60 / 5) * 5));
 }
 
-function TimerStatusHeading({ status, muted = false }: { status: string; muted?: boolean }) {
-  return (
-    <h3
-      aria-label={status}
-      className={cn("text-tiny font-medium", muted ? "text-ink-2" : "text-paper/60")}
-      dir="rtl"
-    >
-      {status.split(" ").map((word, index) => (
-        <span key={`${word}-${index}`}>{index > 0 ? ` ${word}` : word}</span>
-      ))}
-    </h3>
-  );
-}
-
 function TimerSignal({ finished }: { finished: boolean }) {
   const signalId = useId().replace(/:/g, "");
   const gradientId = `timer-signal-gradient-${signalId}`;
@@ -248,7 +234,9 @@ export function AutolyseTimer({
                 <Timer size={20} />
               </span>
               <div className="min-w-0 flex-1">
-                <TimerStatusHeading status={timerState} muted />
+                <h3 className="text-tiny font-medium text-ink-2" dir="rtl">
+                  {timerState}
+                </h3>
                 <p className="mt-1 text-small leading-relaxed text-ink-2">
                   {strings.bake.autolyseTimer.idleHint}
                 </p>
@@ -278,10 +266,15 @@ export function AutolyseTimer({
           >
             <div className="flex items-stretch">
               <div className="min-w-0 flex-1 px-4 py-2.5 text-start">
-                <TimerStatusHeading
-                  status={strings.bake.autolyseTimer.heading}
-                  muted={isFinished}
-                />
+                <h3
+                  className={cn(
+                    "text-tiny font-medium",
+                    isFinished ? "text-ink-2" : "text-paper/60",
+                  )}
+                  dir="rtl"
+                >
+                  {strings.bake.autolyseTimer.heading}
+                </h3>
                 <span
                   dir="ltr"
                   className="num mt-0.5 block font-mono text-2xl font-medium leading-none tabular-nums"
