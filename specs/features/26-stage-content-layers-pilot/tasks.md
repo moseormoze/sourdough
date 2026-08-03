@@ -1,7 +1,7 @@
 # Tasks: פיילוט עומק וכיול — אוטוליזה
 
-**סטטוס:** T1–T3 הושלמו ו־PR #78 מוזג. T4 פעיל לפי Issue #79 ומממש Redesign
-מלא של עמוד האוטוליזה כפיילוט; קופי מדריך העומק נשאר ללא שינוי.
+**סטטוס:** T1–T4 הושלמו; PR #80 מוזג. T5 ממומש ומאומת מקומית וממתין לביקורת
+לפני commit, push או PR.
 
 ## T1 — יישור גרירת `BottomSheet` ל־UI Playbook
 
@@ -207,16 +207,60 @@
 - ריכוך כיתוב הכיול והבהרה שהשעה בסרטון אינה המלצה לבייק הנוכחי.
 - שם נגיש לקישור שמבהיר כי הוא פותח וידאו חיצוני.
 
+## T5 — תקינות מצב ומחזור חיים של הטיימר
+
+**Goal:** עריכת הזמן משמרת את מצב הריצה הקיים, למסך האוטוליזה יש מקור tick אחד,
+וכל interval מפסיק לעבוד כשהטיימר מגיע ל־`finished`.
+
+**Branch:** `codex/feature/26-stage-content-layers-pilot/T5-timer-state-lifecycle`
+
+### Scope
+
+- `setTimerRemaining` משנה את הזמן שנותר בלי להפוך טיימר מושהה ל־`idle`.
+- טיימר פעיל ממשיך לרוץ לאחר עריכה; טיימר מושהה נשאר מושהה.
+- `StageScreen` הוא בעל השעון היחיד של כרטיס האוטוליזה ומעביר את הזמן המחושב
+  ל־`AutolyseTimer`; אין interval כפול.
+- tick נעצר ב־`finished` גם בטיימר האוטוליזה וגם ב־`OptionalTimer` שמשתמש באותו
+  דפוס lifecycle.
+- אין שינוי בעיצוב, בקופי, במשך ברירת המחדל, ב־localStorage או בהתנהגות ״הבא״.
+
+### Files likely touched
+
+- `lib/hooks/use-active-bake.ts` והבדיקות.
+- `components/bake/stage-screen.tsx`, `autolyse-timer.tsx` והבדיקות.
+- `components/bake/optional-timer.tsx` והבדיקות.
+
+### Test-first contract
+
+- עריכת טיימר מושהה שומרת `timerStartedAt: null`, את הזמן שכבר חלף ואת זמן
+  הסיום החדש; המצב המחושב נשאר `paused` ומציג את הזמן החדש שנותר.
+- עריכת טיימר פעיל משאירה אותו פעיל ומציגה את הזמן החדש שנותר.
+- כרטיס האוטוליזה אינו יוצר interval פנימי כשהשעון מגיע מ־`StageScreen`.
+- interval של המסך ושל `OptionalTimer` מנוקה אחרי tick שמגיע ל־`finished`.
+
+### Verification
+
+- בדיקות ממוקדות נכתבות ונכשלות לפני המימוש.
+- הבדיקות הממוקדות, `npm test`, ‏`npm run type-check`, ‏`npm run lint` ו־RTL scan
+  עוברים.
+
+### Done when
+
+- [x] חוזי הכשל תועדו בבדיקות לפני שינוי המימוש.
+- [x] עריכת running/paused משמרת את המצב הנכון.
+- [x] אין tick כפול וכל interval מסתיים ב־`finished` או ב־unmount.
+- [x] 979 בדיקות, type-check, lint ו־RTL scan עוברים.
+
 ## Build Order
 
 ```text
-T1–T3 merged
+T1–T4 merged
   ↓
-T4 tests fail against PR #78 baseline
+T5 timer lifecycle tests fail against PR #80 baseline
   ↓
-T4 page structure + media + timer hierarchy + navigation
+T5 minimal state and interval fix
   ↓
-full tests + RTL + rendered 375px QA
+full tests + type-check + lint + RTL scan
   ↓
-one T4 PR for user review
+one T5 PR for user review
 ```

@@ -145,11 +145,18 @@ export function useActiveBake(): UseActiveBakeApi {
   const setTimerRemaining = useCallback((durationSeconds: number) => {
     setActiveBake((current) => {
       if (!current) return current;
+      const isPaused = current.timerStartedAt === null && current.timerElapsedSeconds > 0;
       const next: ActiveBake = {
         ...current,
-        timerDurationSeconds: durationSeconds,
-        timerElapsedSeconds: 0,
-        timerStartedAt: current.timerStartedAt === null ? null : Date.now(),
+        timerDurationSeconds: isPaused
+          ? current.timerElapsedSeconds + durationSeconds
+          : durationSeconds,
+        timerElapsedSeconds: isPaused ? current.timerElapsedSeconds : 0,
+        timerStartedAt: isPaused
+          ? null
+          : current.timerStartedAt === null
+            ? null
+            : Date.now(),
       };
       saveActiveBake(next);
       return next;

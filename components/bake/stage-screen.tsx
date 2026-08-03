@@ -100,11 +100,15 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   );
 
   useEffect(() => {
-    if (!isAutolysePilot || activeBake.timerStartedAt === null) return;
+    if (
+      !isAutolysePilot ||
+      activeBake.timerStartedAt === null ||
+      autolyseFinished
+    ) return;
     setTimerNow(Date.now());
     const intervalId = window.setInterval(() => setTimerNow(Date.now()), 1000);
     return () => window.clearInterval(intervalId);
-  }, [activeBake.timerStartedAt, isAutolysePilot]);
+  }, [activeBake.timerStartedAt, autolyseFinished, isAutolysePilot]);
 
   const foldsRemaining =
     stage.type === "bulk" &&
@@ -256,6 +260,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             }
             startedAt={activeBake.timerStartedAt}
             elapsedSeconds={activeBake.timerElapsedSeconds}
+            nowMs={timerNow}
             onStart={(durationSeconds) => api.startTimer(durationSeconds)}
             onPause={api.pauseTimer}
             onResume={api.resumeTimer}

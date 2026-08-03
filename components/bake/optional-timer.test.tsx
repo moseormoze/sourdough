@@ -251,4 +251,23 @@ describe("OptionalTimer", () => {
     expect(screen.queryByRole("button", { name: "המשך" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "אפס" })).toBeInTheDocument();
   });
+
+  it("cleans up its clock when the countdown reaches 0", () => {
+    render(
+      <OptionalTimer
+        durationSeconds={1}
+        startedAt={Date.now()}
+        elapsedSeconds={0}
+        onStart={noop}
+        onPause={noop}
+        onResume={noop}
+        onReset={noop}
+      />
+    );
+
+    expect(vi.getTimerCount()).toBe(1);
+    act(() => { vi.advanceTimersByTime(1_000); });
+    expect(screen.getByText("הסתיים")).toBeInTheDocument();
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });

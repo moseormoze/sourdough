@@ -3,6 +3,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { useActiveBake } from "./use-active-bake";
 import { saveRecipe } from "@/lib/storage/recipes";
 import { loadActiveBake } from "@/lib/storage/active-bake";
+import { getAutolyseTimerState } from "@/components/bake/autolyse-timer";
 
 const sample = {
   name: "כפרי",
@@ -173,11 +174,21 @@ describe("useActiveBake — 03 extensions", () => {
     expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
     expect(result.current.activeBake?.timerStartedAt).toBe(t0 + 10 * 60 * 1000);
 
+    vi.spyOn(Date, "now").mockReturnValue(t0 + 15 * 60 * 1000);
     act(() => { result.current.pauseTimer(); });
     act(() => { result.current.setTimerRemaining(20 * 60); });
-    expect(result.current.activeBake?.timerDurationSeconds).toBe(20 * 60);
-    expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
-    expect(result.current.activeBake?.timerStartedAt).toBeNull();
+    const pausedTimer = result.current.activeBake;
+    expect(pausedTimer?.timerDurationSeconds).toBe(25 * 60);
+    expect(pausedTimer?.timerElapsedSeconds).toBe(5 * 60);
+    expect(pausedTimer?.timerStartedAt).toBeNull();
+    expect(
+      getAutolyseTimerState(
+        pausedTimer?.timerDurationSeconds ?? 0,
+        pausedTimer?.timerStartedAt ?? null,
+        pausedTimer?.timerElapsedSeconds ?? 0,
+        Date.now(),
+      ),
+    ).toEqual({ state: "paused", secondsLeft: 20 * 60 });
 
     vi.restoreAllMocks();
   });
