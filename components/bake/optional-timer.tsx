@@ -44,16 +44,20 @@ export function OptionalTimer({
 }: OptionalTimerProps) {
   const [now, setNow] = useState<number>(() => Date.now());
 
-  useEffect(() => {
-    if (startedAt === null) return;
-    setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [startedAt]);
-
   const isIdle = startedAt === null && elapsedSeconds === 0;
   const isRunning = startedAt !== null;
   const isPaused = startedAt === null && elapsedSeconds > 0;
+  const liveSegment = isRunning && startedAt !== null ? (now - startedAt) / 1000 : 0;
+  const totalElapsed = elapsedSeconds + liveSegment;
+  const secondsLeft = durationSeconds - totalElapsed;
+  const finished = secondsLeft <= 0;
+
+  useEffect(() => {
+    if (startedAt === null || finished) return;
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [finished, startedAt]);
 
   if (isIdle) {
     return (
@@ -72,11 +76,6 @@ export function OptionalTimer({
       </button>
     );
   }
-
-  const liveSegment = isRunning && startedAt !== null ? (now - startedAt) / 1000 : 0;
-  const totalElapsed = elapsedSeconds + liveSegment;
-  const secondsLeft = durationSeconds - totalElapsed;
-  const finished = secondsLeft <= 0;
 
   const stateAttr = finished ? "finished" : isPaused ? "paused" : "running";
 

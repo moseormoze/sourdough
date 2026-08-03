@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { act, render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { StageScreen } from "./stage-screen";
 import { getStage } from "@/lib/data/stages";
 import { routerMock } from "../../vitest.setup";
@@ -56,6 +56,11 @@ function makeBake(currentStage: number, overrides: Partial<ActiveBake> = {}): Ac
 
 beforeEach(() => {
   routerMock.push.mockClear();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("StageScreen — basic stage", () => {
@@ -344,6 +349,28 @@ describe("StageScreen — stage knowledge pilot", () => {
       "border-sage/60",
     );
     expect(screen.getByText(/עכשיו עוברים ללישה ומוסיפים את השאור/)).toBeInTheDocument();
+  });
+
+  it("owns one autolyse clock and stops it when the timer finishes", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-03T10:00:00Z"));
+    const setIntervalSpy = vi.spyOn(window, "setInterval");
+
+    render(
+      <StageScreen
+        stage={getStage(2)!}
+        activeBake={makeBake(2, {
+          timerDurationSeconds: 2,
+          timerStartedAt: Date.now(),
+        })}
+        api={makeApi()}
+      />,
+    );
+
+    expect(setIntervalSpy).toHaveBeenCalledTimes(1);
+    act(() => { vi.advanceTimersByTime(2_000); });
+    expect(screen.getByTestId("autolyse-timer")).toHaveAttribute("data-state", "finished");
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("keeps Next secondary and asks for confirmation before the timer finishes", () => {

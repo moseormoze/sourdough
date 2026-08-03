@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { Pause, Pencil, Play, RotateCcw, Timer } from "lucide-react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ export interface AutolyseTimerProps {
   startedAt: number | null;
   /** seconds accumulated before the current run segment */
   elapsedSeconds: number;
+  /** shared page clock; defaults to the current time for static renders */
+  nowMs?: number;
   onStart: (durationSeconds: number) => void;
   onPause: () => void;
   onResume: () => void;
@@ -171,29 +173,22 @@ export function AutolyseTimer({
   durationSeconds,
   startedAt,
   elapsedSeconds,
+  nowMs = Date.now(),
   onStart,
   onPause,
   onResume,
   onReset,
   onSetRemaining,
 }: AutolyseTimerProps) {
-  const [now, setNow] = useState(() => Date.now());
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<SheetMode>("setup");
   const [draftMinutes, setDraftMinutes] = useState(() => nearestWheelMinutes(durationSeconds));
-
-  useEffect(() => {
-    if (startedAt === null) return;
-    setNow(Date.now());
-    const intervalId = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(intervalId);
-  }, [startedAt]);
 
   const { state: timerPhase, secondsLeft } = getAutolyseTimerState(
     durationSeconds,
     startedAt,
     elapsedSeconds,
-    now,
+    nowMs,
   );
   const isIdle = timerPhase === "idle";
   const isFinished = timerPhase === "finished";
