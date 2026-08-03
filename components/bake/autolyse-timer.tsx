@@ -4,9 +4,17 @@ import { useId, useState } from "react";
 import { Pause, Pencil, Play, RotateCcw, Timer } from "lucide-react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
+import {
+  DEFAULT_AUTOLYSE_DURATION_SECONDS,
+  deriveTimerSnapshot,
+  formatTimerTime,
+  type TimerPhase,
+} from "@/lib/bake-timer";
 import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
 import { DurationWheel } from "./duration-wheel";
+
+export { DEFAULT_AUTOLYSE_DURATION_SECONDS } from "@/lib/bake-timer";
 
 export interface AutolyseTimerProps {
   durationSeconds: number;
@@ -23,9 +31,8 @@ export interface AutolyseTimerProps {
   onSetRemaining: (durationSeconds: number) => void;
 }
 
-export const DEFAULT_AUTOLYSE_DURATION_SECONDS = 45 * 60;
 type SheetMode = "setup" | "edit";
-export type AutolyseTimerState = "idle" | "running" | "paused" | "finished";
+export type AutolyseTimerState = TimerPhase;
 
 export function getAutolyseTimerState(
   durationSeconds: number,
@@ -33,27 +40,18 @@ export function getAutolyseTimerState(
   elapsedSeconds: number,
   nowMs = Date.now(),
 ): { state: AutolyseTimerState; secondsLeft: number } {
-  const liveSeconds = startedAt === null ? 0 : Math.max(0, (nowMs - startedAt) / 1000);
-  const totalElapsed = Math.max(0, elapsedSeconds + liveSeconds);
-  const secondsLeft = Math.max(0, durationSeconds - totalElapsed);
-  const isIdle = startedAt === null && elapsedSeconds === 0;
-  const state: AutolyseTimerState = isIdle
-    ? "idle"
-    : secondsLeft <= 0
-      ? "finished"
-      : startedAt === null
-        ? "paused"
-        : "running";
-  return { state, secondsLeft };
+  const { phase, secondsLeft } = deriveTimerSnapshot({
+    durationSeconds,
+    startedAt,
+    elapsedSeconds,
+    nowMs,
+  });
+
+  return { state: phase, secondsLeft };
 }
 
 export function formatAutolyseCountdown(secondsLeft: number): string {
-  const safeSeconds = Math.max(0, Math.ceil(secondsLeft));
-  const hours = Math.floor(safeSeconds / 3600);
-  const minutes = Math.floor((safeSeconds % 3600) / 60);
-  const seconds = safeSeconds % 60;
-  const minuteSeconds = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  return hours > 0 ? `${String(hours).padStart(2, "0")}:${minuteSeconds}` : minuteSeconds;
+  return formatTimerTime(secondsLeft, secondsLeft, "ceil");
 }
 
 function nearestWheelMinutes(seconds: number): number {

@@ -1,3 +1,11 @@
+const timerStatus = {
+  running: "הטיימר פועל",
+  paused: "הטיימר מושהה",
+  finished: "הטיימר הסתיים",
+} as const;
+
+const foldProgressSuffix = "קיפולים בוצעו";
+
 export const strings = {
   common: {
     cancel: "ביטול",
@@ -100,6 +108,10 @@ export const strings = {
     timerResume: "המשך",
     timerReset: "אפס",
     timerFinished: "הסתיים",
+    timerStatus,
+    foldProgressSuffix,
+    foldProgress: (current: number, total: number) =>
+      `${current} / ${total} ${foldProgressSuffix}`,
     autolyseTimer: {
       heading: "טיימר",
       idleHint: "אחרי שכל הקמח רטוב והקערה מכוסה, אפשר להפעיל טיימר למנוחה.",
@@ -117,9 +129,9 @@ export const strings = {
       timeRemaining: "זמן שנותר",
       openExpanded: "פתח טיימר מורחב",
       edit: "עריכת זמן",
-      running: "הטיימר פועל",
-      paused: "הטיימר מושהה",
-      finished: "הטיימר הסתיים",
+      running: timerStatus.running,
+      paused: timerStatus.paused,
+      finished: timerStatus.finished,
       pause: "השהה",
       resume: "המשך",
       reset: "התחל מחדש",
