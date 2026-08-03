@@ -39,3 +39,17 @@ describe("strings — stage knowledge", () => {
     expect(knowledge).not.toHaveProperty("troubleshootingTitle");
   });
 });
+
+describe("strings — reusable bake status", () => {
+  it("aliases the existing timer states and fold progress without changing copy", () => {
+    expect(strings.bake.timerStatus).toEqual({
+      running: "הטיימר פועל",
+      paused: "הטיימר מושהה",
+      finished: "הטיימר הסתיים",
+    });
+    expect(strings.bake.autolyseTimer.running).toBe(strings.bake.timerStatus.running);
+    expect(strings.bake.autolyseTimer.paused).toBe(strings.bake.timerStatus.paused);
+    expect(strings.bake.autolyseTimer.finished).toBe(strings.bake.timerStatus.finished);
+    expect(strings.bake.foldProgress(2, 4)).toBe("2 / 4 קיפולים בוצעו");
+  });
+});

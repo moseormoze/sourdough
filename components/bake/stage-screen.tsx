@@ -19,13 +19,13 @@ import { StageMedia } from "./stage-media";
 import { AutolyseCalibration } from "./autolyse-calibration";
 import { StageKnowledgeTrigger } from "./stage-knowledge-hub";
 import { StageKnowledgeSheet } from "./stage-knowledge-sheet";
-import {
-  AutolyseTimer,
-  DEFAULT_AUTOLYSE_DURATION_SECONDS,
-  formatAutolyseCountdown,
-  getAutolyseTimerState,
-} from "./autolyse-timer";
+import { AutolyseTimer } from "./autolyse-timer";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import {
+  DEFAULT_AUTOLYSE_DURATION_SECONDS,
+  deriveTimerSnapshot,
+  formatTimerTime,
+} from "@/lib/bake-timer";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
 import { getRescue } from "@/lib/data/rescue";
 import { getStageKnowledge } from "@/lib/data/stage-knowledge";
@@ -80,13 +80,13 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const isAutolysePilot = stage.n === 2;
   const autolyseDurationSeconds =
     activeBake.timerDurationSeconds ?? DEFAULT_AUTOLYSE_DURATION_SECONDS;
-  const autolyseTimerSnapshot = getAutolyseTimerState(
-    autolyseDurationSeconds,
-    activeBake.timerStartedAt,
-    activeBake.timerElapsedSeconds,
-    timerNow,
-  );
-  const autolyseTimerState = autolyseTimerSnapshot.state;
+  const autolyseTimerSnapshot = deriveTimerSnapshot({
+    durationSeconds: autolyseDurationSeconds,
+    startedAt: activeBake.timerStartedAt,
+    elapsedSeconds: activeBake.timerElapsedSeconds,
+    nowMs: timerNow,
+  });
+  const autolyseTimerState = autolyseTimerSnapshot.phase;
   const autolyseFinished = autolyseTimerState === "finished";
   const autolyseTimerStatus = autolyseFinished
     ? strings.bake.autolyseTimer.finished
@@ -95,8 +95,10 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       : autolyseTimerState === "running"
         ? strings.bake.autolyseTimer.running
         : strings.bake.autolyseTimer.heading;
-  const autolyseFormattedTime = formatAutolyseCountdown(
+  const autolyseFormattedTime = formatTimerTime(
     autolyseTimerSnapshot.secondsLeft,
+    autolyseDurationSeconds,
+    "ceil",
   );
 
   useEffect(() => {
@@ -280,7 +282,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
               <span dir="ltr" className="num">
                 {stage.subSteps}
               </span>
-              {" קיפולים בוצעו"}
+              {" "}{strings.bake.foldProgressSuffix}
             </p>
             <div className="mt-3">
               <FoldDots total={stage.subSteps} current={activeBake.subStep} />

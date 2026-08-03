@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Timer, Pause, Play, RotateCcw } from "lucide-react";
+import { deriveTimerSnapshot, formatTimerTime } from "@/lib/bake-timer";
 import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
 
@@ -18,20 +19,6 @@ export interface OptionalTimerProps {
   className?: string;
 }
 
-function format(secondsLeft: number, durationSeconds: number): string {
-  const safe = Math.max(0, Math.floor(secondsLeft));
-  const showHours = durationSeconds >= 3600;
-  if (showHours) {
-    const h = Math.floor(safe / 3600);
-    const m = Math.floor((safe % 3600) / 60);
-    const s = safe % 60;
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }
-  const m = Math.floor(safe / 60);
-  const s = safe % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
-
 export function OptionalTimer({
   durationSeconds,
   startedAt,
@@ -44,13 +31,17 @@ export function OptionalTimer({
 }: OptionalTimerProps) {
   const [now, setNow] = useState<number>(() => Date.now());
 
-  const isIdle = startedAt === null && elapsedSeconds === 0;
-  const isRunning = startedAt !== null;
-  const isPaused = startedAt === null && elapsedSeconds > 0;
-  const liveSegment = isRunning && startedAt !== null ? (now - startedAt) / 1000 : 0;
-  const totalElapsed = elapsedSeconds + liveSegment;
-  const secondsLeft = durationSeconds - totalElapsed;
-  const finished = secondsLeft <= 0;
+  const { phase, secondsLeft } = deriveTimerSnapshot({
+    durationSeconds,
+    startedAt,
+    elapsedSeconds,
+    nowMs: now,
+    clampFutureStart: false,
+  });
+  const isIdle = phase === "idle";
+  const isRunning = phase === "running";
+  const isPaused = phase === "paused";
+  const finished = phase === "finished";
 
   useEffect(() => {
     if (startedAt === null || finished) return;
@@ -77,11 +68,9 @@ export function OptionalTimer({
     );
   }
 
-  const stateAttr = finished ? "finished" : isPaused ? "paused" : "running";
-
   return (
     <div
-      data-state={stateAttr}
+      data-state={phase}
       className={cn(
         "inline-flex items-center gap-2 min-h-touch px-3 rounded-full",
         finished ? "bg-sage-bg text-sage-2" : "bg-bg-2 text-ink-2",
@@ -93,7 +82,7 @@ export function OptionalTimer({
         <span className="text-body">{strings.bake.timerFinished}</span>
       ) : (
         <span dir="ltr" className="num font-mono text-body-lg">
-          {format(secondsLeft, durationSeconds)}
+          {formatTimerTime(secondsLeft, durationSeconds, "floor")}
         </span>
       )}
 

@@ -29,11 +29,11 @@
 
 **Done when:**
 
-- [ ] נכתבו בדיקות נכשלות לפני המימוש והן עוברות.
-- [ ] Home ומסך השלב יכולים לצרוך אותו snapshot ללא שכפול חישוב.
-- [ ] מפתחות timer כלליים ממחזרים את הקופי הקיים; אין קופי חדש.
-- [ ] אין שינוי schema, storage key, route או פלט חזותי קיים.
-- [ ] unit tests, type-check, lint, ‏RTL scan ו־production build עוברים.
+- [x] נכתבו בדיקות נכשלות לפני המימוש והן עוברות.
+- [x] Home ומסך השלב יכולים לצרוך אותו snapshot ללא שכפול חישוב.
+- [x] מפתחות timer כלליים ממחזרים את הקופי הקיים; אין קופי חדש.
+- [x] אין שינוי schema, storage key, route או פלט חזותי קיים.
+- [x] unit tests, type-check, lint, ‏RTL scan ו־production build עוברים.
 
 ### T2 — רידזיין Home מלא ו־QA מרונדר
 
