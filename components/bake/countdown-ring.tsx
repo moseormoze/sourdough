@@ -40,9 +40,9 @@ export function CountdownRing({
       >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--accent)" />
-            <stop offset="52%" stopColor="#F3D8B7" />
-            <stop offset="100%" stopColor="var(--sage)" />
+            <stop offset="0%" stopColor="#F28A55" />
+            <stop offset="50%" stopColor="#FFD0A0" />
+            <stop offset="100%" stopColor="#B9DCE7" />
           </linearGradient>
         </defs>
         <circle
@@ -63,15 +63,22 @@ export function CountdownRing({
           strokeLinecap="round"
           strokeDasharray={CIRCUMFERENCE}
           strokeDashoffset={CIRCUMFERENCE * (1 - remainingRatio)}
-          className="transition-[stroke-dashoffset] duration-1000 ease-linear motion-reduce:transition-none"
+          className="drop-shadow-[0_0_5px_rgba(242,138,85,0.24)] transition-[stroke-dashoffset] duration-1000 ease-linear motion-reduce:transition-none"
         />
       </svg>
 
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="text-small font-medium text-paper/60" dir="rtl">
-          {status}
-        </span>
+        <h3
+          aria-label={status}
+          className="text-small font-medium text-paper/60"
+          dir="rtl"
+        >
+          {status.split(" ").map((word, index) => (
+            <span key={`${word}-${index}`}>{index > 0 ? ` ${word}` : word}</span>
+          ))}
+        </h3>
         <span
+          dir="ltr"
           className={`num mt-2 font-mono font-semibold leading-none tabular-nums text-paper ${
             formattedTime.length > 5 ? "text-[2rem]" : "text-[2.75rem]"
           }`}

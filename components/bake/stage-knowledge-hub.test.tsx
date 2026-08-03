@@ -9,6 +9,8 @@ describe("StageKnowledgeTrigger", () => {
     const button = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
     expect(screen.getAllByRole("button")).toHaveLength(1);
     expect(button).toHaveClass("min-h-touch");
+    expect(button).toHaveClass("hover:bg-ink/[0.04]");
+    expect(button).not.toHaveClass("hover:bg-bg-2");
     expect(button.className).toContain("focus-visible:ring-2");
     expect(button.querySelector("svg")).toHaveClass("lucide-graduation-cap");
     expect(button.querySelector("svg")).toHaveAttribute("aria-hidden", "true");

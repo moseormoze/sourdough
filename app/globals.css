@@ -139,9 +139,9 @@
       box-shadow var(--duration-fast) var(--ease-out);
   }
 
-  .pressable:active,
-  button:active,
-  [role="button"]:active {
+  .pressable:not([data-manual-press="true"]):active,
+  button:not([data-manual-press="true"]):active,
+  [role="button"]:not([data-manual-press="true"]):active {
     transform: scale(0.965);
   }
 }

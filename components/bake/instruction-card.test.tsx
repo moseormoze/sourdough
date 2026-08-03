@@ -71,6 +71,8 @@ describe("InstructionCard", () => {
     expect(strongs).toHaveLength(2);
     expect(strongs[0]?.tagName).toBe("STRONG");
     expect(strongs[0]).toHaveClass("font-semibold");
+    expect(strongs[0]).toHaveClass("num");
+    expect(strongs[0]).toHaveAttribute("dir", "ltr");
   });
 
   it("leaves placeholders untouched when no quantities are provided", () => {
@@ -138,6 +140,8 @@ describe("InstructionCard", () => {
     expect(item).toHaveTextContent(/361g.*קמח לבן.*90g.*קמח מלא/);
     expect(screen.getByText("361g").tagName).toBe("STRONG");
     expect(screen.getByText("90g").tagName).toBe("STRONG");
+    expect(screen.getByText("361g")).toHaveAttribute("dir", "ltr");
+    expect(screen.getByText("90g")).toHaveAttribute("dir", "ltr");
   });
 
   it("flour breakdown joins last item with 'ו-' (Hebrew 'and')", () => {

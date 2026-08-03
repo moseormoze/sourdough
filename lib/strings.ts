@@ -101,7 +101,7 @@ export const strings = {
     timerReset: "אפס",
     timerFinished: "הסתיים",
     autolyseTimer: {
-      heading: "זמן האוטוליזה",
+      heading: "טיימר",
       idleHint: "אחרי שכל הקמח רטוב והקערה מכוסה, אפשר להפעיל טיימר למנוחה.",
       setupTitle: "בחירת זמן",
       editTitle: "עריכת זמן שנותר",

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState, useId } from "react";
+import { cn } from "@/lib/cn";
 
 export interface BottomSheetProps {
   open: boolean;
   size?: "peek" | "full";
+  variant?: "default" | "pilot";
   title?: string;
   onClose: () => void;
   children: React.ReactNode;
@@ -46,6 +48,7 @@ function usePrefersReducedMotion(): boolean {
 export function BottomSheet({
   open,
   size = "peek",
+  variant = "default",
   title,
   onClose,
   children,
@@ -214,7 +217,11 @@ export function BottomSheet({
 
   if (!mounted) return null;
 
-  const heightClass = size === "full" ? "h-[88svh]" : "h-[56svh]";
+  const heightClass = size === "full"
+    ? "h-[88svh]"
+    : variant === "pilot"
+      ? "h-[72svh]"
+      : "h-[56svh]";
 
   const panelStyle: React.CSSProperties = reducedMotion
     ? { opacity: visible ? 1 : 0, transition: "opacity 150ms ease" }
@@ -255,9 +262,14 @@ export function BottomSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
-        className={`absolute bottom-0 start-0 end-0 ${heightClass}
-                   bg-paper rounded-t-3xl shadow-sheet
-                   flex flex-col overflow-hidden will-change-transform`}
+        data-variant={variant}
+        className={cn(
+          "absolute bottom-0 start-0 end-0 flex flex-col overflow-hidden shadow-sheet will-change-transform",
+          heightClass,
+          variant === "pilot"
+            ? "rounded-t-[2.25rem] border-t border-paper/70 bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]"
+            : "rounded-t-3xl bg-paper",
+        )}
         style={panelStyle}
       >
         {/* Drag handle — pointer capture enables drag-dismiss from here */}
@@ -268,21 +280,42 @@ export function BottomSheet({
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerCancel}
         >
-          <div className="w-9 h-1 rounded-full bg-line" aria-hidden />
+          <div
+            className={cn(
+              "h-1 rounded-full",
+              variant === "pilot" ? "w-10 bg-ink/15" : "w-9 bg-line",
+            )}
+            aria-hidden
+          />
         </div>
 
         {/* Header: title + close button */}
-        <div className="flex items-center justify-between px-5 pb-4 shrink-0">
+        <div
+          className={cn(
+            "flex shrink-0 items-center justify-between px-5 pb-4",
+            variant === "pilot" && "border-b border-ink/[0.06]",
+          )}
+        >
           {title
-            ? <h2 id={titleId} className="text-heading text-ink">{title}</h2>
+            ? <h2
+                id={titleId}
+                className={cn(
+                  "text-ink",
+                  variant === "pilot" ? "text-display-sm" : "text-heading",
+                )}
+              >
+                {title}
+              </h2>
             : <span />
           }
           <button
             type="button"
             aria-label="סגור"
             onClick={onClose}
-            className="pressable min-h-touch min-w-touch flex items-center justify-center
-                       text-ink-3 hover:text-ink -me-2"
+            className={cn(
+              "pressable -me-2 flex min-h-touch min-w-touch items-center justify-center text-ink-3 hover:text-ink",
+              variant === "pilot" && "rounded-full transition-colors duration-fast ease-out hover:bg-ink/[0.04]",
+            )}
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
               <path d="M3 3L15 15M15 3L3 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -291,7 +324,12 @@ export function BottomSheet({
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div
+          className={cn(
+            "flex-1 overflow-y-auto overscroll-contain pb-[max(1.25rem,env(safe-area-inset-bottom))]",
+            variant === "pilot" ? "px-4 pt-4" : "px-5",
+          )}
+        >
           {children}
         </div>
       </div>

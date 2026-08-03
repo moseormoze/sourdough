@@ -18,6 +18,7 @@ export interface StageHeaderProps {
   retardHours?: number;
   flour?: Flour;
   onTimelineOpen?: () => void;
+  variant?: "default" | "pilot";
 }
 
 export function StageHeader({
@@ -28,6 +29,7 @@ export function StageHeader({
   retardHours,
   flour,
   onTimelineOpen,
+  variant = "default",
 }: StageHeaderProps) {
   const [isPressed, setIsPressed] = useState(false);
   const dragRef = useRef({ startX: 0, startY: 0, didDrag: false });
@@ -66,31 +68,40 @@ export function StageHeader({
   const strip = <ProgressStrip total={totalStages} current={stage.n} />;
 
   return (
-    <header className="relative z-10">
+    <header className={cn("relative z-10", variant === "pilot" && "text-ink")}>
       <div className="flex items-center justify-between mb-3">
         <Link
           href="/"
           className={cn(
             "pressable inline-flex items-center gap-1.5 min-h-touch px-3 rounded-full",
-            "text-ink-2 hover:bg-bg-2 transition-colors",
+            "text-ink-2 transition-colors duration-fast ease-out",
+            variant === "pilot" ? "hover:bg-ink/[0.04]" : "hover:bg-bg-2",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-3"
           )}
         >
           <X size={16} aria-hidden />
           <span className="text-small">{strings.bake.stageMenuLabel}</span>
         </Link>
-        <span dir="ltr" className="num text-tiny font-mono text-ink-3">
+        <span
+          dir="ltr"
+          className={cn(
+            "num text-tiny font-mono",
+            variant === "pilot" ? "text-ink-2" : "text-ink-3",
+          )}
+        >
           {strings.bake.stageCounter(stage.n, totalStages)}
         </span>
       </div>
 
       {onTimelineOpen ? (
         <button
+          data-manual-press="true"
           aria-label="פתח טיימליין"
           className={cn(
             "w-full min-h-touch flex flex-col justify-center gap-0.5 rounded-lg -mx-1 px-1",
             "transition-[transform,background-color] duration-fast ease-out",
-            isPressed && "scale-[0.985] bg-black/[0.06]",
+            variant === "pilot" && "hover:bg-ink/[0.04]",
+            isPressed && "scale-[0.985] bg-ink/[0.06]",
           )}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -105,7 +116,13 @@ export function StageHeader({
           }}
         >
           {strip}
-          <div className="flex items-center gap-0.5 text-tiny text-ink-3 select-none" aria-hidden="true">
+          <div
+            className={cn(
+              "flex items-center gap-0.5 text-tiny select-none",
+              variant === "pilot" ? "text-ink-2" : "text-ink-3",
+            )}
+            aria-hidden="true"
+          >
             <ChevronDown size={12} />
             <span>טיימליין</span>
           </div>
@@ -114,13 +131,18 @@ export function StageHeader({
         strip
       )}
 
-      <div className="mt-4">
+      <div className={cn("mt-4", variant === "pilot" && "pt-1")}>
         {durationLabel && (
-          <span className="inline-block bg-accent-bg text-accent text-tiny font-medium px-3 py-1 rounded-full">
+          <span className={cn(
+            "inline-block text-tiny font-medium px-3 py-1 rounded-full",
+            variant === "pilot"
+              ? "border border-paper/55 bg-paper/30 text-ink-2 shadow-sm backdrop-blur-sm"
+              : "bg-accent-bg text-accent",
+          )}>
             {durationLabel}
           </span>
         )}
-        <h1 className="mt-2 text-display-sm text-ink">
+        <h1 className={cn("mt-2 text-ink", variant === "pilot" ? "text-display-md" : "text-display-sm")}>
           {stage.name}
           {stage.hint && (
             <>

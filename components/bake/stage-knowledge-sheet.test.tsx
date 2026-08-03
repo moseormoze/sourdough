@@ -45,15 +45,51 @@ describe("StageKnowledgeSheet", () => {
     expect(dialogs).toHaveLength(1);
     expect(dialogs[0]?.className).toContain("88svh");
     expect(screen.getByRole("heading", { name: content.title })).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toHaveAttribute("data-variant", "pilot");
+    const guide = screen.getByTestId("autolyse-guide-redesign");
+    expect(guide).toHaveAttribute("data-colorway", "ambient-glass");
+    expect(within(guide).getByTestId("autolyse-guide-intro")).toHaveAttribute(
+      "data-surface",
+      "glass",
+    );
+    expect(within(guide).getByTestId("autolyse-guide-mechanism")).toHaveAttribute(
+      "data-surface",
+      "charcoal",
+    );
+    expect(within(guide).getByTestId("autolyse-guide-mechanism")).toHaveClass(
+      "bg-[#292A28]",
+    );
+    expect(within(guide).getByTestId("autolyse-guide-graph")).toHaveAttribute(
+      "data-surface",
+      "glass",
+    );
+    expect(within(guide).getByTestId("autolyse-guide-recipe")).toHaveAttribute(
+      "data-surface",
+      "glass",
+    );
+    expect(within(guide).getByTestId("autolyse-guide-practical")).toHaveAttribute(
+      "data-surface",
+      "glass",
+    );
+    expect(within(guide).getAllByTestId("autolyse-guide-inset").length).toBeGreaterThan(3);
     expect(screen.getByText(content.intro)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: content.mechanism.heading }),
     ).toBeInTheDocument();
     expect(screen.getByText(content.mechanism.body)).toBeInTheDocument();
     expect(screen.getByRole("img", { name: content.graph.description })).toBeInTheDocument();
+    const plot = screen.getByTestId("autolyse-conceptual-plot");
+    expect(plot).toHaveAttribute("data-surface", "inset");
+    expect(plot).toHaveClass("bg-ink/[0.03]");
+    expect(plot).not.toHaveClass("shadow-inner");
+    const graph = screen.getByTestId("autolyse-conceptual-graph");
+    expect(graph.querySelectorAll("linearGradient, filter, circle")).toHaveLength(0);
+    expect(graph.querySelector('[data-curve="hydration"]')).toHaveClass("text-ink-2");
+    expect(graph.querySelector('[data-curve="weakening"]')).toHaveClass("text-accent");
     expect(screen.getByText(content.graph.startLabel)).toBeInTheDocument();
     expect(screen.getByText(content.graph.endLabel)).toBeInTheDocument();
-    expect(screen.getByText(content.graph.description)).toBeInTheDocument();
+    expect(screen.getByText(content.graph.startLabel).parentElement).toHaveClass("text-ink-2");
+    expect(screen.getByText(content.graph.description)).toHaveClass("text-ink-2");
     expect(screen.getByText(content.practicalCheck)).toBeInTheDocument();
     expect(screen.getByText(content.decisionRule)).toBeInTheDocument();
   });

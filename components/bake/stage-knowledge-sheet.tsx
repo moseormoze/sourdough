@@ -55,39 +55,44 @@ function FlourSummary({ flour }: { flour: Flour }) {
 
 function ConceptualGraph({ graph }: { graph: StageKnowledgeContent["graph"] }) {
   return (
-    <figure className="mt-3 rounded-2xl border border-line/70 bg-bg-2/35 p-4">
+    <figure className="mt-4">
       <div
+        data-testid="autolyse-conceptual-plot"
+        data-surface="inset"
         role="img"
         aria-label={graph.description}
         dir="ltr"
-        className="overflow-hidden rounded-xl bg-paper/80 p-3"
+        className="overflow-hidden rounded-2xl border border-ink/[0.06] bg-ink/[0.03] p-3"
       >
         <svg
+          data-testid="autolyse-conceptual-graph"
           viewBox="0 0 320 160"
           className="h-auto w-full"
           aria-hidden="true"
           focusable="false"
         >
-          <path d="M18 142 H302" fill="none" stroke="currentColor" opacity="0.18" />
+          <path d="M18 142 H302" fill="none" stroke="currentColor" className="text-line-2" />
           <path
-            d="M18 136 C70 70 132 38 302 34"
+            data-curve="hydration"
+            d="M18 136 C72 76 145 54 302 52"
             fill="none"
             stroke="currentColor"
-            strokeWidth="5"
+            className="text-ink-2"
+            strokeWidth="4"
             strokeLinecap="round"
-            className="text-sage"
           />
           <path
-            d="M18 140 C150 139 231 116 302 48"
+            data-curve="weakening"
+            d="M18 140 C155 139 238 112 302 34"
             fill="none"
             stroke="currentColor"
-            strokeWidth="4"
-            strokeDasharray="8 7"
+            className="text-accent"
+            strokeWidth="3.5"
+            strokeDasharray="7 7"
             strokeLinecap="round"
-            className="text-warn"
           />
         </svg>
-        <div className="mt-1 flex justify-between gap-3 text-tiny text-ink-3">
+        <div className="mt-1 flex justify-between gap-3 text-tiny text-ink-2">
           <span dir="rtl">{graph.startLabel}</span>
           <span dir="rtl">{graph.endLabel}</span>
         </div>
@@ -95,18 +100,18 @@ function ConceptualGraph({ graph }: { graph: StageKnowledgeContent["graph"] }) {
 
       <div className="mt-3 grid gap-1.5 text-small text-ink-2">
         <p className="flex items-center gap-2">
-          <span aria-hidden className="h-1 w-7 shrink-0 rounded-full bg-sage" />
+          <span aria-hidden className="h-1 w-7 shrink-0 rounded-full bg-ink-2" />
           {graph.hydrationLabel}
         </p>
         <p className="flex items-center gap-2">
           <span
             aria-hidden
-            className="h-0 w-7 shrink-0 border-t-2 border-dashed border-warn"
+            className="h-0 w-7 shrink-0 border-t-2 border-dashed border-accent"
           />
           {graph.weakeningLabel}
         </p>
       </div>
-      <figcaption className="mt-3 text-tiny leading-relaxed text-ink-3">
+      <figcaption className="mt-3 text-tiny leading-relaxed text-ink-2">
         {graph.description}
       </figcaption>
     </figure>
@@ -126,26 +131,43 @@ function RecipeContext({
     <section
       role="region"
       aria-label={content.heading}
-      className="border-t border-line/70 pt-6"
+      data-testid="autolyse-guide-recipe"
+      data-surface="glass"
+      className="rounded-[2rem] border border-paper/55 bg-paper/30 p-5 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] backdrop-blur-sm"
     >
-      <h3 className="text-heading text-ink">{content.heading}</h3>
+      <div className="flex items-center gap-3">
+        <span
+          aria-hidden
+          className="size-3 shrink-0 rounded-full bg-[#F28A55] shadow-[0_0_0_6px_rgba(242,138,85,0.12)]"
+        />
+        <h3 className="text-heading text-ink">{content.heading}</h3>
+      </div>
 
-      <dl className="mt-3 grid gap-2 rounded-2xl bg-bg-2/45 p-4 text-small">
-        <div className="grid gap-0.5">
-          <dt className="text-tiny text-ink-3">{strings.bakeConfirm.flour}</dt>
+      <dl className="mt-4 grid grid-cols-2 gap-2 text-small">
+        <div
+          data-testid="autolyse-guide-inset"
+          className="col-span-2 grid gap-0.5 rounded-2xl border border-ink/[0.06] bg-ink/[0.035] p-3.5"
+        >
+          <dt className="text-tiny text-ink-2">{strings.bakeConfirm.flour}</dt>
           <dd className="leading-relaxed text-ink-2">
             <FlourSummary flour={recipe.flour} />
           </dd>
         </div>
-        <div className="flex items-baseline justify-between gap-3">
-          <dt className="text-tiny text-ink-3">{strings.form.hydration}</dt>
-          <dd className="text-ink-2">
+        <div
+          data-testid="autolyse-guide-inset"
+          className="grid gap-1 rounded-2xl border border-ink/[0.06] bg-ink/[0.035] p-3.5"
+        >
+          <dt className="text-tiny text-ink-2">{strings.form.hydration}</dt>
+          <dd className="text-body-lg font-semibold text-ink">
             <NumberValue>{`${numberFormatter.format(recipe.hydration)}%`}</NumberValue>
           </dd>
         </div>
-        <div className="flex items-baseline justify-between gap-3">
-          <dt className="text-tiny text-ink-3">{strings.form.kitchenTemp}</dt>
-          <dd className="text-ink-2">
+        <div
+          data-testid="autolyse-guide-inset"
+          className="grid gap-1 rounded-2xl border border-ink/[0.06] bg-ink/[0.035] p-3.5"
+        >
+          <dt className="text-tiny text-ink-2">{strings.form.kitchenTemp}</dt>
+          <dd className="text-body-lg font-semibold text-ink">
             <NumberValue>{`${numberFormatter.format(recipe.kitchenTemp)}°C`}</NumberValue>
           </dd>
         </div>
@@ -156,7 +178,8 @@ function RecipeContext({
           <p
             key={factor}
             data-testid="autolyse-guidance-factor"
-            className="border-s-2 border-line ps-3 text-body leading-relaxed text-ink-2"
+            data-surface="inset"
+            className="rounded-2xl border border-ink/[0.06] bg-ink/[0.035] p-4 text-body leading-relaxed text-ink-2"
           >
             {content.guidance[factor]}
           </p>
@@ -173,21 +196,55 @@ export function StageKnowledgeSheet({
   onClose,
 }: StageKnowledgeSheetProps) {
   return (
-    <BottomSheet open={open} size="full" title={content.title} onClose={onClose}>
-      <div className="space-y-6 pb-4">
-        <p className="text-body-lg leading-relaxed text-ink-2">{content.intro}</p>
+    <BottomSheet
+      open={open}
+      size="full"
+      title={content.title}
+      onClose={onClose}
+      variant="pilot"
+    >
+      <div
+        data-testid="autolyse-guide-redesign"
+        data-colorway="ambient-glass"
+        className="space-y-4 pb-4"
+      >
+        <section
+          data-testid="autolyse-guide-intro"
+          data-surface="glass"
+          className="relative isolate overflow-hidden rounded-[2rem] border border-paper/55 bg-paper/30 p-5 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] backdrop-blur-sm"
+        >
+          <span
+            aria-hidden
+            className="absolute -end-10 -top-10 -z-10 size-32 rounded-full border-[18px] border-paper/35"
+          />
+          <p className="max-w-[19rem] text-body-lg font-medium leading-relaxed text-ink">
+            {content.intro}
+          </p>
+        </section>
 
-        <section className="border-t border-line/70 pt-6">
-          <h3 className="text-heading text-ink">{content.mechanism.heading}</h3>
-          <p className="mt-2 text-body leading-relaxed text-ink-2">
+        <section
+          data-testid="autolyse-guide-mechanism"
+          data-surface="charcoal"
+          className="relative isolate overflow-hidden rounded-[2rem] bg-[#292A28] p-5 text-paper shadow-lg"
+        >
+          <span
+            aria-hidden
+            className="absolute -end-10 bottom-0 -z-10 size-36 rounded-full bg-[#F28A55]/18 blur-2xl"
+          />
+          <h3 className="text-heading text-paper">{content.mechanism.heading}</h3>
+          <p className="mt-3 text-body leading-relaxed text-paper/72">
             {content.mechanism.body}
           </p>
         </section>
 
-        <section className="border-t border-line/70 pt-6">
+        <section
+          data-testid="autolyse-guide-graph"
+          data-surface="glass"
+          className="rounded-[2rem] border border-paper/55 bg-paper/30 p-5 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] backdrop-blur-sm"
+        >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-heading text-ink">{content.graph.title}</h3>
-            <span className="rounded-full bg-bg-2 px-2.5 py-1 text-tiny text-ink-3">
+            <span className="rounded-full bg-[#F28A55]/12 px-3 py-1 text-tiny font-medium text-ink-2">
               {content.graph.badge}
             </span>
           </div>
@@ -196,11 +253,19 @@ export function StageKnowledgeSheet({
 
         <RecipeContext content={content.recipeContext} recipe={recipe} />
 
-        <div className="border-t border-line/70 pt-6">
-          <p className="text-body leading-relaxed text-ink-2">
+        <div
+          data-testid="autolyse-guide-practical"
+          data-surface="glass"
+          className="rounded-[2rem] border border-paper/55 bg-paper/30 p-5 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] backdrop-blur-sm"
+        >
+          <p className="text-body leading-relaxed text-ink">
             {content.practicalCheck}
           </p>
-          <p className="mt-3 rounded-2xl bg-bg-2/55 p-4 text-body font-medium leading-relaxed text-ink">
+          <p
+            data-testid="autolyse-guide-inset"
+            data-surface="inset"
+            className="mt-4 rounded-2xl border border-ink/[0.06] bg-ink/[0.035] p-4 text-body font-semibold leading-relaxed text-ink"
+          >
             {content.decisionRule}
           </p>
         </div>

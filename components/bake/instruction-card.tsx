@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import type { BakeQuantities, FlourBreakdownEntry } from "@/lib/bake-math";
 import { strings } from "@/lib/strings";
+import { cn } from "@/lib/cn";
 
 export interface InstructionCardProps {
   steps: string[];
@@ -8,6 +9,7 @@ export interface InstructionCardProps {
   note?: string;
   title?: string;
   quantities?: BakeQuantities;
+  variant?: "default" | "pilot";
 }
 
 type TokenMap = Record<string, number>;
@@ -34,7 +36,7 @@ function renderFlourBreakdown(entries: FlourBreakdownEntry[], baseKey: number): 
     return (
       <Fragment key={`${baseKey}-${i}`}>
         {separator}
-        <strong className="font-semibold text-ink">{entry.grams}g</strong>
+        <strong dir="ltr" className="num font-semibold text-ink">{entry.grams}g</strong>
         {" " + labels[entry.type]}
       </Fragment>
     );
@@ -94,7 +96,7 @@ function renderStep(
       const value = tokenName !== undefined ? tokens[tokenName] : undefined;
       if (value !== undefined) {
         parts.push(
-          <strong key={match.index} className="font-semibold text-ink">
+          <strong key={match.index} dir="ltr" className="num font-semibold text-ink">
             {value}g
           </strong>
         );
@@ -116,10 +118,11 @@ export function InstructionCard({
   note,
   title = "מה לעשות",
   quantities,
+  variant = "default",
 }: InstructionCardProps) {
   const tokens = quantities ? buildTokenMap(quantities) : null;
   return (
-    <section className="rounded-2xl bg-paper shadow-sm p-5">
+    <section className={cn(variant === "pilot" ? "bg-transparent" : "rounded-2xl bg-paper shadow-sm p-5")}>
       <h3 className="text-heading text-ink">{title}</h3>
       <ol className="mt-3 flex flex-col gap-2.5 text-body-lg text-ink leading-relaxed list-decimal ps-6 marker:text-ink-2 marker:font-semibold">
         {steps.map((step, i) => (
@@ -129,7 +132,10 @@ export function InstructionCard({
         ))}
       </ol>
       {tip && (
-        <aside className="mt-4 rounded-xl bg-bg/60 border border-line p-3.5">
+        <aside className={cn(
+          "mt-4 rounded-xl border p-3.5",
+          variant === "pilot" ? "border-paper/50 bg-paper/25" : "border-line bg-bg/60",
+        )}>
           <p className="text-small text-ink-2 leading-relaxed">
             <span className="font-semibold text-ink">טיפ: </span>
             {renderInlineBold(tip, "tip")}
