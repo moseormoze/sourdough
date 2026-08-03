@@ -20,7 +20,6 @@ export interface UseActiveBakeApi {
   advanceTo: (stage: number) => void;
   advanceSubStep: () => void;
   setDoughTemp: (tempC: number | null) => void;
-  setTimerDuration: (durationSeconds: number) => void;
   setTimerRemaining: (durationSeconds: number) => void;
   startTimer: (durationSeconds?: number) => void;
   pauseTimer: () => void;
@@ -130,18 +129,6 @@ export function useActiveBake(): UseActiveBakeApi {
     });
   }, []);
 
-  const setTimerDuration = useCallback((durationSeconds: number) => {
-    setActiveBake((current) => {
-      if (!current) return current;
-      const next: ActiveBake = {
-        ...current,
-        timerDurationSeconds: durationSeconds,
-      };
-      saveActiveBake(next);
-      return next;
-    });
-  }, []);
-
   const setTimerRemaining = useCallback((durationSeconds: number) => {
     setActiveBake((current) => {
       if (!current) return current;
@@ -226,7 +213,6 @@ export function useActiveBake(): UseActiveBakeApi {
     advanceTo,
     advanceSubStep,
     setDoughTemp,
-    setTimerDuration,
     setTimerRemaining,
     startTimer,
     pauseTimer,

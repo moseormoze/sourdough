@@ -148,16 +148,6 @@ describe("useActiveBake — 03 extensions", () => {
     expect(result.current.activeBake?.timerDurationSeconds).toBe(45 * 60);
   });
 
-  it("setTimerDuration() persists the user's choice before the timer starts", async () => {
-    const recipe = saveRecipe(sample);
-    const { result } = renderHook(() => useActiveBake());
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    act(() => { result.current.start(recipe); });
-    act(() => { result.current.setTimerDuration(60 * 60); });
-    expect(result.current.activeBake?.timerDurationSeconds).toBe(60 * 60);
-    expect(loadActiveBake()?.timerDurationSeconds).toBe(60 * 60);
-  });
-
   it("setTimerRemaining() replaces the remaining countdown and preserves run state", async () => {
     const recipe = saveRecipe(sample);
     const { result } = renderHook(() => useActiveBake());

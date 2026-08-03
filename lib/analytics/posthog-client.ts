@@ -37,7 +37,3 @@ export function identifyUser(email: string, props: { name: string }): void {
   posthog.identify(normalized, { email: normalized, name: props.name });
   posthog.startSessionRecording();
 }
-
-export function isAnalyticsReady(): boolean {
-  return initialized;
-}
