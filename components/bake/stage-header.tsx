@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
 import Link from "next/link";
 import { X, ChevronDown } from "lucide-react";
 import { ProgressStrip } from "./progress-strip";
 import { cn } from "@/lib/cn";
+import { usePressActivation } from "@/lib/hooks/use-press-activation";
 import { strings } from "@/lib/strings";
 import { fermentationStageSecs, starterPeakSecs, durationRangeLabel, type FeedRatio } from "@/lib/bake-timing";
 import type { Flour } from "@/lib/types/recipe";
@@ -31,8 +31,7 @@ export function StageHeader({
   onTimelineOpen,
   variant = "default",
 }: StageHeaderProps) {
-  const [isPressed, setIsPressed] = useState(false);
-  const dragRef = useRef({ startX: 0, startY: 0, didDrag: false });
+  const { isPressed, pressProps } = usePressActivation<HTMLButtonElement>(onTimelineOpen);
 
   const durationLabel = (() => {
     if (stage.n === 1 && kitchenTemp != null && feedRatio != null)
@@ -43,27 +42,6 @@ export function StageHeader({
       return durationRangeLabel(fermentationStageSecs(stage.tempSensitiveBaseSecs, kitchenTemp, flour)) + (stage.durationLabelSuffix ?? "");
     return stage.durationLabel;
   })();
-
-  function handlePointerDown(e: React.PointerEvent) {
-    dragRef.current = { startX: e.clientX, startY: e.clientY, didDrag: false };
-    setIsPressed(true);
-  }
-
-  function handlePointerMove(e: React.PointerEvent) {
-    if (dragRef.current.didDrag) return;
-    const dx = Math.abs(e.clientX - dragRef.current.startX);
-    const dy = Math.abs(e.clientY - dragRef.current.startY);
-    if (dx > 5 || dy > 5) {
-      dragRef.current.didDrag = true;
-      setIsPressed(false);
-    }
-  }
-
-  function handlePointerUp() {
-    const didDrag = dragRef.current.didDrag;
-    setIsPressed(false);
-    if (!didDrag) onTimelineOpen?.();
-  }
 
   const strip = <ProgressStrip total={totalStages} current={stage.n} />;
 
@@ -96,6 +74,7 @@ export function StageHeader({
       {onTimelineOpen ? (
         <button
           data-manual-press="true"
+          type="button"
           aria-label="פתח טיימליין"
           className={cn(
             "w-full min-h-touch flex flex-col justify-center gap-0.5 rounded-lg -mx-1 px-1",
@@ -103,17 +82,7 @@ export function StageHeader({
             variant === "pilot" && "hover:bg-ink/[0.04]",
             isPressed && "scale-[0.985] bg-ink/[0.06]",
           )}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={() => setIsPressed(false)}
-          onPointerCancel={() => setIsPressed(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onTimelineOpen();
-            }
-          }}
+          {...pressProps}
         >
           {strip}
           <div

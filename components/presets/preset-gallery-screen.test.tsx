@@ -28,6 +28,7 @@ describe("PresetGalleryScreen", () => {
     const btn = screen.getByRole("button", { name: country.name });
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+    fireEvent.click(btn, { detail: 1 });
     expect(routerMock.push).toHaveBeenCalledWith(`/recipes/new/${country.id}`);
   });
 

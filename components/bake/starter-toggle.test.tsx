@@ -28,8 +28,7 @@ describe("StarterToggle", () => {
     const onChange = vi.fn();
     render(<StarterToggle label="label" value={true} onChange={onChange} />);
     const noOption = screen.getByRole("radio", { name: "לא" });
-    fireEvent.pointerDown(noOption);
-    fireEvent.pointerUp(noOption);
+    fireEvent.click(noOption, { detail: 0 });
     expect(onChange).toHaveBeenCalledWith(false);
   });
 
@@ -37,8 +36,20 @@ describe("StarterToggle", () => {
     const onChange = vi.fn();
     render(<StarterToggle label="label" value={false} onChange={onChange} />);
     const yesOption = screen.getByRole("radio", { name: "כן" });
-    fireEvent.pointerDown(yesOption);
-    fireEvent.pointerUp(yesOption);
+    fireEvent.click(yesOption, { detail: 0 });
     expect(onChange).toHaveBeenCalledWith(true);
+  });
+
+  it("does not select after pointer movement becomes a drag", () => {
+    const onChange = vi.fn();
+    render(<StarterToggle label="label" value={true} onChange={onChange} />);
+    const noOption = screen.getByRole("radio", { name: "לא" });
+
+    fireEvent.pointerDown(noOption, { pointerId: 1, clientX: 0, clientY: 0 });
+    fireEvent.pointerMove(noOption, { pointerId: 1, clientX: 10, clientY: 0 });
+    fireEvent.pointerUp(noOption, { pointerId: 1, clientX: 10, clientY: 0 });
+    fireEvent.click(noOption, { detail: 1 });
+
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

@@ -71,11 +71,10 @@ describe("RecipeListItem", () => {
     expect(screen.getByText(/20% מלא · 75% הידרציה/)).toBeInTheDocument();
   });
 
-  it("navigates to /recipes/{id}/edit on pointer up", () => {
+  it("navigates to /recipes/{id}/edit from a native assistive-technology click", () => {
     render(<RecipeListItem recipe={sample} />);
     const btn = screen.getByRole("button");
-    fireEvent.pointerDown(btn, { clientX: 5, clientY: 5 });
-    fireEvent.pointerUp(btn, { clientX: 5, clientY: 5 });
+    fireEvent.click(btn, { detail: 0 });
     expect(routerMock.push).toHaveBeenCalledWith("/recipes/abc-123/edit");
   });
 
@@ -85,13 +84,8 @@ describe("RecipeListItem", () => {
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
     fireEvent.pointerMove(btn, { clientX: 30, clientY: 0 });
     fireEvent.pointerUp(btn, { clientX: 30, clientY: 0 });
+    fireEvent.click(btn, { detail: 1 });
     expect(routerMock.push).not.toHaveBeenCalled();
-  });
-
-  it("navigates on Enter key", () => {
-    render(<RecipeListItem recipe={sample} />);
-    fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
-    expect(routerMock.push).toHaveBeenCalledWith("/recipes/abc-123/edit");
   });
 
   it("exposes the id on a data attribute", () => {

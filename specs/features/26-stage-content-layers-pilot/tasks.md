@@ -1,7 +1,7 @@
 # Tasks: פיילוט עומק וכיול — אוטוליזה
 
-**סטטוס:** T1–T4 הושלמו; PR #80 מוזג. T5 ממומש ומאומת מקומית וממתין לביקורת
-לפני commit, push או PR.
+**סטטוס:** T1–T5 הושלמו; T5 מוזג ב־PR #82. T6 הושלם ואומת ומוכן לבדיקת PR
+ולמיזוג משתמש. T7 מאושר וממתין למיזוג T6, בהתאם לכלל משימה אחת בכל פעם.
 
 ## T1 — יישור גרירת `BottomSheet` ל־UI Playbook
 
@@ -251,16 +251,85 @@
 - [x] אין tick כפול וכל interval מסתיים ב־`finished` או ב־unmount.
 - [x] 979 בדיקות, type-check, lint ו־RTL scan עוברים.
 
+## T6 — הפעלה טבעית וחוזה press/drag אחיד
+
+**Goal:** כל רכיב press/drag מפעיל פעולה דרך `click` טבעי, מבטל tap אחרי תנועה
+ומנקה press state באופן עקבי, כך שעכבר, מגע, מקלדת וטכנולוגיות מסייעות מקבלים
+אותה פעולה פעם אחת.
+
+**Branch:** `codex/feature/26-stage-content-layers-pilot/T6-native-activation`
+
+### Scope
+
+- hook משותף אחד מנהל `Idle → Press → Drag/Cancel → Click → Idle` עם סף 5px
+  ו־cooldown של 200ms לדיכוי click פיזי אחרי drag.
+- `click` עם `detail: 0` נשאר פעיל גם בזמן cooldown כדי לא לחסום מקלדת או
+  טכנולוגיה מסייעת.
+- הרכיבים הפשוטים משתמשים בחוזה המשותף במקום state/refs/keydown כפולים:
+  `PresetCard`, ‏`HomeCta`, ‏`ChooserCard`, ‏`StageHeader`, ‏`StarterToggle`,
+  ‏`StageKnowledgeTrigger`, ‏`AutolyseCalibration` ו־`FeedbackFab`.
+- `RecipeListItem` שומר את state machine של ה־swipe, אך tap עובר ל־`click`
+  טבעי וה־swipe מדכא רק את ה־click הפיזי שנוצר אחריו.
+- אין שינוי ב־DOM, בעיצוב, בקופי, ביעדי ניווט או בפיזיקת swipe.
+
+### Test-first contract
+
+- `StageHeader`, ‏`StarterToggle` ו־`RecipeListItem` מופעלים פעם אחת מ־click
+  טבעי עם `detail: 0`; אין `keydown` ידני.
+- tap פיזי מפעיל פעם אחת בלבד; תנועה מעל 5px, ‏`pointercancel`, ‏blur או unmount
+  מנקים press state ואינם מפעילים.
+- click פיזי מיד אחרי drag מדוכא; click מקלדת/AT עם `detail: 0` אינו מדוכא.
+- ה־swipe של `RecipeListItem` שומר מרחק, מהירות, rubber-band ו־commit קיימים.
+
+### Verification
+
+- בדיקות הכשל נכשלות מול baseline של PR #82 לפני המימוש.
+- בדיקות hook ורכיבים ממוקדות, הסוויטה המלאה, type-check, lint, production build
+  ו־RTL scan עוברים.
+- QA מרונדר אינו נדרש כשאין diff חזותי; חוזי ההתנהגות וה־DOM מכוסים בבדיקות.
+- תוצאה מקומית: 95 קבצי בדיקה ו־986 בדיקות עברו.
+
+### Done when
+
+- [x] חוזי native click נכשלים לפני המימוש.
+- [x] כל הרכיבים שב־Scope משתמשים בחוזה המשותף או ב־swipe state machine המומחה.
+- [x] אין הפעלה כפולה ואין tap אחרי drag/cancel.
+- [x] כל הווריפיקציות עוברות.
+
+## T7 — מחיקת קוד מת מאומתת
+
+**Goal:** להסיר רק קוד ללא consumer שאומת באודיט ובחיפוש עדכני, בלי refactor או
+שינוי התנהגות.
+
+**Depends on:** T6 מוזג.
+
+### Scope
+
+- למחוק את `components/bake/countdown-ring.tsx` אם עדיין אינו מיובא.
+- להסיר את `setTimerDuration` מה־API, המימוש, ה־mocks והבדיקה אם עדיין אין caller
+  בייצור.
+- להסיר את `isAnalyticsReady` ואת `AnalyticsEventName` אם עדיין אין consumers.
+- לפשט את `TimerStatusHeading` לטקסט ישיר אם אין השפעת layout או bidi.
+- כל מועמד שנוסף לו consumer עד תחילת T7 נשאר; אין מחיקה לפי השערה.
+
+### Verification
+
+- חיפוש usage עדכני מתועד לפני כל מחיקה.
+- בדיקות ממוקדות, הסוויטה המלאה, type-check, lint, build ו־RTL scan עוברים.
+- T7 נמסר ב־PR נפרד רק אחרי מיזוג T6.
+
 ## Build Order
 
 ```text
-T1–T4 merged
+T1–T5 merged
   ↓
-T5 timer lifecycle tests fail against PR #80 baseline
+T6 native activation tests fail against PR #82 baseline
   ↓
-T5 minimal state and interval fix
+T6 shared contract + affected components
   ↓
 full tests + type-check + lint + RTL scan
   ↓
-one T5 PR for user review
+one T6 PR for user review and merge
+  ↓
+T7 verified dead-code deletion in a separate task and PR
 ```

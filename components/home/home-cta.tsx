@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, type ReactNode, type PointerEvent } from "react";
+import { type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { usePressActivation } from "@/lib/hooks/use-press-activation";
 
 export type HomeCtaVariant = "primary" | "secondary";
 
@@ -14,71 +15,20 @@ export interface HomeCtaProps {
   variant?: HomeCtaVariant;
 }
 
-const DRAG_CANCEL_THRESHOLD_PX = 5;
-
 export function HomeCta({ href, icon, label, count, variant = "secondary" }: HomeCtaProps) {
   const router = useRouter();
-  const pressedRef = useRef(false);
-  const [pressed, setPressed] = useState(false);
-  const startRef = useRef<{ x: number; y: number } | null>(null);
+  const { isPressed: pressed, pressProps } = usePressActivation<HTMLButtonElement>(
+    () => router.push(href),
+  );
 
   const isPrimary = variant === "primary";
-
-  function setPressedBoth(value: boolean) {
-    pressedRef.current = value;
-    setPressed(value);
-  }
-
-  function handlePointerDown(e: PointerEvent<HTMLButtonElement>) {
-    startRef.current = { x: e.clientX, y: e.clientY };
-    setPressedBoth(true);
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-  }
-
-  function handlePointerMove(e: PointerEvent<HTMLButtonElement>) {
-    if (!pressedRef.current) return;
-    const start = startRef.current;
-    if (!start) return;
-    const dx = Math.abs(e.clientX - start.x);
-    const dy = Math.abs(e.clientY - start.y);
-    if (dx > DRAG_CANCEL_THRESHOLD_PX || dy > DRAG_CANCEL_THRESHOLD_PX) {
-      setPressedBoth(false);
-      startRef.current = null;
-    }
-  }
-
-  function handlePointerUp() {
-    const wasPressed = pressedRef.current;
-    setPressedBoth(false);
-    startRef.current = null;
-    if (wasPressed) {
-      router.push(href);
-    }
-  }
-
-  function handlePointerCancel() {
-    setPressedBoth(false);
-    startRef.current = null;
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      router.push(href);
-    }
-  }
 
   const showCount = count !== undefined && count > 0;
 
   return (
     <button
       type="button"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
-      onPointerLeave={handlePointerCancel}
-      onKeyDown={handleKeyDown}
+      {...pressProps}
       data-pressed={pressed ? "" : undefined}
       aria-label={showCount ? `${label} · ${count}` : label}
       className={cn(

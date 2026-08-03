@@ -96,6 +96,7 @@ describe("HomeScreen", () => {
     const btn = await screen.findByRole("button", { name: strings.home.starterTracker });
     fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
     fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
+    fireEvent.click(btn, { detail: 1 });
     expect(routerMock.push).toHaveBeenCalledWith("/starter");
   });
 
