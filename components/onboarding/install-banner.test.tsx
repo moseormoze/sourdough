@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { InstallBanner } from "./install-banner";
 import { strings } from "@/lib/strings";
 import { track } from "@/lib/analytics/track";
@@ -33,6 +33,10 @@ beforeEach(() => {
   localStorage.clear();
   vi.clearAllMocks();
   mockPrompt();
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("InstallBanner — variants", () => {
@@ -71,6 +75,17 @@ describe("InstallBanner — variants", () => {
     expect(
       screen.queryByRole("button", { name: strings.install.iosCta })
     ).not.toBeInTheDocument();
+  });
+
+  it("uses a Home-local glass card and passes Home to the iOS guide", async () => {
+    mockEnv("ios");
+    render(<InstallBanner appearance="home" />);
+
+    const banner = await screen.findByLabelText(strings.install.title);
+    expect(banner).toHaveAttribute("data-appearance", "home");
+    expect(screen.getByRole("heading", { level: 2, name: strings.install.title })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: strings.install.iosCta }));
+    expect(await screen.findByRole("dialog")).toHaveAttribute("data-variant", "home");
   });
 
   it.each(["standalone", "none"])("%s: renders nothing", async (env) => {
@@ -135,5 +150,33 @@ describe("InstallBanner — flags and lifecycle", () => {
       ([name]) => name === "install_banner_shown"
     );
     expect(shownCalls).toEqual([["install_banner_shown", { variant: "fb-in-app" }]]);
+  });
+
+  it("ignores repeated dismiss activation while leaving", async () => {
+    mockEnv("ios");
+    render(<InstallBanner appearance="home" />);
+    const dismiss = await screen.findByRole("button", { name: strings.install.dismissLabel });
+
+    fireEvent.click(dismiss);
+    fireEvent.click(dismiss);
+
+    const calls = (track as Mock).mock.calls.filter(
+      ([name]) => name === "install_banner_dismissed",
+    );
+    expect(calls).toHaveLength(1);
+  });
+
+  it("removes the Home banner immediately for reduced motion", async () => {
+    vi.stubGlobal("matchMedia", vi.fn((query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)",
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })));
+    mockEnv("ios");
+    render(<InstallBanner appearance="home" />);
+
+    fireEvent.click(await screen.findByRole("button", { name: strings.install.dismissLabel }));
+    expect(screen.queryByText(strings.install.title)).not.toBeInTheDocument();
   });
 });

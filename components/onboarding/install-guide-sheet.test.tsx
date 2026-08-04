@@ -18,4 +18,11 @@ describe("InstallGuideSheet", () => {
     render(<InstallGuideSheet open={false} onClose={vi.fn()} />);
     expect(screen.queryByText(strings.install.guideTitle)).not.toBeInTheDocument();
   });
+
+  it("uses the Home sheet and inset step treatment when requested", () => {
+    render(<InstallGuideSheet open appearance="home" onClose={vi.fn()} />);
+
+    expect(screen.getByRole("dialog")).toHaveAttribute("data-variant", "home");
+    expect(screen.getByRole("list")).toHaveAttribute("data-appearance", "home");
+  });
 });

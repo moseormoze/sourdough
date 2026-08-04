@@ -45,4 +45,27 @@ describe("StopBakeDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "לא, להמשיך" }));
     expect(onCancel).toHaveBeenCalledOnce();
   });
+
+  it("uses the Home glass dialog without changing the default", () => {
+    const { rerender } = render(
+      <StopBakeDialog
+        open
+        appearance="home"
+        recipeName="x"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("dialog")).toHaveAttribute("data-appearance", "home");
+
+    rerender(
+      <StopBakeDialog
+        open
+        recipeName="x"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("dialog")).toHaveAttribute("data-appearance", "default");
+  });
 });

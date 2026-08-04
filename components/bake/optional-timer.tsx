@@ -54,7 +54,7 @@ export function OptionalTimer({
     return (
       <button
         type="button"
-        onClick={onStart}
+        onClick={() => onStart()}
         className={cn(
           "pressable inline-flex items-center gap-2 min-h-touch px-4 rounded-full",
           "bg-bg-2 text-ink-2 text-body hover:bg-line transition-colors",

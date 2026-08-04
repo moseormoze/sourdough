@@ -71,12 +71,26 @@
 
 **Done when:**
 
-- [ ] נכתבו בדיקות נכשלות לפני המימוש והן עוברות.
-- [ ] הקומפוזיציה והאינטראקציות תואמות במלואן ל־`design.md`.
-- [ ] אין קופי חדש; נוסח הקיפולים הקיים נשמר verbatim ומרוכז ב־i18n.
-- [ ] default appearances מחוץ ל־Home ומסכי היעד נשארים ללא שינוי.
-- [ ] unit tests, type-check, lint, RTL scan ו־production build עוברים.
-- [ ] כל ה־QA המרונדר מתועד; מקור ובדיקות בלבד אינם מספיקים.
+- [x] נכתבו בדיקות נכשלות לפני המימוש והן עוברות.
+- [x] הקומפוזיציה והאינטראקציות תואמות במלואן ל־`design.md`.
+- [x] אין קופי חדש; נוסח הקיפולים הקיים נשמר verbatim ומרוכז ב־i18n.
+- [x] default appearances מחוץ ל־Home ומסכי היעד נשארים ללא שינוי.
+- [x] unit tests, type-check, lint, RTL scan ו־production build עוברים.
+- [x] כל ה־QA המרונדר מתועד; מקור ובדיקות בלבד אינם מספיקים.
+
+**Verification — 2026-08-04:**
+
+- ‏100 קובצי test ו־1,015 בדיקות עברו; גם `type-check`, ‏lint ו־production build.
+- סריקת RTL: קבצי T2 נקיים ממאפייני CSS פיזיים ומקופי אנגלי קשיח; ה־root נשאר
+  `dir="rtl"`. הממצאים הכיווניים הקיימים מחוץ להיקף T2 לא שונו.
+- QA בדפדפן עבר ל־fresh ול־active ב־375×812 וב־320px, כולל טיימר אמיתי,
+  stop dialog, focus return, ניווטים, no-flash, ללא overflow וללא התנגשות FAB.
+- ב־200% טקסט ה־padding התחתון הסקלאבילי השאיר 121px בין השורה האחרונה ל־FAB.
+  loading, ‏paused, ‏finished ו־folds מכוסים גם בבדיקות רינדור וסמנטיקה ממוקדות.
+- וריאנט iOS של כרטיס ההתקנה וה־Home sheet נבדקו מרונדרים; default/home,
+  reduced motion, dismiss כפול ו־blur fallback מכוסים בבדיקות רכיב.
+- במהלך המסלול האמיתי נמצא ותוקן forwarding של `MouseEvent` אל `startTimer`;
+  בדיקת רגרסיה מאשרת שהטיימר נקרא ללא ארגומנט אירוע ואין עוד שגיאת serialization.
 
 ## Build Order
 

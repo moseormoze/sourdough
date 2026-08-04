@@ -9,6 +9,8 @@ export interface StopBakeDialogProps {
   recipeName: string;
   onConfirm: () => void;
   onCancel: () => void;
+  appearance?: "default" | "home";
+  onAfterClose?: () => void;
 }
 
 /**
@@ -20,11 +22,15 @@ export function StopBakeDialog({
   recipeName,
   onConfirm,
   onCancel,
+  appearance = "default",
+  onAfterClose,
 }: StopBakeDialogProps) {
   return (
     <Dialog
       open={open}
       onClose={onCancel}
+      onAfterClose={onAfterClose}
+      appearance={appearance}
       title={strings.bake.stopTitle}
       description={strings.bake.stopDescription(recipeName)}
       actions={

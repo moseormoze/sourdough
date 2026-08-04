@@ -128,6 +128,22 @@ describe("BottomSheet", () => {
     expect(screen.getByRole("heading", { name: "ברירת מחדל" })).toHaveClass("text-heading");
   });
 
+  it("applies the Home shell at the default peek height", () => {
+    render(
+      <BottomSheet open variant="home" title="התקנה" onClose={vi.fn()}>
+        content
+      </BottomSheet>,
+    );
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("data-variant", "home");
+    expect(dialog.className).toContain("56svh");
+    expect(dialog).toHaveClass("rounded-t-[2.25rem]");
+    expect(dialog).toHaveClass(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
+    );
+  });
+
   it("removes dialog from DOM after close animation", async () => {
     const { rerender, container } = render(
       <BottomSheet open={true} onClose={vi.fn()}>

@@ -739,7 +739,7 @@ describe("StageScreen — timer stage", () => {
     const api = makeApi();
     render(<StageScreen stage={stage} activeBake={makeBake(7)} api={api} />);
     fireEvent.click(screen.getByRole("button", { name: /התחל טיימר/ }));
-    expect(api.startTimer).toHaveBeenCalledOnce();
+    expect(api.startTimer).toHaveBeenCalledWith();
   });
 });
 

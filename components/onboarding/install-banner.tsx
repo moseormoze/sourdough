@@ -18,6 +18,10 @@ import { cn } from "@/lib/cn";
 
 const EXIT_DURATION_MS = 200;
 
+export interface InstallBannerProps {
+  appearance?: "default" | "home";
+}
+
 function detectStandalone(): boolean {
   try {
     if (window.matchMedia("(display-mode: standalone)").matches) return true;
@@ -27,7 +31,15 @@ function detectStandalone(): boolean {
   return (navigator as Navigator & { standalone?: boolean }).standalone === true;
 }
 
-export function InstallBanner() {
+function prefersReducedMotion(): boolean {
+  try {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    return false;
+  }
+}
+
+export function InstallBanner({ appearance = "default" }: InstallBannerProps) {
   const { promptEvent, installed } = useInstallPrompt();
   const [mounted, setMounted] = useState(false);
   const [flaggedOff, setFlaggedOff] = useState(false);
@@ -35,6 +47,7 @@ export function InstallBanner() {
   const [gone, setGone] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const shownTracked = useRef(false);
+  const leavingRef = useRef(false);
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -75,6 +88,11 @@ export function InstallBanner() {
   // already persisted the installed flag, so no dismissed flag is written.
   useEffect(() => {
     if (installed && visible && !leaving) {
+      leavingRef.current = true;
+      if (prefersReducedMotion()) {
+        setGone(true);
+        return;
+      }
       setLeaving(true);
       exitTimer.current = setTimeout(() => setGone(true), EXIT_DURATION_MS);
     }
@@ -83,18 +101,26 @@ export function InstallBanner() {
   if (!visible) return null;
 
   function beginExit() {
+    if (leavingRef.current) return false;
+    leavingRef.current = true;
+    if (prefersReducedMotion()) {
+      setGone(true);
+      return true;
+    }
     setLeaving(true);
     exitTimer.current = setTimeout(() => setGone(true), EXIT_DURATION_MS);
+    return true;
   }
 
   function handleDismiss() {
-    if (!variant) return;
+    if (!variant || leavingRef.current) return;
     saveInstallBannerDismissed();
     track("install_banner_dismissed", { variant });
     beginExit();
   }
 
   function handleAction() {
+    if (leavingRef.current) return;
     if (variant === "android" && promptEvent) {
       track("install_prompt_shown", { variant: "android" });
       void promptEvent.prompt();
@@ -105,15 +131,19 @@ export function InstallBanner() {
   }
 
   const isFb = variant === "fb-in-app";
+  const Heading = appearance === "home" ? "h2" : "h3";
 
   return (
     <>
       <aside
         aria-label={isFb ? strings.install.fbTitle : strings.install.title}
+        data-appearance={appearance}
         className={cn(
-          "mt-4 overflow-hidden rounded-2xl border border-line bg-paper shadow-sm",
+          appearance === "home"
+            ? "overflow-hidden rounded-[2rem] border border-paper/60 bg-[#FFF8F1]/95 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] supports-[backdrop-filter]:bg-paper/35 supports-[backdrop-filter]:backdrop-blur-md"
+            : "mt-4 overflow-hidden rounded-2xl border border-line bg-paper shadow-sm",
           "transition-[opacity,max-height,margin-top] duration-base ease-in",
-          leaving ? "max-h-0 mt-0 opacity-0" : "max-h-96"
+          leaving ? "pointer-events-none max-h-0 mt-0 opacity-0" : "max-h-96"
         )}
       >
         <div className="relative p-5">
@@ -135,14 +165,19 @@ export function InstallBanner() {
               {isFb ? <Compass size={22} /> : <Download size={22} />}
             </span>
             <div className="min-w-0 flex-1">
-              <h3 className="text-heading text-ink">
+              <Heading className="text-heading text-ink">
                 {isFb ? strings.install.fbTitle : strings.install.title}
-              </h3>
+              </Heading>
               <p className="mt-1 text-small text-ink-2 leading-relaxed">
                 {isFb ? strings.install.fbBody : strings.install.body}
               </p>
               {!isFb && (
-                <Button variant="accent" size="sm" className="mt-3" onClick={handleAction}>
+                <Button
+                  variant="accent"
+                  size="sm"
+                  className={appearance === "home" ? "mt-3 w-full" : "mt-3"}
+                  onClick={handleAction}
+                >
                   {variant === "android"
                     ? strings.install.installCta
                     : strings.install.iosCta}
@@ -153,7 +188,11 @@ export function InstallBanner() {
         </div>
       </aside>
 
-      <InstallGuideSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      <InstallGuideSheet
+        open={sheetOpen}
+        appearance={appearance}
+        onClose={() => setSheetOpen(false)}
+      />
     </>
   );
 }
