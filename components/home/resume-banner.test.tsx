@@ -1,71 +1,75 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import type { HomeBakeStatus } from "@/lib/home-bake-status";
 import { ResumeBanner } from "./resume-banner";
-import { routerMock } from "../../vitest.setup";
-import type { ActiveBake } from "@/lib/types/active-bake";
 
-const activeBake: ActiveBake = {
-  id: "ab-1",
-  recipe: {
-    id: "r-1",
-    name: "לחם של שישי",
-    flour: { white: 80, wholeWheat: 20, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
-    hydration: 75,
-    salt: 2,
-    levain: 20,
-    flourWeightGrams: 500,
-    kitchenTemp: 25,
-    inclusions: [],
-    createdAt: 1,
-    updatedAt: 1,
-  },
-  startedAt: 100,
-  currentStage: 4,
-  stageStartedAt: 200,
-  observationChecks: {},
-  subStep: 0,
-  timerStartedAt: null,
-  timerElapsedSeconds: 0,
-  timerDurationSeconds: null,
-  bakingMethod: "closed-vessel",
-  feedAt: null,
-  peakAt: null,
-  feedRatio: 2 as const,
-  retardHours: 12,
-  doughTempC: null,
-};
+const stage = { number: 4, total: 12, name: "תסיסה ראשונית" };
+
+function renderBanner(
+  status: HomeBakeStatus = { kind: "none" },
+  onStopRequest = vi.fn(),
+) {
+  return render(
+    <ResumeBanner
+      recipeName="לחםשלשישיארוךמאודללאמרווחים"
+      stage={stage}
+      status={status}
+      continueHref="/bake/stage/4"
+      onStopRequest={onStopRequest}
+    />,
+  );
+}
 
 describe("ResumeBanner", () => {
-  beforeEach(() => {
-    routerMock.push.mockClear();
-  });
+  it("renders a non-interactive card with recipe, stage and progress semantics", () => {
+    renderBanner();
 
-  it("renders the resume label + recipe name + stage progress", () => {
-    render(<ResumeBanner activeBake={activeBake} onStopRequest={() => {}} />);
     expect(screen.getByText("ממשיכים")).toBeInTheDocument();
-    expect(screen.getByText("לחם של שישי")).toBeInTheDocument();
-    expect(screen.getByText("שלב 4 מתוך 12")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "לחםשלשישיארוךמאודללאמרווחים", level: 2 }),
+    ).not.toHaveClass("truncate");
+    expect(screen.getByText("תסיסה ראשונית")).toBeInTheDocument();
+    const progress = screen.getByRole("progressbar");
+    expect(progress).toHaveAttribute("aria-valuemin", "1");
+    expect(progress).toHaveAttribute("aria-valuemax", "12");
+    expect(progress).toHaveAttribute("aria-valuenow", "4");
+    expect(progress.children).toHaveLength(12);
   });
 
-  it("renders a 12-segment progress bar with current stage reflected", () => {
-    render(<ResumeBanner activeBake={activeBake} onStopRequest={() => {}} />);
-    const bar = screen.getByRole("progressbar");
-    expect(bar.getAttribute("aria-valuenow")).toBe("4");
-    expect(bar.getAttribute("aria-valuemin")).toBe("1");
-    expect(bar.getAttribute("aria-valuemax")).toBe("12");
-    expect(bar.children).toHaveLength(12);
-  });
-
-  it("primary 'המשך' navigates to /bake/stage/{currentStage}", () => {
-    render(<ResumeBanner activeBake={activeBake} onStopRequest={() => {}} />);
-    fireEvent.click(screen.getByRole("button", { name: "המשך" }));
-    expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/4");
-  });
-
-  it("'סיים בייק' calls onStopRequest (does not directly clear)", () => {
+  it("uses a native continue link and a distinct stop button", () => {
     const onStopRequest = vi.fn();
-    render(<ResumeBanner activeBake={activeBake} onStopRequest={onStopRequest} />);
+    renderBanner({ kind: "none" }, onStopRequest);
+
+    expect(screen.getByRole("link", { name: "המשך" })).toHaveAttribute(
+      "href",
+      "/bake/stage/4",
+    );
     fireEvent.click(screen.getByRole("button", { name: "סיים בייק" }));
     expect(onStopRequest).toHaveBeenCalledOnce();
+  });
+
+  it("renders a timer status without putting the countdown in the live region", () => {
+    renderBanner({
+      kind: "timer",
+      phase: "running",
+      secondsLeft: 29 * 60,
+      formattedTime: "29:00",
+    });
+
+    const live = screen.getByRole("status");
+    expect(live).toHaveTextContent("הטיימר פועל");
+    expect(live).not.toHaveTextContent("29:00");
+    expect(screen.getByText("29:00")).toHaveAttribute("dir", "ltr");
+  });
+
+  it("renders fold text once and total decorative dots", () => {
+    const { container } = renderBanner({ kind: "folds", current: 2, total: 4 });
+
+    expect(screen.getAllByText("2 / 4 קיפולים בוצעו")).toHaveLength(1);
+    expect(container.querySelectorAll('[data-testid="home-fold-dot"]')).toHaveLength(4);
+    expect(container.querySelector('[data-testid="home-fold-dots"]')).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
   });
 });

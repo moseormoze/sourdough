@@ -1,13 +1,15 @@
-import { describe, it, expect, beforeAll, beforeEach, afterEach, vi, type Mock } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import { HomeScreen } from "./home-screen";
+import { getInstallEnvironment } from "@/lib/install-environment";
+import { track } from "@/lib/analytics/track";
 import { saveRecipe } from "@/lib/storage/recipes";
 import { loadActiveBake, saveActiveBake } from "@/lib/storage/active-bake";
-import { getInstallEnvironment } from "@/lib/install-environment";
 import { strings } from "@/lib/strings";
-import { routerMock } from "../../vitest.setup";
+import type { ActiveBake } from "@/lib/types/active-bake";
 import type { Recipe } from "@/lib/types/recipe";
 
+vi.mock("@/lib/analytics/track", () => ({ track: vi.fn() }));
 vi.mock("@/lib/install-environment", () => ({
   getInstallEnvironment: vi.fn(() => "none"),
 }));
@@ -15,17 +17,25 @@ vi.mock("@/lib/hooks/use-install-prompt", () => ({
   useInstallPrompt: vi.fn(() => ({ promptEvent: null, installed: false })),
 }));
 
-const sample = {
+const recipeInput = {
   name: "כפרי",
-  flour: { white: 80, wholeWheat: 20, rye: 0, other: 0 },
+  flour: {
+    white: 80,
+    wholeWheat: 20,
+    rye: 0,
+    speltWhite: 0,
+    speltWhole: 0,
+    other: 0,
+  },
   hydration: 75,
   salt: 2,
   levain: 20,
+  flourWeightGrams: 500,
   kitchenTemp: 25,
   inclusions: [],
 };
 
-function seedActive(recipe: Recipe) {
+function seedActive(recipe: Recipe, overrides: Partial<ActiveBake> = {}) {
   saveActiveBake({
     id: "ab-1",
     recipe,
@@ -33,16 +43,17 @@ function seedActive(recipe: Recipe) {
     currentStage: 4,
     stageStartedAt: 2,
     observationChecks: {},
-      subStep: 0,
-      timerStartedAt: null,
-      timerElapsedSeconds: 0,
-      timerDurationSeconds: null,
-      bakingMethod: "closed-vessel",
-      feedAt: null,
-      peakAt: null,
-      feedRatio: 2 as const,
-      retardHours: 12,
-      doughTempC: null,
+    subStep: 0,
+    timerStartedAt: null,
+    timerElapsedSeconds: 0,
+    timerDurationSeconds: null,
+    bakingMethod: "closed-vessel",
+    feedAt: null,
+    peakAt: null,
+    feedRatio: 2,
+    retardHours: 12,
+    doughTempC: null,
+    ...overrides,
   });
 }
 
@@ -58,119 +69,143 @@ beforeAll(() => {
   }
 });
 
-describe("HomeScreen", () => {
+describe("HomeScreen — resolved states", () => {
   beforeEach(() => {
     localStorage.clear();
+    vi.clearAllMocks();
+    (track as Mock).mockReset();
   });
 
-  it("renders wordmark and subtitle in fresh (no active bake) state", () => {
-    render(<HomeScreen />);
-    expect(screen.getByText("כיכר")).toBeInTheDocument();
-    expect(screen.getByText("מה אופים היום?")).toBeInTheDocument();
+  afterEach(() => {
+    vi.useRealTimers();
+    (getInstallEnvironment as Mock).mockReturnValue("none");
   });
 
-  it("hides the subtitle when an active bake exists (the banner is the answer)", async () => {
-    const recipe = saveRecipe(sample);
-    seedActive(recipe);
+  it("renders the fixed decorative logo and native fresh navigation", async () => {
     render(<HomeScreen />);
-    await screen.findByText("ממשיכים");
-    expect(screen.queryByText("מה אופים היום?")).not.toBeInTheDocument();
+
+    const main = await screen.findByRole("main");
+    await waitFor(() => expect(main).toHaveAttribute("aria-busy", "false"));
+    expect(main).toHaveClass("pb-[calc(9.25rem+env(safe-area-inset-bottom))]");
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getByText(strings.home.subtitle)).toBeInTheDocument();
+    const logo = document.querySelector('img[src*="logo.svg"]');
+    expect(logo).toHaveAttribute("alt", "");
+    expect(logo).toHaveAttribute("width", "96");
+    expect(screen.getByRole("link", { name: strings.home.startBaking })).toHaveAttribute(
+      "href",
+      "/bake/new",
+    );
+    expect(screen.getByRole("link", { name: strings.home.myRecipes })).toHaveAttribute(
+      "href",
+      "/recipes",
+    );
+    expect(screen.getByRole("link", { name: strings.home.starterTracker })).toHaveAttribute(
+      "href",
+      "/starter",
+    );
   });
 
-  it("renders the SVG logo with the wordmark as alt text", () => {
+  it("shows a positive recipe count but never zero", async () => {
+    saveRecipe(recipeInput);
+    saveRecipe({ ...recipeInput, name: "אחר" });
     render(<HomeScreen />);
-    const logo = screen.getByRole("img", { name: "כיכר" });
-    expect(logo).toBeInTheDocument();
-    expect(logo.getAttribute("src")).toContain("logo.svg");
-  });
 
-  it("renders the CTAs in fresh state", async () => {
-    render(<HomeScreen />);
-    expect(await screen.findByText("התחל אפייה")).toBeInTheDocument();
-    expect(screen.getByText("המתכונים שלי")).toBeInTheDocument();
-    expect(screen.getByText(strings.home.starterTracker)).toBeInTheDocument();
-  });
-
-  it("navigates to /starter when the starter tracker CTA is pressed (fresh state)", async () => {
-    render(<HomeScreen />);
-    const btn = await screen.findByRole("button", { name: strings.home.starterTracker });
-    fireEvent.pointerDown(btn, { clientX: 0, clientY: 0 });
-    fireEvent.pointerUp(btn, { clientX: 0, clientY: 0 });
-    fireEvent.click(btn, { detail: 1 });
-    expect(routerMock.push).toHaveBeenCalledWith("/starter");
-  });
-
-  it("shows recipe count when > 0", async () => {
-    saveRecipe(sample);
-    saveRecipe({ ...sample, name: "אחר" });
-    render(<HomeScreen />);
-    expect(await screen.findByText("2")).toBeInTheDocument();
-  });
-
-  it("does not show recipe count when 0", async () => {
-    render(<HomeScreen />);
-    await screen.findByText("התחל אפייה");
+    expect(await screen.findByRole("link", { name: "המתכונים שלי · 2" })).toBeInTheDocument();
     expect(screen.queryByText("0")).not.toBeInTheDocument();
   });
 
-  it("shows the resume banner with active bake; new-bake CTA demotes to 'אפייה חדשה'", async () => {
-    const recipe = saveRecipe(sample);
-    seedActive(recipe);
-    render(<HomeScreen />);
-    expect(await screen.findByText("ממשיכים")).toBeInTheDocument();
-    expect(screen.getByText("כפרי")).toBeInTheDocument();
-    expect(screen.getByText("אפייה חדשה")).toBeInTheDocument();
-    expect(screen.queryByText("התחל אפייה")).not.toBeInTheDocument();
-    expect(screen.getByText("המתכונים שלי")).toBeInTheDocument();
-    expect(screen.getByText(strings.home.starterTracker)).toBeInTheDocument();
-  });
-
-  it("banner 'סיים בייק' opens the StopBakeDialog; confirm clears the active bake", async () => {
-    const recipe = saveRecipe(sample);
-    seedActive(recipe);
-    render(<HomeScreen />);
-    await screen.findByText("ממשיכים");
-
-    fireEvent.click(screen.getByRole("button", { name: "סיים בייק" }));
-    expect(await screen.findByText("להפסיק את הבייק?")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "כן, להפסיק" }));
-    await waitFor(() => expect(loadActiveBake()).toBeNull());
-    // Banner is gone
-    await waitFor(() => {
-      expect(screen.queryByText("ממשיכים")).not.toBeInTheDocument();
+  it("renders active context, fold progress and the real continue route", async () => {
+    const recipe = saveRecipe({
+      ...recipeInput,
+      name: "לחםשלשישיארוךמאודללאמרווחים",
     });
+    seedActive(recipe, { subStep: 2 });
+    render(<HomeScreen />);
+
+    expect(await screen.findByText("ממשיכים")).toBeInTheDocument();
+    expect(screen.queryByText(strings.home.subtitle)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "לחםשלשישיארוךמאודללאמרווחים",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("תסיסה ראשונית")).toBeInTheDocument();
+    expect(screen.getByText("2 / 4 קיפולים בוצעו")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "המשך" })).toHaveAttribute(
+      "href",
+      "/bake/stage/4",
+    );
+    expect(screen.getByRole("link", { name: strings.home.startBakingAlt })).toHaveAttribute(
+      "href",
+      "/bake/new",
+    );
   });
 
-  it("banner 'סיים בייק' cancel keeps the active bake", async () => {
-    const recipe = saveRecipe(sample);
+  it("ticks a running timer and gives it precedence over folds", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(100_000));
+    const recipe = saveRecipe(recipeInput);
+    seedActive(recipe, { subStep: 2, timerStartedAt: 40_000 });
+    render(<HomeScreen />);
+
+    await act(async () => {});
+    expect(screen.getByText("29:00")).toBeInTheDocument();
+    expect(screen.queryByText("2 / 4 קיפולים בוצעו")).not.toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(1_000));
+    expect(screen.getByText("28:59")).toBeInTheDocument();
+  });
+
+  it("tracks abandonment before clearing storage and returns focus to fresh start", async () => {
+    const recipe = saveRecipe(recipeInput);
+    seedActive(recipe);
+    const order: string[] = [];
+    (track as Mock).mockImplementation(() => {
+      order.push("track");
+      expect(loadActiveBake()).not.toBeNull();
+    });
+    render(<HomeScreen />);
+    await screen.findByText("ממשיכים");
+
+    fireEvent.click(screen.getByRole("button", { name: strings.bake.resumeBannerStop }));
+    fireEvent.click(await screen.findByRole("button", { name: strings.bake.stopConfirm }));
+    order.push(loadActiveBake() === null ? "cleared" : "not-cleared");
+
+    const start = await screen.findByRole("link", { name: strings.home.startBaking });
+    await waitFor(() => expect(start).toHaveFocus());
+    expect(order).toEqual(["track", "cleared"]);
+  });
+
+  it("keeps an active bake when stop is cancelled", async () => {
+    const recipe = saveRecipe(recipeInput);
     seedActive(recipe);
     render(<HomeScreen />);
     await screen.findByText("ממשיכים");
 
-    fireEvent.click(screen.getByRole("button", { name: "סיים בייק" }));
-    fireEvent.click(await screen.findByRole("button", { name: "לא, להמשיך" }));
+    fireEvent.click(screen.getByRole("button", { name: strings.bake.resumeBannerStop }));
+    fireEvent.click(await screen.findByRole("button", { name: strings.bake.stopCancel }));
     expect(loadActiveBake()?.id).toBe("ab-1");
   });
 });
 
-describe("HomeScreen — install banner integration", () => {
+describe("HomeScreen — install integration", () => {
   beforeEach(() => {
     localStorage.clear();
-  });
-  afterEach(() => {
-    (getInstallEnvironment as Mock).mockImplementation(() => "none");
+    vi.clearAllMocks();
+    (track as Mock).mockReset();
   });
 
-  it("shows the install banner below the CTAs when installable and no bake is active", async () => {
+  it("uses the Home appearance only in fresh state", async () => {
     (getInstallEnvironment as Mock).mockReturnValue("ios");
     render(<HomeScreen />);
-    expect(await screen.findByText(strings.install.title)).toBeInTheDocument();
+    const banner = await screen.findByLabelText(strings.install.title);
+    expect(banner).toHaveAttribute("data-appearance", "home");
   });
 
-  it("hides the install banner while a bake is active (no competition with ResumeBanner)", async () => {
+  it("does not show install while a bake is active", async () => {
     (getInstallEnvironment as Mock).mockReturnValue("ios");
-    const recipe = saveRecipe(sample);
+    const recipe = saveRecipe(recipeInput);
     seedActive(recipe);
     render(<HomeScreen />);
     await screen.findByText("ממשיכים");

@@ -1,78 +1,76 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { type ReactNode } from "react";
+import Link from "next/link";
+import { forwardRef, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { usePressActivation } from "@/lib/hooks/use-press-activation";
 
-export type HomeCtaVariant = "primary" | "secondary";
+export type HomeCtaVariant = "focus" | "nav-row";
 
 export interface HomeCtaProps {
   href: string;
   icon: ReactNode;
   label: string;
   count?: number;
-  variant?: HomeCtaVariant;
+  variant: HomeCtaVariant;
 }
 
-export function HomeCta({ href, icon, label, count, variant = "secondary" }: HomeCtaProps) {
-  const router = useRouter();
-  const { isPressed: pressed, pressProps } = usePressActivation<HTMLButtonElement>(
-    () => router.push(href),
-  );
-
-  const isPrimary = variant === "primary";
-
+export const HomeCta = forwardRef<HTMLAnchorElement, HomeCtaProps>(function HomeCta(
+  { href, icon, label, count, variant },
+  ref,
+) {
+  const { isPressed, pressProps } = usePressActivation<HTMLAnchorElement>();
   const showCount = count !== undefined && count > 0;
+  const isFocus = variant === "focus";
 
   return (
-    <button
-      type="button"
+    <Link
+      ref={ref}
+      href={href}
       {...pressProps}
-      data-pressed={pressed ? "" : undefined}
+      data-manual-press="true"
+      data-pressed={isPressed ? "" : undefined}
+      data-variant={variant}
       aria-label={showCount ? `${label} · ${count}` : label}
       className={cn(
-        "w-full flex items-center gap-4 rounded-2xl text-start",
+        "relative flex w-full items-center text-start",
         "transition-[transform,background-color,box-shadow] duration-fast ease-out",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
-        isPrimary
-          ? "bg-accent text-paper shadow-cta py-6 px-6 min-h-[88px] focus-visible:ring-accent-2"
-          : "bg-paper text-ink shadow-sm py-5 px-5 min-h-[72px] focus-visible:ring-ink-3",
-        pressed && "scale-[0.985]",
-        pressed && isPrimary && "bg-accent/95",
-        pressed && !isPrimary && "bg-bg-2"
+        "focus-visible:outline-none focus-visible:ring-2",
+        "motion-reduce:transform-none",
+        isFocus
+          ? "min-h-[88px] gap-4 rounded-[2rem] bg-[#292A28] px-5 py-4 text-paper shadow-[0_1px_0_rgba(255,255,255,0.08),0_18px_45px_rgba(41,42,40,0.22)] focus-visible:ring-accent-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent max-[340px]:px-4"
+          : "min-h-[64px] gap-3 px-5 py-3 text-ink focus-visible:z-10 focus-visible:ring-inset focus-visible:ring-ink-2 max-[340px]:px-4",
+        isPressed && isFocus && "scale-[0.985] bg-[#343532]",
+        isPressed && !isFocus && "scale-[0.985] bg-ink/[0.05]",
       )}
     >
       <span
         className={cn(
-          "flex items-center justify-center rounded-xl shrink-0",
-          isPrimary ? "bg-paper/15 text-paper w-12 h-12" : "bg-accent-bg text-accent w-11 h-11"
+          "flex shrink-0 items-center justify-center rounded-2xl",
+          isFocus
+            ? "size-12 bg-paper/10 text-accent-2"
+            : "size-11 bg-ink/[0.04] text-accent",
         )}
         aria-hidden
       >
         {icon}
       </span>
-      <span className="flex-1 flex flex-col">
-        <span
-          className={cn(
-            "font-medium",
-            isPrimary ? "text-display-sm" : "text-heading"
-          )}
-        >
-          {label}
-        </span>
+      <span
+        className={cn(
+          "min-w-0 flex-1 font-medium [overflow-wrap:anywhere]",
+          isFocus ? "text-display-sm" : "text-heading",
+        )}
+      >
+        {label}
       </span>
       {showCount && (
         <span
           dir="ltr"
-          className={cn(
-            "rounded-full px-3 py-1 font-mono text-small",
-            isPrimary ? "bg-paper/15 text-paper" : "bg-accent-bg text-accent"
-          )}
+          className="ms-auto shrink-0 rounded-full bg-ink/[0.05] px-2.5 py-1 font-mono text-small text-ink-2"
         >
           {count}
         </span>
       )}
-    </button>
+    </Link>
   );
-}
+});
