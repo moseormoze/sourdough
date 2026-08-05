@@ -89,9 +89,10 @@ export function ChooserScreen() {
   }, []);
 
   return (
+    <div className={`min-h-dvh ${AMBIENT_CANVAS}`}>
     <main
       aria-busy={!resolved}
-      className={`relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip ${AMBIENT_CANVAS} px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(9.25rem+env(safe-area-inset-bottom))] max-[340px]:px-4`}
+      className="relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(9.25rem+env(safe-area-inset-bottom))] max-[340px]:px-4"
     >
       <header className="relative z-10 mb-2 flex items-center">
         <Button
@@ -156,5 +157,6 @@ export function ChooserScreen() {
         onAfterClose={handleAfterClose}
       />
     </main>
+    </div>
   );
 }

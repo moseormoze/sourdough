@@ -79,9 +79,14 @@ describe("ChooserScreen", () => {
     render(<ChooserScreen />);
     const main = screen.getByRole("main");
     expect(main).toHaveAttribute("aria-busy", "false");
-    expect(main).toHaveClass(
+    expect(main).not.toHaveClass(
       "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
     );
+    expect(main.parentElement).toHaveClass(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
+    );
+    expect(main.parentElement).toHaveClass("min-h-dvh");
+    expect(main.parentElement?.className).not.toContain("max-w");
     expect(main).toHaveClass("pb-[calc(9.25rem+env(safe-area-inset-bottom))]");
   });
 
