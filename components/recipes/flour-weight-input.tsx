@@ -15,6 +15,7 @@ export function FlourWeightInput({ value, onChange, onBlur, error }: FlourWeight
     <div>
       <NumberInput
         label={strings.form.flourWeight}
+        appearance="inset"
         unit="g"
         min={100}
         max={1500}

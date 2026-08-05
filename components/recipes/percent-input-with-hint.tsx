@@ -33,7 +33,7 @@ export function PercentInputWithHint({ recommended, ...inputProps }: PercentInpu
       data-hint-highlight={highlight ? "" : undefined}
       className={
         highlight
-          ? "transition-colors duration-base ease-out rounded-lg ring-2 ring-accent/30 -m-1 p-1"
+          ? "transition-colors duration-base ease-out rounded-2xl ring-2 ring-ink/20 -m-1 p-1"
           : "-m-1 p-1"
       }
     >

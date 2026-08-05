@@ -20,11 +20,15 @@ export const InclusionRow = forwardRef<HTMLInputElement, InclusionRowProps>(func
   ref
 ) {
   return (
-    <div className="rounded-xl border border-line bg-paper p-3 flex flex-col gap-3">
+    <div
+      data-inclusion-row
+      className="rounded-2xl bg-ink/[0.04] p-3 flex flex-col gap-3"
+    >
       <div className="flex items-start gap-2">
         <div className="flex-1">
           <TextInput
             ref={ref}
+            appearance="inset"
             label={strings.form.inclusionName}
             placeholder={strings.form.inclusionNamePlaceholder}
             value={value.name}
@@ -44,6 +48,7 @@ export const InclusionRow = forwardRef<HTMLInputElement, InclusionRowProps>(func
       </div>
       <NumberInput
         label={strings.form.inclusionAmount}
+        appearance="inset"
         unit={strings.form.unitGrams}
         step={5}
         min={0}

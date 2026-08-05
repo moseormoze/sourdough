@@ -6,6 +6,7 @@ import { ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
 import { FormSection } from "@/components/ui/form-section";
+import { AMBIENT_CANVAS, AMBIENT_GLASS } from "@/components/ui/ambient";
 import { useToast } from "@/components/ui/toast";
 import { FlourBreakdownInput } from "./flour-breakdown-input";
 import { FlourWeightInput } from "./flour-weight-input";
@@ -188,123 +189,148 @@ export function RecipeFormScreen({
       touched.has(`inclusion-${i}-name`) || touched.has(`inclusion-${i}-amountGrams`)
   );
 
+  const glassCard = `${AMBIENT_GLASS} p-5 max-[340px]:p-4`;
+
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
-      <header className="relative z-10 flex items-center mb-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCancel}
-          iconStart={<ChevronRight size={20} aria-hidden />}
-        >
-          {strings.recipes.backToHome}
-        </Button>
-      </header>
-
-      <h1 className="text-display-md text-ink mb-6">
-        {isEdit ? values.name || strings.form.nameLabel : strings.form.nameLabel}
-      </h1>
-
-      <div className="flex flex-col gap-6">
-        <TextInput
-          label={strings.form.nameLabel}
-          placeholder={strings.form.namePlaceholder}
-          value={values.name}
-          onChange={(e) => setValues({ ...values, name: e.target.value })}
-          onBlur={() => touch("name")}
-          error={showError("name")}
-        />
-
-        <FlourBreakdownInput
-          value={values.flour}
-          onChange={(flour) => setValues({ ...values, flour })}
-          onBlurField={() => touch("flour")}
-          error={showError("flour")}
-        />
-
-        <FormSection>
-          <FlourWeightInput
-            value={values.flourWeightGrams}
-            onChange={(v) => setValues({ ...values, flourWeightGrams: v })}
-            onBlur={() => touch("flourWeightGrams")}
-            error={showError("flourWeightGrams")}
-          />
-          <PercentInputWithHint
-            label={strings.form.hydration}
-            min={50}
-            max={100}
-            value={values.hydration}
-            onChange={(v) => setValues({ ...values, hydration: v })}
-            onBlur={() => touch("hydration")}
-            error={showError("hydration")}
-            recommended={hintFor("hydration", values.hydration, values.flour)}
-          />
-          <p className="text-tiny text-ink-3 leading-relaxed">
-            {strings.form.hydrationFlourNote}
-          </p>
-          <PercentInputWithHint
-            label={strings.form.salt}
-            min={0}
-            max={5}
-            step={0.1}
-            value={values.salt}
-            onChange={(v) => setValues({ ...values, salt: v })}
-            onBlur={() => touch("salt")}
-            error={showError("salt")}
-            recommended={hintFor("salt", values.salt, values.flour)}
-          />
-          <PercentInputWithHint
-            label={strings.form.levain}
-            min={0}
-            max={40}
-            value={values.levain}
-            onChange={(v) => setValues({ ...values, levain: v })}
-            onBlur={() => touch("levain")}
-            error={showError("levain")}
-            recommended={hintFor("levain", values.levain, values.flour)}
-          />
-          <TempInput
-            label={strings.form.kitchenTemp}
-            value={values.kitchenTemp}
-            onChange={(v) => setValues({ ...values, kitchenTemp: v })}
-            onBlur={() => touch("kitchenTemp")}
-            error={showError("kitchenTemp")}
-          />
-        </FormSection>
-
-        <InclusionsSection
-          value={values.inclusions}
-          onChange={(inclusions) => setValues({ ...values, inclusions })}
-          errors={errors.inclusions}
-          showErrors={inclusionShowErrors}
-          onTouchField={handleTouchInclusion}
-        />
-      </div>
-
-      <div className="mt-10 flex flex-col gap-3">
-        <div className="flex gap-3">
-          <Button
-            variant="accent"
-            onClick={handleSubmit}
-            disabled={touched.size > 0 && invalid}
-          >
-            {strings.form.saveButton}
-          </Button>
-          <Button variant="ghost" onClick={handleCancel}>
-            {strings.form.cancelButton}
-          </Button>
-        </div>
-        {isEdit && (
+    <div className={`min-h-dvh ${AMBIENT_CANVAS}`}>
+    <main className="relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip">
+      <div className="flex-1 px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-4 max-[340px]:px-4">
+        <header className="relative z-10 flex items-center mb-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setDeleteOpen(true)}
-            iconStart={<Trash2 size={16} aria-hidden />}
-            className="self-start text-danger hover:bg-danger-bg"
+            onClick={handleCancel}
+            iconStart={<ChevronRight size={20} aria-hidden />}
           >
-            מחק מתכון
+            {strings.recipes.backToHome}
           </Button>
-        )}
+        </header>
+
+        <h1 className="text-display-md text-ink mb-6">
+          {isEdit ? values.name || strings.form.nameLabel : strings.form.nameLabel}
+        </h1>
+
+        <div className="flex flex-col gap-4">
+          <section data-surface="glass" className={glassCard}>
+            <TextInput
+              appearance="inset"
+              label={strings.form.nameLabel}
+              placeholder={strings.form.namePlaceholder}
+              value={values.name}
+              onChange={(e) => setValues({ ...values, name: e.target.value })}
+              onBlur={() => touch("name")}
+              error={showError("name")}
+            />
+          </section>
+
+          <section data-surface="glass" className={glassCard}>
+            <FlourBreakdownInput
+              value={values.flour}
+              onChange={(flour) => setValues({ ...values, flour })}
+              onBlurField={() => touch("flour")}
+              error={showError("flour")}
+            />
+          </section>
+
+          <FormSection data-surface="glass" className={glassCard}>
+            <FlourWeightInput
+              value={values.flourWeightGrams}
+              onChange={(v) => setValues({ ...values, flourWeightGrams: v })}
+              onBlur={() => touch("flourWeightGrams")}
+              error={showError("flourWeightGrams")}
+            />
+            <PercentInputWithHint
+              appearance="inset"
+              label={strings.form.hydration}
+              min={50}
+              max={100}
+              value={values.hydration}
+              onChange={(v) => setValues({ ...values, hydration: v })}
+              onBlur={() => touch("hydration")}
+              error={showError("hydration")}
+              recommended={hintFor("hydration", values.hydration, values.flour)}
+            />
+            <p className="text-tiny text-ink-3 leading-relaxed">
+              {strings.form.hydrationFlourNote}
+            </p>
+            <PercentInputWithHint
+              appearance="inset"
+              label={strings.form.salt}
+              min={0}
+              max={5}
+              step={0.1}
+              value={values.salt}
+              onChange={(v) => setValues({ ...values, salt: v })}
+              onBlur={() => touch("salt")}
+              error={showError("salt")}
+              recommended={hintFor("salt", values.salt, values.flour)}
+            />
+            <PercentInputWithHint
+              appearance="inset"
+              label={strings.form.levain}
+              min={0}
+              max={40}
+              value={values.levain}
+              onChange={(v) => setValues({ ...values, levain: v })}
+              onBlur={() => touch("levain")}
+              error={showError("levain")}
+              recommended={hintFor("levain", values.levain, values.flour)}
+            />
+          </FormSection>
+
+          <FormSection data-surface="glass" className={glassCard}>
+            <TempInput
+              appearance="inset"
+              label={strings.form.kitchenTemp}
+              value={values.kitchenTemp}
+              onChange={(v) => setValues({ ...values, kitchenTemp: v })}
+              onBlur={() => touch("kitchenTemp")}
+              error={showError("kitchenTemp")}
+            />
+          </FormSection>
+
+          <div data-surface="glass" className={glassCard}>
+            <InclusionsSection
+              value={values.inclusions}
+              onChange={(inclusions) => setValues({ ...values, inclusions })}
+              errors={errors.inclusions}
+              showErrors={inclusionShowErrors}
+              onTouchField={handleTouchInclusion}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div
+        data-footer="sticky"
+        className="sticky bottom-0 px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-ink/[0.06] bg-[#FFF8F1]/90 supports-[backdrop-filter]:bg-paper/60 supports-[backdrop-filter]:backdrop-blur-md max-[340px]:px-4"
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-3">
+            <Button
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={touched.size > 0 && invalid}
+              className="flex-1"
+            >
+              {strings.form.saveButton}
+            </Button>
+            <Button variant="ghost" onClick={handleCancel}>
+              {strings.form.cancelButton}
+            </Button>
+          </div>
+          {isEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDeleteOpen(true)}
+              iconStart={<Trash2 size={16} aria-hidden />}
+              className="self-start text-danger hover:bg-danger-bg"
+            >
+              מחק מתכון
+            </Button>
+          )}
+        </div>
       </div>
 
       {isEdit && (
@@ -318,9 +344,11 @@ export function RecipeFormScreen({
 
       <DiscardChangesDialog
         open={discardOpen}
+        appearance="ambient"
         onConfirm={handleConfirmDiscard}
         onCancel={() => setDiscardOpen(false)}
       />
     </main>
+    </div>
   );
 }

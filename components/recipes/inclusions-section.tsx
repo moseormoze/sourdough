@@ -77,7 +77,7 @@ export function InclusionsSection({
       <button
         type="button"
         onClick={handleAdd}
-        className="inline-flex items-center gap-2 min-h-touch px-4 rounded-full bg-bg-2 text-ink-2 text-body font-medium hover:bg-line transition-colors"
+        className="pressable inline-flex items-center gap-2 min-h-touch px-4 rounded-full bg-paper/70 text-ink-2 text-body font-medium hover:bg-paper transition-colors"
       >
         <Plus size={16} aria-hidden />
         <span>{strings.form.inclusionsAdd}</span>
