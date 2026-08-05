@@ -73,6 +73,71 @@ describe("ChooserScreen", () => {
     expect(screen.getAllByText("שלי")).toHaveLength(1);
   });
 
+  // ── Redesigned composition ─────────────────────────────────────────────────
+
+  it("paints the ambient canvas and clears the FAB with bottom padding", () => {
+    render(<ChooserScreen />);
+    const main = screen.getByRole("main");
+    expect(main).toHaveAttribute("aria-busy", "false");
+    expect(main).not.toHaveClass(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
+    );
+    expect(main.parentElement).toHaveClass(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
+    );
+    expect(main.parentElement).toHaveClass("min-h-dvh");
+    expect(main.parentElement?.className).not.toContain("max-w");
+    expect(main).toHaveClass("pb-[calc(9.25rem+env(safe-area-inset-bottom))]");
+  });
+
+  it("orders saved rows before the H2, and the H2 before the preset tiles", async () => {
+    saveRecipe(sampleRecipeInput);
+    render(<ChooserScreen />);
+
+    const row = await screen.findByRole("button", { name: "שיפון מותאם (שלי)" });
+    const h2 = screen.getByRole("heading", { level: 2, name: "איזה סוג לחם?" });
+    const preset = screen.getByRole("button", { name: PRESETS[0]!.name });
+
+    expect(row.compareDocumentPosition(h2) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(h2.compareDocumentPosition(preset) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("renders both groups as labelled lists of button rows/tiles", async () => {
+    saveRecipe(sampleRecipeInput);
+    render(<ChooserScreen />);
+    await screen.findByRole("button", { name: "שיפון מותאם (שלי)" });
+
+    const lists = screen.getAllByRole("list");
+    expect(lists).toHaveLength(2);
+    for (const list of lists) {
+      expect(list.tagName).toBe("UL");
+      for (const item of Array.from(list.children)) {
+        expect(item.tagName).toBe("LI");
+        expect(item.querySelector("button")).not.toBeNull();
+      }
+    }
+    expect(screen.getAllByRole("listitem")).toHaveLength(1 + PRESETS.length);
+  });
+
+  it("omits the saved group structurally when there are no saved recipes", () => {
+    render(<ChooserScreen />);
+    expect(screen.getAllByRole("list")).toHaveLength(1);
+    expect(screen.queryByText("שלי")).not.toBeInTheDocument();
+  });
+
+  it("isolates numeric summary segments in ltr .num spans", async () => {
+    saveRecipe(sampleRecipeInput);
+    render(<ChooserScreen />);
+    const row = await screen.findByRole("button", { name: "שיפון מותאם (שלי)" });
+
+    const nums = row.querySelectorAll('span[dir="ltr"].num');
+    expect(nums.length).toBeGreaterThan(0);
+    for (const num of Array.from(nums)) {
+      expect(num.textContent).not.toContain("·");
+      expect(num.textContent).not.toMatch(/[א-ת]/);
+    }
+  });
+
   // ── Navigation to planner ────────────────────────────────────────────────
 
   it("tapping a preset stashes the recipe and navigates to /bake/plan", async () => {
@@ -133,6 +198,7 @@ describe("ChooserScreen", () => {
     expect(await screen.findByText("להחליף בייק?")).toBeInTheDocument();
     const dialog = document.querySelector("dialog");
     expect(dialog?.textContent).toContain("שיפון מותאם");
+    expect(dialog).toHaveAttribute("data-appearance", "ambient");
   });
 
   it("confirming abandon stashes the new recipe and navigates to /bake/plan", async () => {
@@ -203,5 +269,40 @@ describe("ChooserScreen", () => {
 
     expect(routerMock.push).not.toHaveBeenCalled();
     expect(loadPendingRecipe()).toBeNull();
+  });
+
+  it("returns focus to the triggering card after cancelling the dialog", async () => {
+    const seededRecipe = saveRecipe(sampleRecipeInput);
+    saveActiveBake({
+      id: "existing",
+      recipe: seededRecipe,
+      startedAt: 1,
+      currentStage: 5,
+      stageStartedAt: 1,
+      observationChecks: {},
+      subStep: 0,
+      timerStartedAt: null,
+      timerElapsedSeconds: 0,
+      timerDurationSeconds: null,
+      bakingMethod: "closed-vessel",
+      feedAt: null,
+      peakAt: null,
+      feedRatio: 2 as const,
+      retardHours: 12,
+      doughTempC: null,
+    });
+
+    render(<ChooserScreen />);
+    const country = PRESETS[0]!;
+    await waitFor(() => {
+      expect(screen.getByText(country.name)).toBeInTheDocument();
+    });
+
+    const trigger = screen.getByRole("button", { name: country.name });
+    trigger.focus();
+    tapCard(country.name);
+    fireEvent.click(await screen.findByRole("button", { name: "ביטול" }));
+
+    await waitFor(() => expect(trigger).toHaveFocus());
   });
 });
