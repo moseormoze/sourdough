@@ -161,6 +161,7 @@
 | טוגל כיוון | מסגרת כתומה + accent-bg | כנ״ל |
 | פילי ימים | נבחר bg-ink | נבחר `#292A28` (יישור גוון); לא נבחר paper בלי גבול |
 | סטפר שעה/טמפ׳ (NumberInput) | ‏paper + גבול line | פיל inset בלי גבול; הערך mono מוגדל; ± ‏44px ‏ink-2 |
+| שדה טקסט (TextInput) | ‏paper + גבול line | אריח inset בלי גבול: ‏`bg-paper/70`, רדיוס 16px (`rounded-2xl`); focus ‏ring ‏`ink/20`; שגיאה ‏ring ‏`danger/40` + הודעה מתחת (ללא מסגרת) |
 | RatioControl | נבחר כתום מלא | נבחר charcoal / לא נבחר paper |
 | כרטיסי שיטת אפייה | מסגרת כתומה + ring | radio עשיר לפי הדקדוק (טון + עיגול charcoal) |
 | ציר זמן (BakeTimeline) | נקודות accent | נקודת ״עכשיו/מוכן״ אחת orange (רגע ה״חי״); שאר הצמתים ink/line; שעות mono מודגשות |

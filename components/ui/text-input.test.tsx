@@ -83,3 +83,28 @@ describe("TextInput", () => {
     expect(onChange).toHaveBeenCalled();
   });
 });
+
+describe("TextInput — appearance", () => {
+  it("defaults to the outline appearance (legacy bordered look)", () => {
+    render(<TextInput label="שם" />);
+    const input = screen.getByLabelText("שם");
+    expect(input.className).toContain("border-line");
+    expect(input.className).toContain("rounded-lg");
+    expect(input.className).not.toContain("bg-paper/70");
+  });
+
+  it("renders the inset appearance as a borderless frosted field", () => {
+    render(<TextInput label="שם" appearance="inset" />);
+    const input = screen.getByLabelText("שם");
+    expect(input.className).toContain("bg-paper/70");
+    expect(input.className).toContain("rounded-2xl");
+    expect(input.className).not.toContain("border-line");
+  });
+
+  it("shows a danger ring, not a border, for errors in the inset appearance", () => {
+    render(<TextInput label="שם" appearance="inset" error="שדה חובה" />);
+    const input = screen.getByLabelText("שם");
+    expect(input.className).toContain("ring-danger/40");
+    expect(input.className).not.toContain("border-danger");
+  });
+});
