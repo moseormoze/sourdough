@@ -111,8 +111,8 @@ export function BakeTimeline({ steps, now, editableRetard }: BakeTimelineProps) 
                   <span
                     aria-hidden
                     className={cn(
-                      "flex-1 w-0 my-1 border-s-2",
-                      isNight ? "border-dashed border-accent/45" : "border-line-2",
+                      "flex-1 w-0 my-1 border-s-2 border-line-2",
+                      isNight && "border-dashed",
                     )}
                   />
                 )}
@@ -136,7 +136,7 @@ export function BakeTimeline({ steps, now, editableRetard }: BakeTimelineProps) 
                     </p>
                     <p
                       className={cn(
-                        "text-label font-semibold mt-0.5",
+                        "text-body font-semibold mt-0.5",
                         isReady ? "text-accent" : isElapsed ? "text-ink-3" : "text-ink",
                       )}
                     >
@@ -163,7 +163,7 @@ export function BakeTimeline({ steps, now, editableRetard }: BakeTimelineProps) 
                       value={editableRetard.hours}
                       onChange={(e) => editableRetard.onChange(Number(e.target.value))}
                       aria-label={s.retardSliderLabel}
-                      className="w-full accent-accent"
+                      className="w-full accent-[#292A28]"
                     />
                     <div className="flex justify-between text-tiny text-ink-3">
                       <span>

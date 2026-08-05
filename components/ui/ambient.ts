@@ -5,3 +5,10 @@ export const AMBIENT_CANVAS =
 
 export const AMBIENT_GLASS =
   "rounded-[2rem] border border-paper/60 bg-[#FFF8F1]/95 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] supports-[backdrop-filter]:bg-paper/35 supports-[backdrop-filter]:backdrop-blur-md";
+
+// Charcoal (#292A28, F28) — the screen's single primary action and selected
+// states (tonal-inversion selection per the rollout language spec).
+export const AMBIENT_CHARCOAL = "bg-[#292A28] text-paper";
+
+export const AMBIENT_CHARCOAL_SHADOW =
+  "shadow-[0_1px_0_rgba(255,255,255,0.08),0_18px_45px_rgba(41,42,40,0.22)]";

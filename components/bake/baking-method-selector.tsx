@@ -29,14 +29,12 @@ export function BakingMethodSelector({ value, onChange }: BakingMethodSelectorPr
               className={cn(
                 "w-full min-h-touch rounded-2xl p-4 text-start",
                 "flex items-start gap-3",
-                "border-[1.5px] transition-colors duration-fast ease-out",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
-                selected
-                  ? "border-accent ring-2 ring-accent/20 bg-accent-bg/30"
-                  : "border-line bg-paper hover:border-line-2"
+                "transition-colors duration-fast ease-out",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-2 focus-visible:ring-inset",
+                selected ? "bg-ink/[0.04]" : "bg-paper"
               )}
             >
-              <span aria-hidden className={cn("mt-0.5 shrink-0", selected ? "text-accent" : "text-ink-3")}>
+              <span aria-hidden className={cn("mt-0.5 shrink-0", selected ? "text-[#292A28]" : "text-line-2")}>
                 {selected ? <CircleDot size={20} /> : <Circle size={20} />}
               </span>
               <span className="flex flex-col gap-1 min-w-0">

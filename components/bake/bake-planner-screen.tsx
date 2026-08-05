@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AMBIENT_CANVAS, AMBIENT_GLASS } from "@/components/ui/ambient";
+import { AMBIENT_CANVAS, AMBIENT_GLASS, AMBIENT_CHARCOAL } from "@/components/ui/ambient";
 import { TempInput } from "@/components/recipes/temp-input";
 import { BakeTimeline } from "./bake-timeline";
 import { BakingMethodSelector } from "./baking-method-selector";
@@ -89,13 +89,10 @@ function PresetChip({ presetKey, name, selected, onSelect }: PresetChipProps) {
       onPointerLeave={() => setIsPressed(false)}
       onClick={onSelect}
       className={`shrink-0 flex items-center rounded-full px-4 min-h-[44px]
-        text-body font-medium border
-        transition-[transform,background-color,border-color] duration-[120ms] ease-out
+        text-body font-medium
+        transition-[transform,background-color,color] duration-[120ms] ease-out
         ${isPressed ? "scale-[0.965]" : "scale-100"}
-        ${selected
-          ? "border-[1.5px] border-accent bg-accent-bg text-accent"
-          : "border-line bg-paper text-ink-2"
-        }`}
+        ${selected ? AMBIENT_CHARCOAL : "bg-paper text-ink-2"}`}
     >
       {name}
     </button>
@@ -283,7 +280,7 @@ export function BakePlannerScreen({
         {/* Recipe header */}
         <div className="flex items-center gap-3 mb-6">
           {imageUrl && (
-            <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0">
+            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shrink-0">
               <Image src={imageUrl} alt="" fill className="object-cover" />
             </div>
           )}
@@ -298,7 +295,7 @@ export function BakePlannerScreen({
         {/* Temperature — glass */}
         <section data-surface="glass" className={glassCard}>
           <div className="mb-2">
-            <TempInput label={s.tempQuestion} value={temp} onChange={(v) => setTemp(v)} />
+            <TempInput label={s.tempQuestion} value={temp} onChange={(v) => setTemp(v)} appearance="inset" />
           </div>
           <p className="text-tiny text-ink-3 mb-1">{s.tempHint}</p>
           <p className="text-tiny text-ink-2">{s.tempImportantHint}</p>
@@ -341,12 +338,9 @@ export function BakePlannerScreen({
                   aria-checked={active}
                   onClick={() => handleDirection(dir)}
                   onPointerDown={() => handleDirection(dir)}
-                  className={`pressable flex-1 rounded-lg px-4 py-2.5 text-body font-medium
-                    border-[1.5px] transition-colors duration-fast ease-out
-                    ${active
-                      ? "border-accent bg-accent-bg text-accent"
-                      : "border-line bg-transparent text-ink-2"
-                    }`}
+                  className={`pressable flex-1 rounded-full px-4 py-2.5 text-body font-medium
+                    transition-colors duration-fast ease-out
+                    ${active ? AMBIENT_CHARCOAL : "bg-paper text-ink-2"}`}
                 >
                   {label}
                 </button>
@@ -382,12 +376,8 @@ export function BakePlannerScreen({
                     data-testid={`day-pill-${idx}`}
                     onClick={() => handleDaySelectManual(idx)}
                     className={`pressable rounded-full px-4 py-2 text-body font-medium
-                      border transition-colors duration-fast ease-out
-                      ${
-                        idx === dayIdx
-                          ? "bg-ink text-paper border-ink"
-                          : "bg-paper text-ink-2 border-line"
-                      }`}
+                      transition-colors duration-fast ease-out
+                      ${idx === dayIdx ? AMBIENT_CHARCOAL : "bg-paper text-ink-2"}`}
                   >
                     {dayLabel(day, now)}
                   </button>
@@ -399,7 +389,7 @@ export function BakePlannerScreen({
             </div>
 
             {/* Hour stepper */}
-            <div className="flex items-center rounded-lg bg-paper border-[1.5px] border-line overflow-hidden">
+            <div className="flex items-center rounded-full bg-paper overflow-hidden">
               <button
                 type="button"
                 aria-label="פחות שעה"
@@ -417,7 +407,7 @@ export function BakePlannerScreen({
                 aria-label={s.exactTimeLabel}
                 dir="ltr"
                 className="flex-1 min-h-touch bg-transparent text-center num font-mono
-                           text-body-lg text-ink cursor-pointer
+                           text-2xl text-ink cursor-pointer
                            transition-transform duration-[120ms] ease-out active:scale-[0.985]
                            focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-inset
                            rounded-md"

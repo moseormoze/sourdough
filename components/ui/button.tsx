@@ -1,5 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { AMBIENT_CHARCOAL, AMBIENT_CHARCOAL_SHADOW } from "./ambient";
 
 export type ButtonVariant = "primary" | "accent" | "soft" | "ghost" | "warn";
 export type ButtonSize = "md" | "sm";
@@ -13,7 +14,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-ink text-paper hover:bg-ink-2 focus-visible:ring-ink-2",
+  primary: `${AMBIENT_CHARCOAL} ${AMBIENT_CHARCOAL_SHADOW} hover:bg-[#3A3B38] focus-visible:ring-ink-2`,
   accent: "bg-accent text-paper shadow-cta hover:bg-accent-2 focus-visible:ring-accent-2",
   soft: "bg-paper text-ink shadow-sm hover:bg-bg-2 focus-visible:ring-ink-3",
   ghost: "bg-transparent text-ink-2 hover:bg-bg-2 focus-visible:ring-ink-3",

@@ -22,6 +22,8 @@
 
 מקורות הסמכות לשפה — אין לחזור עליהם כאן, רק להצביע:
 
+- **מפרט העומק של השפה (הסמכות הראשית)**: [language.md](./language.md) —
+  משטחים, כפתורים, מצבי בחירה, אייקונים, שדות, גבולות ה־orange
 - **קנבס, glass, שורות וקבוצות**: `specs/features/28-home-redesign-pilot/design.md`
 - **המשך הקנבס למסך שני, גריד אריחים, כללי דיאלוג**: `specs/features/29-bake-new-redesign-pilot/design.md`
 - **מתכוני מחלקות משותפים**: `components/ui/ambient.ts` — ‏`AMBIENT_CANVAS`,

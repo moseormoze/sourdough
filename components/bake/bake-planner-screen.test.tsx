@@ -368,10 +368,34 @@ describe("BakePlannerScreen — manual-first", () => {
     }
   });
 
-  it("renders the primary CTA as the dark primary variant, not an orange surface", () => {
+  it("renders the primary CTA as the charcoal surface, not an orange one", () => {
     renderScreen();
     const cta = screen.getByRole("button", { name: s.startButton });
-    expect(cta.className).toContain("bg-ink");
+    expect(cta.className).toContain("bg-[#292A28]");
     expect(cta.className).not.toContain("bg-accent");
+  });
+
+  it("selection controls invert tonally — charcoal fill when selected, no accent frames", () => {
+    renderScreen();
+
+    const chip = presetChip(s.presets.classic.name);
+    fireEvent.click(chip);
+    expect(chip.className).toContain("bg-[#292A28]");
+    expect(chip.className).not.toContain("accent");
+
+    const dirEnd = screen.getByRole("radio", { name: s.directionEnd });
+    expect(dirEnd).toHaveAttribute("aria-checked", "true");
+    expect(dirEnd.className).toContain("bg-[#292A28]");
+    expect(dirEnd.className).not.toContain("accent");
+
+    fireEvent.click(screen.getByTestId("ratio-btn-3"));
+    expect(screen.getByTestId("ratio-btn-3").className).toContain("bg-[#292A28]");
+    expect(screen.getByTestId("ratio-btn-3").className).not.toContain("accent");
+
+    const methodTitle = strings.bake.bakingMethod.methods["closed-vessel"].title;
+    const method = screen.getByRole("radio", { name: new RegExp(methodTitle) });
+    expect(method).toHaveAttribute("aria-checked", "true");
+    expect(method.className).not.toContain("accent");
+    expect(method.className).toContain("bg-ink/[0.04]");
   });
 });
