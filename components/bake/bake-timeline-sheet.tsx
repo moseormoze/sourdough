@@ -5,6 +5,7 @@ import { X, CheckCircle2 } from "lucide-react";
 import { STAGES } from "@/lib/data/stages";
 import { fermentationStageSecs, starterPeakSecs, durationRangeLabel, type FeedRatio } from "@/lib/bake-timing";
 import type { Flour } from "@/lib/types/recipe";
+import { AMBIENT_CANVAS } from "@/components/ui/ambient";
 import { cn } from "@/lib/cn";
 
 export interface BakeTimelineSheetProps {
@@ -95,7 +96,8 @@ export function BakeTimelineSheet({
         aria-label="טיימליין האפייה"
         aria-hidden={isOpen ? undefined : true}
         className={cn(
-          "fixed inset-x-0 bottom-0 z-sheet bg-paper rounded-t-2xl shadow-sheet",
+          "fixed inset-x-0 bottom-0 z-sheet rounded-t-[2.25rem] border-t border-paper/70 shadow-sheet",
+          AMBIENT_CANVAS,
           "max-h-[85dvh] flex flex-col",
           isDragging ? "transition-none" : "transition-transform duration-[250ms] ease-out",
         )}
@@ -113,16 +115,16 @@ export function BakeTimelineSheet({
               onPointerUp={handleHandlePointerUp}
               onPointerCancel={handleHandlePointerUp}
             >
-              <div className="w-10 h-1 rounded-full bg-line-2" />
+              <div className="w-10 h-1 rounded-full bg-ink/15" />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-line">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-ink/[0.06]">
               <h2 className="text-heading text-ink">טיימליין</h2>
               <button
                 onClick={onClose}
                 aria-label="סגור טיימליין"
-                className="flex items-center justify-center min-h-touch min-w-touch -me-2 text-ink-3 hover:text-ink transition-colors"
+                className="flex items-center justify-center min-h-touch min-w-touch -me-2 rounded-full text-ink-3 hover:bg-ink/[0.04] hover:text-ink transition-colors"
               >
                 <X size={20} aria-hidden />
               </button>
@@ -149,12 +151,12 @@ export function BakeTimelineSheet({
                     data-state={isPast ? "past" : isCurrent ? "current" : "future"}
                     className={cn(
                       "flex items-center gap-3 px-5 min-h-touch",
-                      isCurrent && "bg-accent-bg border-s-2 border-accent",
+                      isCurrent && "bg-ink/[0.04]",
                     )}
                   >
                     <div className="w-5 flex-shrink-0 flex items-center justify-center">
                       {isPast && (
-                        <CheckCircle2 size={16} className="text-accent" aria-hidden />
+                        <CheckCircle2 size={16} className="text-ink-3" aria-hidden />
                       )}
                       {isCurrent && (
                         <div className="w-2 h-2 rounded-full bg-accent" aria-hidden />

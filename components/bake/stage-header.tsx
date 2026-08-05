@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { X, ChevronDown } from "lucide-react";
 import { ProgressStrip } from "./progress-strip";
+import { AMBIENT_CHARCOAL, AMBIENT_CHARCOAL_SHADOW } from "@/components/ui/ambient";
 import { cn } from "@/lib/cn";
 import { usePressActivation } from "@/lib/hooks/use-press-activation";
 import { strings } from "@/lib/strings";
@@ -19,6 +20,12 @@ export interface StageHeaderProps {
   flour?: Flour;
   onTimelineOpen?: () => void;
   variant?: "default" | "pilot";
+  /**
+   * Opt-in "dark world" title block (rollout language spec): the eyebrow + H1
+   * move onto one charcoal card. Default keeps the legacy light title so
+   * unconverted surfaces are untouched.
+   */
+  hero?: boolean;
 }
 
 export function StageHeader({
@@ -30,6 +37,7 @@ export function StageHeader({
   flour,
   onTimelineOpen,
   variant = "default",
+  hero = false,
 }: StageHeaderProps) {
   const { isPressed, pressProps } = usePressActivation<HTMLButtonElement>(onTimelineOpen);
 
@@ -100,23 +108,42 @@ export function StageHeader({
         strip
       )}
 
-      <div className={cn("mt-4", variant === "pilot" && "pt-1")}>
+      <div
+        data-testid={hero ? "stage-hero" : undefined}
+        data-surface={hero ? "charcoal" : undefined}
+        className={cn(
+          "mt-4",
+          variant === "pilot" && !hero && "pt-1",
+          hero && `rounded-[2rem] p-5 max-[340px]:p-4 ${AMBIENT_CHARCOAL} ${AMBIENT_CHARCOAL_SHADOW}`,
+        )}
+      >
         {durationLabel && (
-          <span className={cn(
-            "inline-block text-tiny font-medium px-3 py-1 rounded-full",
-            variant === "pilot"
-              ? "border border-paper/55 bg-paper/30 text-ink-2 shadow-sm backdrop-blur-sm"
-              : "bg-accent-bg text-accent",
-          )}>
+          <span
+            data-testid={hero ? "stage-hero-eyebrow" : undefined}
+            className={cn(
+              "inline-block text-tiny font-medium px-3 py-1 rounded-full",
+              hero
+                ? "bg-paper/10 text-paper/65"
+                : variant === "pilot"
+                  ? "border border-paper/55 bg-paper/30 text-ink-2 shadow-sm backdrop-blur-sm"
+                  : "bg-accent-bg text-accent",
+            )}
+          >
             {durationLabel}
           </span>
         )}
-        <h1 className={cn("mt-2 text-ink", variant === "pilot" ? "text-display-md" : "text-display-sm")}>
+        <h1
+          className={cn(
+            "mt-2",
+            hero ? "text-paper" : "text-ink",
+            variant === "pilot" ? "text-display-md" : "text-display-sm",
+          )}
+        >
           {stage.name}
           {stage.hint && (
             <>
               {" "}
-              <span className="text-body text-ink-3" dir="ltr">
+              <span className={cn("text-body", hero ? "text-paper/65" : "text-ink-3")} dir="ltr">
                 {stage.hint}
               </span>
             </>

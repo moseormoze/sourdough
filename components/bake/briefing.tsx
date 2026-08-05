@@ -24,7 +24,7 @@ export function Briefing({ briefing, disclosure, variant = "default" }: Briefing
         <ul role="list" className="mt-3 space-y-1">
           {briefing.takeaways.map((t, i) => (
             <li key={i} className="flex items-start gap-2 text-body text-ink-2">
-              <span aria-hidden className="text-accent ms-0 me-0">·</span>
+              <span aria-hidden className="text-ink-3 ms-0 me-0">·</span>
               <span>{t}</span>
             </li>
           ))}

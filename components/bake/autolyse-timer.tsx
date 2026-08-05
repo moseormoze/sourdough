@@ -5,6 +5,11 @@ import { Pause, Pencil, Play, RotateCcw, Timer } from "lucide-react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import {
+  AMBIENT_CHARCOAL,
+  AMBIENT_CHARCOAL_SHADOW,
+  AMBIENT_GLASS,
+} from "@/components/ui/ambient";
+import {
   DEFAULT_AUTOLYSE_DURATION_SECONDS,
   deriveTimerSnapshot,
   formatTimerTime,
@@ -60,8 +65,10 @@ function nearestWheelMinutes(seconds: number): number {
 
 function TimerSignal({ finished }: { finished: boolean }) {
   const signalId = useId().replace(/:/g, "");
-  const gradientId = `timer-signal-gradient-${signalId}`;
   const glowId = `timer-signal-glow-${signalId}`;
+  // Monochrome on charcoal: the screen's single live colour is the current
+  // progress dot (rollout language spec).
+  const signalStroke = finished ? "rgba(31,26,20,0.45)" : "rgba(255,255,255,0.92)";
   const smokeId = `timer-signal-smoke-${signalId}`;
   const path =
     "M4 23 C22 23 29 13 44 14 C57 15 64 25 78 23 C96 20 103 8 119 10 C137 12 145 20 156 12";
@@ -79,11 +86,6 @@ function TimerSignal({ finished }: { finished: boolean }) {
         focusable="false"
       >
         <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#F28A55" />
-            <stop offset="0.52" stopColor="#B9DCE7" />
-            <stop offset="1" stopColor="var(--sage)" />
-          </linearGradient>
           <filter id={glowId} x="-20%" y="-80%" width="140%" height="260%">
             <feGaussianBlur stdDeviation="1.5" result="blur" />
             <feMerge>
@@ -118,14 +120,14 @@ function TimerSignal({ finished }: { finished: boolean }) {
           <path
             d={path}
             fill="none"
-            stroke={`url(#${gradientId})`}
+            stroke={signalStroke}
             strokeWidth="5"
             strokeLinecap="round"
           />
           <path
             d={path}
             fill="none"
-            stroke="white"
+            stroke={finished ? "rgba(31,26,20,0.35)" : "white"}
             strokeWidth="2.5"
             strokeLinecap="round"
             transform="translate(0 -2)"
@@ -143,7 +145,7 @@ function TimerSignal({ finished }: { finished: boolean }) {
           data-testid="autolyse-timer-line"
           d={path}
           fill="none"
-          stroke={`url(#${gradientId})`}
+          stroke={signalStroke}
           strokeWidth="1.25"
           strokeLinecap="round"
           filter={`url(#${glowId})`}
@@ -222,11 +224,11 @@ export function AutolyseTimer({
             data-testid="autolyse-timer-card"
             data-variant="compact"
             data-surface="glass"
-            className="overflow-hidden rounded-3xl border border-paper/55 bg-paper/35 p-5 shadow-sm backdrop-blur-md"
+            className={cn("overflow-hidden p-5", AMBIENT_GLASS)}
           >
             <div className="flex items-start gap-3">
               <span
-                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-ink/[0.04] text-ink"
                 aria-hidden
               >
                 <Timer size={20} />
@@ -241,10 +243,10 @@ export function AutolyseTimer({
               </div>
             </div>
             <Button
-              variant="soft"
+              variant="inset"
               size="sm"
               onClick={openSetup}
-              className="mt-4 w-full border border-paper/60 bg-paper/60 hover:!bg-paper/75"
+              className="mt-4 w-full"
               iconStart={<Timer size={17} />}
             >
               {strings.bake.autolyseTimer.start}
@@ -256,18 +258,18 @@ export function AutolyseTimer({
             data-variant="compact"
             data-surface={isFinished ? "glass" : "charcoal"}
             className={cn(
-              "overflow-hidden rounded-3xl",
+              "overflow-hidden rounded-[2rem]",
               isFinished
                 ? "border border-sage/50 bg-sage-bg/70 text-ink shadow-sm"
-                : "bg-[#292A28] text-paper shadow-lg",
+                : `${AMBIENT_CHARCOAL} ${AMBIENT_CHARCOAL_SHADOW}`,
             )}
           >
             <div className="flex items-stretch">
-              <div className="min-w-0 flex-1 px-4 py-2.5 text-start">
+              <div className="min-w-0 flex-1 px-5 py-3.5 text-start">
                 <h3
                   className={cn(
                     "text-tiny font-medium",
-                    isFinished ? "text-ink-2" : "text-paper/60",
+                    isFinished ? "text-ink-2" : "text-paper/65",
                   )}
                   dir="rtl"
                 >
@@ -275,19 +277,14 @@ export function AutolyseTimer({
                 </h3>
                 <span
                   dir="ltr"
-                  className="num mt-0.5 block font-mono text-2xl font-medium leading-none tabular-nums"
+                  className="num mt-1 block font-mono text-display-lg leading-none tabular-nums"
                 >
                   {formattedTime}
                 </span>
                 <TimerSignal finished={isFinished} />
               </div>
 
-              <div
-                className={cn(
-                  "flex shrink-0 items-center border-s px-2",
-                  isFinished ? "border-ink/10" : "border-paper/10",
-                )}
-              >
+              <div className="flex shrink-0 items-center gap-1.5 pe-3 ps-1">
                 <button
                   type="button"
                   onClick={isFinished ? onReset : isPaused ? onResume : onPause}
@@ -296,7 +293,12 @@ export function AutolyseTimer({
                     : isPaused
                       ? strings.bake.autolyseTimer.resume
                       : strings.bake.autolyseTimer.pause}
-                  className="pressable inline-flex size-11 items-center justify-center rounded-full bg-paper text-ink transition-colors duration-fast ease-out hover:bg-paper/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-2"
+                  className={cn(
+                    "pressable inline-flex size-11 items-center justify-center rounded-full transition-colors duration-fast ease-out focus-visible:outline-none focus-visible:ring-2",
+                    isFinished
+                      ? "bg-[#292A28] text-paper hover:bg-[#3A3B38] focus-visible:ring-ink-2"
+                      : "bg-paper text-[#292A28] hover:bg-paper/85 focus-visible:ring-accent-2",
+                  )}
                 >
                   {isFinished
                     ? <RotateCcw size={17} aria-hidden />
@@ -311,8 +313,8 @@ export function AutolyseTimer({
                   className={cn(
                     "pressable inline-flex size-11 items-center justify-center rounded-full transition-colors duration-fast ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-2",
                     isFinished
-                      ? "text-ink-2 hover:bg-ink/5 hover:text-ink"
-                      : "text-paper/70 hover:bg-paper/10 hover:text-paper",
+                      ? "bg-ink/[0.04] text-ink-2 hover:bg-ink/[0.08] hover:text-ink"
+                      : "bg-paper/10 text-paper hover:bg-paper/15",
                   )}
                 >
                   <Pencil size={17} aria-hidden />
