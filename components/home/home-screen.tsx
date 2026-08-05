@@ -9,6 +9,7 @@ import { HomeNavGroup } from "./home-nav-group";
 import { ResumeBanner } from "./resume-banner";
 import { InstallBanner } from "@/components/onboarding/install-banner";
 import { StopBakeDialog } from "@/components/bake/stop-bake-dialog";
+import { AMBIENT_CANVAS } from "@/components/ui/ambient";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
 import { listRecipes } from "@/lib/storage/recipes";
 import { strings } from "@/lib/strings";
@@ -85,7 +86,7 @@ export function HomeScreen() {
   return (
     <main
       aria-busy={!resolved}
-      className="relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)] px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(9.25rem+env(safe-area-inset-bottom))] max-[340px]:px-4"
+      className={`relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip ${AMBIENT_CANVAS} px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(9.25rem+env(safe-area-inset-bottom))] max-[340px]:px-4`}
     >
       <header className="mb-5 text-center">
         <h1 className="sr-only">{strings.home.wordmark}</h1>
@@ -161,7 +162,7 @@ export function HomeScreen() {
 
       <StopBakeDialog
         open={stopOpen}
-        appearance="home"
+        appearance="ambient"
         recipeName={stopRecipeName}
         onConfirm={handleConfirmStop}
         onCancel={handleCancelStop}

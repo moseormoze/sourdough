@@ -68,12 +68,12 @@ describe("Dialog", () => {
     expect(screen.getByRole("button", { name: "שמור" })).toBeInTheDocument();
   });
 
-  it("keeps defaults unchanged and gives Home a glass shell", () => {
+  it("keeps defaults unchanged and gives ambient a glass shell", () => {
     const { rerender } = render(
-      <Dialog open onClose={vi.fn()} title="בית" appearance="home" />,
+      <Dialog open onClose={vi.fn()} title="בית" appearance="ambient" />,
     );
     const dialog = screen.getByRole("dialog");
-    expect(dialog).toHaveAttribute("data-appearance", "home");
+    expect(dialog).toHaveAttribute("data-appearance", "ambient");
     expect(dialog.firstElementChild).toHaveClass("rounded-[2rem]");
     expect(dialog.firstElementChild).toHaveClass("supports-[backdrop-filter]:backdrop-blur-xl");
 
@@ -81,7 +81,7 @@ describe("Dialog", () => {
     expect(screen.getByRole("dialog")).toHaveAttribute("data-appearance", "default");
   });
 
-  it("lets the Home dialog finish its 200ms exit before closing", () => {
+  it("lets the ambient dialog finish its 200ms exit before closing", () => {
     vi.useFakeTimers();
     const onAfterClose = vi.fn();
     const { rerender } = render(
@@ -90,7 +90,7 @@ describe("Dialog", () => {
         onClose={vi.fn()}
         onAfterClose={onAfterClose}
         title="בית"
-        appearance="home"
+        appearance="ambient"
       />,
     );
 
@@ -100,7 +100,7 @@ describe("Dialog", () => {
         onClose={vi.fn()}
         onAfterClose={onAfterClose}
         title="בית"
-        appearance="home"
+        appearance="ambient"
       />,
     );
     expect(screen.getByRole("dialog")).toHaveAttribute("open");

@@ -11,11 +11,11 @@ export interface DialogProps {
   children?: ReactNode;
   actions?: ReactNode;
   className?: string;
-  appearance?: "default" | "home";
+  appearance?: "default" | "ambient";
   onAfterClose?: () => void;
 }
 
-const HOME_EXIT_MS = 200;
+const AMBIENT_EXIT_MS = 200;
 
 function prefersReducedMotion(): boolean {
   try {
@@ -65,9 +65,9 @@ export function Dialog({
       onAfterClose?.();
     };
 
-    if (appearance === "home" && !prefersReducedMotion()) {
+    if (appearance === "ambient" && !prefersReducedMotion()) {
       node.setAttribute("data-leaving", "true");
-      closeTimerRef.current = setTimeout(finishClose, HOME_EXIT_MS);
+      closeTimerRef.current = setTimeout(finishClose, AMBIENT_EXIT_MS);
     } else {
       finishClose();
     }
@@ -104,7 +104,7 @@ export function Dialog({
       }}
       className={cn(
         "bg-transparent p-0 outline-none transition-opacity duration-base data-[leaving=true]:opacity-0",
-        appearance === "home" ? "backdrop:bg-ink/35 backdrop:backdrop-blur-sm" : "backdrop:bg-ink/45",
+        appearance === "ambient" ? "backdrop:bg-ink/35 backdrop:backdrop-blur-sm" : "backdrop:bg-ink/45",
         "open:animate-[dialog-in_200ms_cubic-bezier(0.22,1,0.36,1)]",
       )}
       aria-labelledby={titleId}
@@ -112,11 +112,11 @@ export function Dialog({
     >
       <div
         className={cn(
-          appearance === "home"
+          appearance === "ambient"
             ? "rounded-[2rem] border border-paper/70 bg-[#FFF8F1]/95 shadow-[0_1px_0_rgba(255,255,255,0.65),0_20px_55px_rgba(41,42,40,0.18)] supports-[backdrop-filter]:bg-paper/65 supports-[backdrop-filter]:backdrop-blur-xl"
             : "rounded-2xl bg-paper shadow-lg",
           "min-w-[280px] max-w-[420px] w-[90vw]",
-          appearance === "home" ? "max-h-[calc(100dvh-2rem)] overflow-y-auto p-5" : "p-6",
+          appearance === "ambient" ? "max-h-[calc(100dvh-2rem)] overflow-y-auto p-5" : "p-6",
           className
         )}
       >
@@ -130,7 +130,7 @@ export function Dialog({
         )}
         {children && <div className="mt-4">{children}</div>}
         {actions && (
-          <div className={cn("mt-6 gap-3", appearance === "home" ? "grid" : "flex flex-row-reverse")}>
+          <div className={cn("mt-6 gap-3", appearance === "ambient" ? "grid" : "flex flex-row-reverse")}>
             {actions}
           </div>
         )}

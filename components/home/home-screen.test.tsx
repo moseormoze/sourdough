@@ -87,6 +87,9 @@ describe("HomeScreen — resolved states", () => {
     const main = await screen.findByRole("main");
     await waitFor(() => expect(main).toHaveAttribute("aria-busy", "false"));
     expect(main).toHaveClass("pb-[calc(9.25rem+env(safe-area-inset-bottom))]");
+    expect(main).toHaveClass(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
+    );
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByText(strings.home.subtitle)).toBeInTheDocument();
     const logo = document.querySelector('img[src*="logo.svg"]');

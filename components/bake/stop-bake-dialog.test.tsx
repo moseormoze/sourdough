@@ -46,17 +46,19 @@ describe("StopBakeDialog", () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
-  it("uses the Home glass dialog without changing the default", () => {
+  it("uses the ambient glass dialog without changing the default", () => {
     const { rerender } = render(
       <StopBakeDialog
         open
-        appearance="home"
+        appearance="ambient"
         recipeName="x"
         onConfirm={vi.fn()}
         onCancel={vi.fn()}
       />,
     );
-    expect(screen.getByRole("dialog")).toHaveAttribute("data-appearance", "home");
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("data-appearance", "ambient");
+    expect(dialog.firstElementChild).toHaveClass("rounded-[2rem]");
 
     rerender(
       <StopBakeDialog
