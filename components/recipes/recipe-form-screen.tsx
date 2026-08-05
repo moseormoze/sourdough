@@ -344,6 +344,7 @@ export function RecipeFormScreen({
 
       <DiscardChangesDialog
         open={discardOpen}
+        appearance="ambient"
         onConfirm={handleConfirmDiscard}
         onCancel={() => setDiscardOpen(false)}
       />

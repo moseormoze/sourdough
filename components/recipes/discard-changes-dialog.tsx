@@ -7,18 +7,21 @@ export interface DiscardChangesDialogProps {
   open: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Opt-in for redesigned screens; unconverted screens keep the old look. */
+  appearance?: "default" | "ambient";
 }
 
 export function DiscardChangesDialog({
   open,
   onConfirm,
   onCancel,
+  appearance = "default",
 }: DiscardChangesDialogProps) {
   return (
     <Dialog
       open={open}
+      appearance={appearance}
       onClose={onCancel}
-      appearance="ambient"
       title="לבטל את השינויים?"
       actions={
         <>
