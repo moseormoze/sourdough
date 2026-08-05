@@ -12,6 +12,7 @@ export interface ChecklistReferenceProps {
   imageWidth?: number;
   imageHeight?: number;
   transition?: string;
+  decisionRule?: string;
   variant?: "default" | "pilot";
   emphasized?: boolean;
 }
@@ -32,6 +33,7 @@ export function ChecklistReference({
   imageWidth = 1408,
   imageHeight = 768,
   transition,
+  decisionRule,
   variant = "default",
   emphasized = false,
 }: ChecklistReferenceProps) {
@@ -79,6 +81,9 @@ export function ChecklistReference({
           </li>
         ))}
       </ul>
+      {decisionRule && (
+        <p className="mt-3 text-small leading-relaxed text-ink-2">{decisionRule}</p>
+      )}
       {transition && (
         <div className="mt-4 flex items-start gap-2 border-t border-ink/[0.08] pt-4">
           <ArrowLeft size={17} className="mt-0.5 shrink-0 text-ink-2" aria-hidden />

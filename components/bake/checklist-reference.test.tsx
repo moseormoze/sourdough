@@ -73,3 +73,22 @@ describe("ChecklistReference", () => {
     expect(screen.queryAllByRole("link")).toHaveLength(0);
   });
 });
+
+describe("ChecklistReference — decision rule (feature 31)", () => {
+  it("renders an optional non-interactive decision rule after the signs", () => {
+    render(
+      <ChecklistReference
+        items={["בועות על פני השטח ובדפנות"]}
+        decisionRule="מתלבטים? סיימו מוקדם."
+      />
+    );
+    expect(screen.getByText("מתלבטים? סיימו מוקדם.")).toBeInTheDocument();
+    expect(screen.queryAllByRole("button")).toHaveLength(0);
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+  });
+
+  it("renders no decision rule when none is provided", () => {
+    render(<ChecklistReference items={["בועות"]} />);
+    expect(screen.queryByText(/מתלבטים/)).not.toBeInTheDocument();
+  });
+});

@@ -352,9 +352,18 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             imageWidth={stage.checkImageWidth}
             imageHeight={stage.checkImageHeight}
             transition={isAutolysePilot && !autolyseFinished ? undefined : stage.transition}
+            decisionRule={stage.type === "bulk" ? strings.bake.bulkDecisionRule : undefined}
             variant="pilot"
             emphasized={false}
           />
+        )}
+
+        {stage.type === "bulk" && rescue && (
+          <div className="self-center">
+            <Button variant="ghost" size="sm" onClick={() => setRescueOpen(true)}>
+              {strings.bake.bulkCompareTrigger}
+            </Button>
+          </div>
         )}
 
         {knowledge && (

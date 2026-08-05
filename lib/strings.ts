@@ -152,6 +152,10 @@ export const strings = {
       hintSimilar: "קרוב לתחזית הרגילה.",
       signsRule: "הסימנים על הבצק עדיין קובעים.",
     },
+    // Bulk readiness (feature 31)
+    bulkDecisionRule:
+      "מתלבטים? סיימו מוקדם. תת-תסיסה קלה מתקנת את עצמה בהתפחה הקרה — תסיסת-יתר לא.",
+    bulkCompareTrigger: "לא בטוחים? השוו: חסר · מוכן · יתר",
     // Rescue paths (feature 20)
     rescueTrigger: "משהו לא מסתדר?",
     rescueSheetTitle: "אבחון מהיר",

@@ -989,3 +989,46 @@ describe("StageScreen — dough temp shadow (stage 4)", () => {
     expect(api.setDoughTemp).toHaveBeenCalledWith(27.5);
   });
 });
+
+describe("StageScreen — bulk decision zone (feature 31)", () => {
+  it("shows the decision rule on the bulk stage", () => {
+    render(<StageScreen stage={getStage(4)!} activeBake={makeBake(4)} api={makeApi()} />);
+    expect(screen.getByText(strings.bake.bulkDecisionRule)).toBeInTheDocument();
+  });
+
+  it("keeps the decision rule off every other stage", () => {
+    for (const n of [2, 3, 5, 6, 7]) {
+      const { unmount } = render(
+        <StageScreen stage={getStage(n)!} activeBake={makeBake(n)} api={makeApi()} />
+      );
+      expect(
+        screen.queryByText(strings.bake.bulkDecisionRule),
+        `stage ${n}`
+      ).not.toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it("opens the existing rescue sheet from the compare link", () => {
+    render(<StageScreen stage={getStage(4)!} activeBake={makeBake(4)} api={makeApi()} />);
+    fireEvent.click(
+      screen.getByRole("button", { name: strings.bake.bulkCompareTrigger })
+    );
+    const sheet = screen.getByRole("dialog", { name: "אבחון מהיר" });
+    expect(within(sheet).getByText("תת-תסיסה — הבצק איטי")).toBeInTheDocument();
+    expect(within(sheet).getByText("תסיסת-יתר — הבצק רך מדי")).toBeInTheDocument();
+  });
+
+  it("offers the compare link only on the bulk stage", () => {
+    for (const n of [2, 5, 6, 7]) {
+      const { unmount } = render(
+        <StageScreen stage={getStage(n)!} activeBake={makeBake(n)} api={makeApi()} />
+      );
+      expect(
+        screen.queryByRole("button", { name: strings.bake.bulkCompareTrigger }),
+        `stage ${n}`
+      ).not.toBeInTheDocument();
+      unmount();
+    }
+  });
+});
