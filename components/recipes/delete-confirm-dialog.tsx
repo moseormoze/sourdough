@@ -20,6 +20,7 @@ export function DeleteConfirmDialog({
     <Dialog
       open={open}
       onClose={onCancel}
+      appearance="ambient"
       title={`למחוק את "${recipeName}"?`}
       description="הפעולה לא ניתנת לביטול"
       actions={

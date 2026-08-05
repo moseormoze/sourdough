@@ -44,11 +44,12 @@ export function FlourBreakdownInput({
   return (
     <div>
       <p className="text-label text-ink-2 mb-3">{strings.form.flourBreakdownTitle}</p>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 max-[340px]:grid-cols-1">
         {KEYS.map((key) => (
           <NumberInput
             key={key}
             label={LABEL[key]}
+            appearance="inset"
             unit="%"
             min={0}
             max={100}

@@ -161,12 +161,17 @@
 | טוגל כיוון | מסגרת כתומה + accent-bg | כנ״ל |
 | פילי ימים | נבחר bg-ink | נבחר `#292A28` (יישור גוון); לא נבחר paper בלי גבול |
 | סטפר שעה/טמפ׳ (NumberInput) | ‏paper + גבול line | פיל inset בלי גבול; הערך mono מוגדל; ± ‏44px ‏ink-2 |
+| שדה טקסט (TextInput) | ‏paper + גבול line | אריח inset בלי גבול: ‏`bg-paper/70`, רדיוס 16px (`rounded-2xl`); focus ‏ring ‏`ink/20`; שגיאה ‏ring ‏`danger/40` + הודעה מתחת (ללא מסגרת) |
 | RatioControl | נבחר כתום מלא | נבחר charcoal / לא נבחר paper |
 | כרטיסי שיטת אפייה | מסגרת כתומה + ring | radio עשיר לפי הדקדוק (טון + עיגול charcoal) |
 | ציר זמן (BakeTimeline) | נקודות accent | נקודת ״עכשיו/מוכן״ אחת orange (רגע ה״חי״); שאר הצמתים ink/line; שעות mono מודגשות |
 | דיאלוגים / sheets | ‏appearance ‏ambient קיים | ללא שינוי (כבר בשפה) |
 | Toast / FAB | קיים | ללא שינוי בשלב זה; נבחן במסך הרלוונטי |
 | תמונת מתכון | ‏rounded-xl ‏56px | אריח rounded-2xl (תפקיד הצילום נשמר) |
+| צ׳יפ המלצה (HintChip) | ‏`bg-accent-bg` + טקסט `accent` + נצנוץ `accent` | **אינפורמטיבי, לא בחירה** ⇒ פיל טון: ‏`bg-ink/[0.04]`, טקסט `ink-2`, אייקון `ink-3`, ‏hover ‏`bg-ink/[0.07]`, ‏focus ‏ring `ink/20`. אין היפוך טונאלי — הצ׳יפ לא מייצג מצב נבחר |
+| הבהוב אישור המלצה | ‏`ring-accent/30` ‏(600ms) | ‏`ring-ink/20`, ‏`rounded-2xl` — משוב טון, לא צבע |
+| שורת תוספת (InclusionRow) | ‏`rounded-xl` + גבול `line` + `bg-paper` | אריח טון בתוך glass: ‏`bg-ink/[0.04]`, ‏`rounded-2xl`, בלי גבול; השדות בתוכו inset ‏`bg-paper/70` (אין swipe בשורה ⇒ אין צורך במשטח אטום) |
+| כפתור הוספה משני (״הוסף תוספת״) | ‏`bg-bg-2` + hover `bg-line` | פיל inset ‏`bg-paper/70`, טקסט `ink-2`, ‏hover `bg-paper`, ‏`pressable` |
 
 ## חלק ה — כללי אנטי־כלאיים
 

@@ -218,3 +218,72 @@ describe("RecipeFormScreen — Israeli flour hydration note", () => {
     expect(screen.getByText(/70–72%/)).toBeInTheDocument();
   });
 });
+
+describe("RecipeFormScreen — Redesigned composition", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("wraps the content column in the ambient canvas", () => {
+    const { container } = renderForm({ initialValues: validValues });
+    const main = container.querySelector("main");
+    expect(main).not.toBeNull();
+    expect(main?.className).toContain("max-w-md");
+    expect(main?.className).toContain("overflow-x-clip");
+    expect(main?.parentElement?.className).toContain(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]"
+    );
+  });
+
+  it("groups the form into five glass cards", () => {
+    const { container } = renderForm({ initialValues: validValues });
+    const cards = container.querySelectorAll('[data-surface="glass"]');
+    expect(cards).toHaveLength(5);
+    cards.forEach((card) => {
+      expect(card.className).toContain("rounded-[2rem]");
+      expect(card.className).toContain("supports-[backdrop-filter]:backdrop-blur-md");
+    });
+  });
+
+  it("renders the save CTA as charcoal in a sticky footer", () => {
+    const { container } = renderForm({ initialValues: validValues });
+    const save = screen.getByRole("button", { name: "שמור" });
+    expect(save.className).toContain("bg-[#292A28]");
+    expect(save.className).not.toContain("bg-accent");
+    const footer = container.querySelector("[data-footer='sticky']");
+    expect(footer).not.toBeNull();
+    expect(footer?.className).toContain("sticky");
+    expect(footer?.contains(save)).toBe(true);
+  });
+
+  it("has no accent-coloured controls left on the screen", () => {
+    const { container } = renderForm({ initialValues: validValues });
+    expect(container.innerHTML).not.toMatch(/(bg|text|ring|border)-accent/);
+  });
+
+  it("renders every field in the inset appearance (no legacy borders)", () => {
+    const { container } = renderForm({ initialValues: validValues });
+    const name = screen.getByLabelText("שם המתכון");
+    expect(name.className).toContain("bg-paper/70");
+    expect(name.className).toContain("rounded-2xl");
+
+    const hydrationShell = screen.getByLabelText("הידרציה").parentElement;
+    expect(hydrationShell?.className).toContain("rounded-full");
+    expect(hydrationShell?.className).toContain("bg-paper/70");
+
+    expect(container.innerHTML).not.toContain("border-line");
+  });
+
+  it("dresses the inclusion row as a tonal inset, not a bordered card", () => {
+    const { container } = renderForm({
+      initialValues: {
+        ...validValues,
+        inclusions: [{ name: "זיתים", amountGrams: 50 }],
+      },
+    });
+    const row = container.querySelector("[data-inclusion-row]");
+    expect(row).not.toBeNull();
+    expect(row?.className).toContain("bg-ink/[0.04]");
+    expect(row?.className).not.toContain("border");
+  });
+});

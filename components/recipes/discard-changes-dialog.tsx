@@ -18,6 +18,7 @@ export function DiscardChangesDialog({
     <Dialog
       open={open}
       onClose={onCancel}
+      appearance="ambient"
       title="לבטל את השינויים?"
       actions={
         <>
