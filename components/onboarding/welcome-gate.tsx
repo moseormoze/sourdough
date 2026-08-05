@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "rea
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/ui/text-input";
+import { AMBIENT_CANVAS, AMBIENT_GLASS } from "@/components/ui/ambient";
 import { identifyUser } from "@/lib/analytics/posthog-client";
 import { track } from "@/lib/analytics/track";
 import {
@@ -67,7 +68,7 @@ export function WelcomeGate({ children }: { children: ReactNode }) {
     <>
       <div inert={gateUp}>{children}</div>
       {status === "checking" && (
-        <div className="fixed inset-0 z-gate bg-bg" aria-hidden />
+        <div className={cn("fixed inset-0 z-gate", AMBIENT_CANVAS)} aria-hidden />
       )}
       {(status === "gate" || status === "leaving") && (
         <div
@@ -75,55 +76,60 @@ export function WelcomeGate({ children }: { children: ReactNode }) {
           aria-modal="true"
           aria-label={strings.welcome.title}
           className={cn(
-            "fixed inset-0 z-gate overflow-y-auto bg-bg",
+            "fixed inset-0 z-gate overflow-y-auto",
+            AMBIENT_CANVAS,
             "transition-opacity duration-base ease-in",
             status === "leaving" && "opacity-0 pointer-events-none"
           )}
         >
           <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-5 py-10">
-            <Image
-              src="/logo.svg"
-              alt={strings.home.wordmark}
-              width={120}
-              height={120}
-              priority
-            />
-            <h1 className="mt-4 text-title font-bold text-ink">
-              {strings.welcome.title}
-            </h1>
-            <p className="mt-2 text-center text-body-lg text-ink-2">
-              {strings.welcome.subtitle}
-            </p>
-            <form onSubmit={handleSubmit} className="mt-8 flex w-full flex-col gap-4" noValidate>
-              <TextInput
-                label={strings.welcome.nameLabel}
-                placeholder={strings.welcome.namePlaceholder}
-                value={name}
-                error={nameError}
-                autoComplete="given-name"
-                onChange={(e) => setName(e.target.value)}
-                onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+            <div className={cn(AMBIENT_GLASS, "flex w-full flex-col items-center p-6")}>
+              <Image
+                src="/logo.svg"
+                alt={strings.home.wordmark}
+                width={120}
+                height={120}
+                priority
               />
-              <TextInput
-                label={strings.welcome.emailLabel}
-                type="email"
-                inputMode="email"
-                value={email}
-                error={emailError}
-                autoComplete="email"
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-              />
-              <p className="text-small text-ink-3">{strings.welcome.privacyNote}</p>
-              <Button
-                type="submit"
-                variant="accent"
-                className="mt-2 w-full"
-                disabled={!nameValid || !emailValid}
-              >
-                {strings.welcome.cta}
-              </Button>
-            </form>
+              <h1 className="mt-4 text-title font-bold text-ink">
+                {strings.welcome.title}
+              </h1>
+              <p className="mt-2 text-center text-body-lg text-ink-2">
+                {strings.welcome.subtitle}
+              </p>
+              <form onSubmit={handleSubmit} className="mt-8 flex w-full flex-col gap-4" noValidate>
+                <TextInput
+                  appearance="inset"
+                  label={strings.welcome.nameLabel}
+                  placeholder={strings.welcome.namePlaceholder}
+                  value={name}
+                  error={nameError}
+                  autoComplete="given-name"
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+                />
+                <TextInput
+                  appearance="inset"
+                  label={strings.welcome.emailLabel}
+                  type="email"
+                  inputMode="email"
+                  value={email}
+                  error={emailError}
+                  autoComplete="email"
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                />
+                <p className="text-small text-ink-3">{strings.welcome.privacyNote}</p>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="mt-2 w-full"
+                  disabled={!nameValid || !emailValid}
+                >
+                  {strings.welcome.cta}
+                </Button>
+              </form>
+            </div>
           </div>
         </div>
       )}
