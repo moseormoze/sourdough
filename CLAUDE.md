@@ -152,6 +152,23 @@ Discovery → PM Brief → Design → Task Breakdown → Engineer (per task) →
 - Every engineering task starts with a failing test and a new git branch.
 - Never skip roles. Never write code in Discovery. Never brainstorm in Engineer.
 
+### Fast-track — redesign rollout (user-approved 2026-08-05)
+
+Applying an already-approved visual language to an existing screen skips the
+per-screen pipeline. Scope: the redesign rollout tracked in
+`specs/features/30-redesign-rollout/` only.
+
+- One rolling feature folder holds the carry-over contract (`contract.md`,
+  pointing at the approved F28/F29 design docs) plus a short per-screen
+  composition-delta note (`delta-<route>.md`) — no per-screen
+  `brief.md`/`design.md`/`tasks.md`.
+- **One PR per screen, based on `main`, is the single approval gate**, with
+  rendered before/after screenshots in the PR body.
+- Quality floors unchanged: failing test first, unit tests + type-check +
+  lint + RTL scan + production build, rendered QA.
+- Anything needing a real product decision — new copy, flow, storage, or
+  analytics change — returns to the full pipeline.
+
 ## Numbering
 
 Features are numbered sequentially: `01-…`, `02-…`, etc. Number reflects planned build order.

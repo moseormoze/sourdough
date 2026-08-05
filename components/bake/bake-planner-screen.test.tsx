@@ -341,4 +341,37 @@ describe("BakePlannerScreen — manual-first", () => {
     fireEvent.click(screen.getByRole("button", { name: s.backToChooser }));
     expect(onBack).toHaveBeenCalled();
   });
+
+  // ── Redesigned composition (Feature 30 — ambient carry-over) ──────────────
+
+  it("paints the ambient canvas full-bleed with the content column inside", () => {
+    renderScreen();
+    const main = screen.getByRole("main");
+    expect(main).not.toHaveClass(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
+    );
+    expect(main.parentElement).toHaveClass(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
+    );
+    expect(main.parentElement).toHaveClass("min-h-dvh");
+    expect(main.parentElement?.className).not.toContain("max-w");
+    expect(main).toHaveClass("max-w-md", "isolate", "overflow-x-clip");
+  });
+
+  it("groups the form sections into glass surfaces", () => {
+    renderScreen();
+    const glassSections = document.querySelectorAll("[data-surface='glass']");
+    expect(glassSections.length).toBe(4);
+    for (const section of glassSections) {
+      expect(section.className).toContain("border-paper/60");
+      expect(section.className).toContain("supports-[backdrop-filter]:backdrop-blur-md");
+    }
+  });
+
+  it("renders the primary CTA as the dark primary variant, not an orange surface", () => {
+    renderScreen();
+    const cta = screen.getByRole("button", { name: s.startButton });
+    expect(cta.className).toContain("bg-ink");
+    expect(cta.className).not.toContain("bg-accent");
+  });
 });
