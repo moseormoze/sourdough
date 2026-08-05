@@ -182,7 +182,7 @@ export function BakeTimeline({ steps, now, editableRetard }: BakeTimelineProps) 
       </ol>
 
       {/* Cooling — a recommendation after the loaf is out, not part of "ready" */}
-      <div className="rounded-xl bg-bg-2 px-3 py-2.5 mt-3">
+      <div className="rounded-xl bg-ink/[0.04] px-3 py-2.5 mt-3">
         <p className="text-tiny text-ink-2 leading-relaxed">💡 {s.coolingTip}</p>
       </div>
     </div>

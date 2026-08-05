@@ -92,7 +92,7 @@ function PresetChip({ presetKey, name, selected, onSelect }: PresetChipProps) {
         text-body font-medium
         transition-[transform,background-color,color] duration-[120ms] ease-out
         ${isPressed ? "scale-[0.965]" : "scale-100"}
-        ${selected ? AMBIENT_CHARCOAL : "bg-paper text-ink-2"}`}
+        ${selected ? AMBIENT_CHARCOAL : "bg-paper/70 text-ink-2"}`}
     >
       {name}
     </button>
@@ -340,7 +340,7 @@ export function BakePlannerScreen({
                   onPointerDown={() => handleDirection(dir)}
                   className={`pressable flex-1 rounded-full px-4 py-2.5 text-body font-medium
                     transition-colors duration-fast ease-out
-                    ${active ? AMBIENT_CHARCOAL : "bg-paper text-ink-2"}`}
+                    ${active ? AMBIENT_CHARCOAL : "bg-paper/70 text-ink-2"}`}
                 >
                   {label}
                 </button>
@@ -377,7 +377,7 @@ export function BakePlannerScreen({
                     onClick={() => handleDaySelectManual(idx)}
                     className={`pressable rounded-full px-4 py-2 text-body font-medium
                       transition-colors duration-fast ease-out
-                      ${idx === dayIdx ? AMBIENT_CHARCOAL : "bg-paper text-ink-2"}`}
+                      ${idx === dayIdx ? AMBIENT_CHARCOAL : "bg-paper/70 text-ink-2"}`}
                   >
                     {dayLabel(day, now)}
                   </button>
@@ -389,7 +389,7 @@ export function BakePlannerScreen({
             </div>
 
             {/* Hour stepper */}
-            <div className="flex items-center rounded-full bg-paper overflow-hidden">
+            <div className="flex items-center rounded-full bg-paper/70 overflow-hidden">
               <button
                 type="button"
                 aria-label="פחות שעה"
@@ -407,10 +407,11 @@ export function BakePlannerScreen({
                 aria-label={s.exactTimeLabel}
                 dir="ltr"
                 className="flex-1 min-h-touch bg-transparent text-center num font-mono
-                           text-2xl text-ink cursor-pointer
+                           text-lg text-ink cursor-pointer
                            transition-transform duration-[120ms] ease-out active:scale-[0.985]
-                           focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-inset
-                           rounded-md"
+                           focus:outline-none focus:ring-2 focus:ring-ink/20 focus:ring-inset
+                           rounded-md
+                           [&::-webkit-calendar-picker-indicator]:hidden"
               />
               <button
                 type="button"

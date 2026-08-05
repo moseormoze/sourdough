@@ -67,11 +67,11 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
       )}
       <div
         className={cn(
-          "flex items-center bg-paper",
+          "flex items-center",
           "transition-colors duration-fast ease-out",
           appearance === "inset"
-            ? "rounded-full focus-within:ring-2 focus-within:ring-ink/20"
-            : "rounded-lg border-[1.5px] border-line focus-within:border-ink focus-within:ring-2 focus-within:ring-ink/20",
+            ? "rounded-full bg-paper/70 focus-within:ring-2 focus-within:ring-ink/20"
+            : "rounded-lg bg-paper border-[1.5px] border-line focus-within:border-ink focus-within:ring-2 focus-within:ring-ink/20",
           error &&
             (appearance === "inset"
               ? "ring-2 ring-danger/40 focus-within:ring-danger/40"
@@ -106,7 +106,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
           onChange={(e) => handleInput(e.target.value)}
           className={cn(
             "flex-1 min-h-cta bg-transparent font-mono text-ink",
-            appearance === "inset" ? "text-2xl" : "text-body-lg",
+            appearance === "inset" ? "text-lg" : "text-body-lg",
             // compact has no steppers framing the value — anchor the number
             // next to the unit so it reads as one token ("13 גרם"), instead
             // of floating centered with a gap between value and unit

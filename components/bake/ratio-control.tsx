@@ -33,7 +33,7 @@ export function RatioControl({ value, onChange }: RatioControlProps) {
               dir="ltr"
               className={`pressable flex-1 min-h-touch rounded-full text-label font-medium
                 transition-colors duration-fast ease-out
-                ${active ? AMBIENT_CHARCOAL : "bg-paper text-ink-2"}`}
+                ${active ? AMBIENT_CHARCOAL : "bg-paper/70 text-ink-2"}`}
             >
               {FEED_RATIO_LABELS[r]}
             </button>

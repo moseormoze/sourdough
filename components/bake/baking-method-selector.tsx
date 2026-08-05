@@ -31,7 +31,7 @@ export function BakingMethodSelector({ value, onChange }: BakingMethodSelectorPr
                 "flex items-start gap-3",
                 "transition-colors duration-fast ease-out",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-2 focus-visible:ring-inset",
-                selected ? "bg-ink/[0.04]" : "bg-paper"
+                selected ? "bg-ink/[0.04]" : "bg-paper/70"
               )}
             >
               <span aria-hidden className={cn("mt-0.5 shrink-0", selected ? "text-[#292A28]" : "text-line-2")}>
