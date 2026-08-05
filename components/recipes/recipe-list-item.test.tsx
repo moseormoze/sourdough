@@ -68,7 +68,10 @@ describe("RecipeListItem", () => {
   it("renders name and summary", () => {
     render(<RecipeListItem recipe={sample} />);
     expect(screen.getByRole("heading", { name: "כפרי קלאסי" })).toBeInTheDocument();
-    expect(screen.getByText(/20% מלא · 75% הידרציה/)).toBeInTheDocument();
+    // Numeric segments are isolated in <span dir="ltr"> wrappers for RTL
+    // rendering, so match against the row's full concatenated text content
+    // rather than a single text node.
+    expect(screen.getByRole("button").textContent).toContain("20% מלא · 75% הידרציה");
   });
 
   it("navigates to /recipes/{id}/edit from a native assistive-technology click", () => {
