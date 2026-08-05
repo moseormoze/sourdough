@@ -161,12 +161,19 @@
 | טוגל כיוון | מסגרת כתומה + accent-bg | כנ״ל |
 | פילי ימים | נבחר bg-ink | נבחר `#292A28` (יישור גוון); לא נבחר paper בלי גבול |
 | סטפר שעה/טמפ׳ (NumberInput) | ‏paper + גבול line | פיל inset בלי גבול; הערך mono מוגדל; ± ‏44px ‏ink-2 |
+| שדה טקסט (TextInput) | ‏paper + גבול line | אריח inset בלי גבול: ‏`bg-paper/70`, רדיוס 16px (`rounded-2xl`); focus ‏ring ‏`ink/20`; שגיאה ‏ring ‏`danger/40` + הודעה מתחת (ללא מסגרת) |
 | RatioControl | נבחר כתום מלא | נבחר charcoal / לא נבחר paper |
 | כרטיסי שיטת אפייה | מסגרת כתומה + ring | radio עשיר לפי הדקדוק (טון + עיגול charcoal) |
 | ציר זמן (BakeTimeline) | נקודות accent | נקודת ״עכשיו/מוכן״ אחת orange (רגע ה״חי״); שאר הצמתים ink/line; שעות mono מודגשות |
 | דיאלוגים / sheets | ‏appearance ‏ambient קיים | ללא שינוי (כבר בשפה) |
 | Toast / FAB | קיים | ללא שינוי בשלב זה; נבחן במסך הרלוונטי |
 | תמונת מתכון | ‏rounded-xl ‏56px | אריח rounded-2xl (תפקיד הצילום נשמר) |
+| צ׳יפ המלצה (HintChip) | ‏`bg-accent-bg` + טקסט `accent` + נצנוץ `accent` | **אינפורמטיבי, לא בחירה** ⇒ פיל טון: ‏`bg-ink/[0.04]`, טקסט `ink-2`, אייקון `ink-3`, ‏hover ‏`bg-ink/[0.07]`, ‏focus ‏ring `ink/20`. אין היפוך טונאלי — הצ׳יפ לא מייצג מצב נבחר |
+| הבהוב אישור המלצה | ‏`ring-accent/30` ‏(600ms) | ‏`ring-ink/20`, ‏`rounded-2xl` — משוב טון, לא צבע |
+| שורת תוספת (InclusionRow) | ‏`rounded-xl` + גבול `line` + `bg-paper` | אריח טון בתוך glass: ‏`bg-ink/[0.04]`, ‏`rounded-2xl`, בלי גבול; השדות בתוכו inset ‏`bg-paper/70` (אין swipe בשורה ⇒ אין צורך במשטח אטום) |
+| כפתור הוספה משני (״הוסף תוספת״) | ‏`bg-bg-2` + hover `bg-line` | פיל inset ‏`bg-paper/70`, טקסט `ink-2`, ‏hover `bg-paper`, ‏`pressable` |
+| שורת רשימה בקבוצה (SavedRecipeRow, ‏FeedingListItem) | כרטיס נפרד לכל שורה: ‏`bg-paper` + `shadow-sm` + `rounded-2xl` + מרווח | **קבוצת glass אחת** ‏(`AMBIENT_GLASS` + `overflow-hidden`) ובתוכה שורות שטוחות: בלי רקע, בלי צל, בלי רדיוס; מפריד ‏`border-t border-ink/[0.06]`; ‏press ‏`scale-[0.985]` + `bg-ink/[0.05]`; ‏focus ‏`ring-inset ring-ink-2`. **חריג מחייב:** שורה שמונחת מעל פאנל swipe-delete ‏(`absolute`) חייבת להישאר אטומה ‏`bg-paper` — אחרת הפאנל מציץ במנוחה (`RecipeListItem`) |
+| פס פעולות דביק (footer של טופס) | בלוק פעולות בזרימה בתחתית התוכן | ‏`sticky bottom-0`, גבול עליון `ink/[0.06]`, מילוי fallback ‏`#FFF8F1/90` ו־blur על `paper/60`; ה־CTA הראשי charcoal, המשני ghost, ופעולה הרסנית ‏`ms-auto` בקצה. **חובה:** תוכן ובקרות לא נעצרים בנתיב ה־FAB ‏(88–132px מתחתית ה־viewport) — טופס פותר בפס דביק, רשימה בשמירת מקום ‏(`mb-28`/`9.25rem`) |
 
 ## חלק ה — כללי אנטי־כלאיים
 

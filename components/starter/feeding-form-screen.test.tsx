@@ -222,6 +222,74 @@ describe("FeedingFormScreen", () => {
     expect(routerMock.back).toHaveBeenCalled();
   });
 
+  describe("Redesigned composition (feature 30 rollout language)", () => {
+    function classNamesIn(container: HTMLElement): string[] {
+      return Array.from(container.querySelectorAll<HTMLElement>("*")).map(
+        (element) => element.getAttribute("class") ?? ""
+      );
+    }
+
+    it("paints the ambient canvas behind a max-w-md content column", () => {
+      renderForm({ initialValues: validValues });
+      const main = screen.getByRole("main");
+      expect(main.parentElement?.className).toContain("bg-[linear-gradient(160deg");
+      expect(main.className).toContain("max-w-md");
+      expect(main.className).toContain("overflow-x-clip");
+      expect(main.className).toContain("isolate");
+    });
+
+    it("groups the form sections into glass cards", () => {
+      const { container } = renderForm({ initialValues: validValues });
+      const cards = Array.from(container.querySelectorAll<HTMLElement>('[data-surface="glass"]'));
+      expect(cards.length).toBeGreaterThanOrEqual(3);
+      for (const card of cards) {
+        expect(card.className).toContain("rounded-[2rem]");
+      }
+    });
+
+    it("renders the save action as the charcoal primary, not accent", () => {
+      renderForm({ initialValues: validValues });
+      const save = screen.getByRole("button", { name: "שמור" });
+      expect(save.className).toContain("bg-[#292A28]");
+      expect(save.className).not.toContain("bg-accent");
+    });
+
+    it("renders the grams steppers and the date/time fields as borderless inset surfaces", () => {
+      renderForm({ initialValues: validValues });
+
+      const gramsField = screen.getByLabelText(strings.starterTracker.grams.starterLabel)
+        .parentElement as HTMLElement;
+      expect(gramsField.className).toContain("bg-paper/70");
+      expect(gramsField.className).not.toContain("border-line");
+
+      for (const label of [
+        strings.starterTracker.form.dateLabel,
+        strings.starterTracker.form.timeLabel,
+      ]) {
+        const field = screen.getByLabelText(label);
+        expect(field.className).toContain("bg-paper/70");
+        expect(field.className).toContain("rounded-2xl");
+        expect(field.className).not.toContain("border-line");
+      }
+    });
+
+    it("uses no accent fills or frames anywhere on the form", () => {
+      const { container } = renderForm({ initialValues: validValues, feedingId: "feeding-1" });
+      for (const className of classNamesIn(container)) {
+        expect(className).not.toMatch(/(^|[\s:])(bg|border|ring)-accent/);
+      }
+    });
+
+    it("opens the delete and discard dialogs in the ambient appearance", () => {
+      const { container } = renderForm({ initialValues: validValues, feedingId: "feeding-1" });
+      const dialogs = Array.from(container.querySelectorAll("dialog"));
+      expect(dialogs.length).toBeGreaterThanOrEqual(2);
+      for (const dialog of dialogs) {
+        expect(dialog.getAttribute("data-appearance")).toBe("ambient");
+      }
+    });
+  });
+
   describe("auto-calc flour/water from ratio × starter grams", () => {
     const grams = strings.starterTracker.grams;
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FeedingFormScreen } from "@/components/starter/feeding-form-screen";
+import { AMBIENT_CANVAS } from "@/components/ui/ambient";
 import { loadIdentity } from "@/lib/storage/identity";
 import { getFeeding } from "@/lib/storage/feedings";
 import { strings } from "@/lib/strings";
@@ -67,9 +68,11 @@ export default function Page() {
 
   if (!initial) {
     return (
-      <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-10">
-        <p className="text-ink-2 mt-12 text-center">{strings.common.loading}</p>
-      </main>
+      <div className={`min-h-dvh ${AMBIENT_CANVAS}`}>
+        <main className="relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip px-5 pt-[calc(24px+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] max-[340px]:px-4">
+          <p className="text-ink-2 mt-12 text-center">{strings.common.loading}</p>
+        </main>
+      </div>
     );
   }
 

@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AMBIENT_CANVAS, AMBIENT_GLASS } from "@/components/ui/ambient";
 import { TextInput } from "@/components/ui/text-input";
 import { FormSection } from "@/components/ui/form-section";
 import { ValidationMessage } from "@/components/ui/validation-message";
@@ -172,8 +173,12 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
     }
   }
 
+  const glassCard = `${AMBIENT_GLASS} p-5 max-[340px]:p-4`;
+
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
+    <div className={`min-h-dvh ${AMBIENT_CANVAS}`}>
+    <main className="relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip">
+      <div className="flex-1 px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-4 max-[340px]:px-4">
       <header className="relative z-10 flex items-center mb-2">
         <Button
           variant="ghost"
@@ -187,8 +192,8 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
 
       <h1 className="text-display-md text-ink mb-6">{isEdit ? s.editTitle : s.addTitle}</h1>
 
-      <div className="flex flex-col gap-6">
-        <div>
+      <div className="flex flex-col gap-4">
+        <div data-surface="glass" className={glassCard}>
           <RatioControl
             value={values.ratio as FeedRatio}
             onChange={(r) => {
@@ -199,7 +204,7 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
           <ValidationMessage message={showError("ratio")} />
         </div>
 
-        <FormSection title={s.gramsSectionTitle}>
+        <FormSection data-surface="glass" className={glassCard} title={s.gramsSectionTitle}>
           <FeedingGramsInput
             value={{
               starterGrams: values.starterGrams,
@@ -217,52 +222,58 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
           <ValidationMessage message={gramsError} />
         </FormSection>
 
-        <TextInput
-          type="date"
-          label={s.dateLabel}
-          value={values.fedAtDate}
-          onChange={(e) => setValues({ ...values, fedAtDate: e.target.value })}
-          onBlur={() => touch("fedAtDate")}
-          error={showError("fedAtDate")}
-        />
+        <div data-surface="glass" className={`${glassCard} flex flex-col gap-4`}>
+          <TextInput
+            type="date"
+            appearance="inset"
+            label={s.dateLabel}
+            value={values.fedAtDate}
+            onChange={(e) => setValues({ ...values, fedAtDate: e.target.value })}
+            onBlur={() => touch("fedAtDate")}
+            error={showError("fedAtDate")}
+          />
 
-        <TextInput
-          type="time"
-          label={s.timeLabel}
-          value={values.fedAtTime}
-          onChange={(e) => setValues({ ...values, fedAtTime: e.target.value })}
-          onBlur={() => touch("fedAtTime")}
-          error={showError("fedAtTime")}
-        />
+          <TextInput
+            type="time"
+            appearance="inset"
+            label={s.timeLabel}
+            value={values.fedAtTime}
+            onChange={(e) => setValues({ ...values, fedAtTime: e.target.value })}
+            onBlur={() => touch("fedAtTime")}
+            error={showError("fedAtTime")}
+          />
+        </div>
+      </div>
       </div>
 
-      <div className="mt-10 flex flex-col gap-3">
-        <div className="flex gap-3">
+      <div className="sticky bottom-0 px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-ink/[0.06] bg-[#FFF8F1]/90 supports-[backdrop-filter]:bg-paper/60 supports-[backdrop-filter]:backdrop-blur-md max-[340px]:px-4">
+        <div className="flex items-center gap-3">
           <Button
-            variant="accent"
+            variant="primary"
             onClick={handleSubmit}
             loading={saving}
             disabled={busy || (touched.size > 0 && invalid)}
+            className="shrink-0"
           >
             {s.saveButton}
           </Button>
-          <Button variant="ghost" onClick={handleCancel} disabled={busy}>
+          <Button variant="ghost" onClick={handleCancel} disabled={busy} className="shrink-0">
             {s.cancelButton}
           </Button>
+          {isEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDeleteOpen(true)}
+              loading={deleting}
+              disabled={busy}
+              iconStart={<Trash2 size={16} aria-hidden />}
+              className="ms-auto shrink-0 text-danger hover:bg-danger-bg"
+            >
+              {s.deleteButton}
+            </Button>
+          )}
         </div>
-        {isEdit && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setDeleteOpen(true)}
-            loading={deleting}
-            disabled={busy}
-            iconStart={<Trash2 size={16} aria-hidden />}
-            className="self-start text-danger hover:bg-danger-bg"
-          >
-            {s.deleteButton}
-          </Button>
-        )}
       </div>
 
       {isEdit && (
@@ -275,9 +286,11 @@ export function FeedingFormScreen({ initialValues, feedingId }: FeedingFormScree
 
       <DiscardChangesDialog
         open={discardOpen}
+        appearance="ambient"
         onConfirm={handleConfirmDiscard}
         onCancel={() => setDiscardOpen(false)}
       />
     </main>
+    </div>
   );
 }

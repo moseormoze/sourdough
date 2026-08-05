@@ -16,6 +16,7 @@ export function DeleteFeedingDialog({ open, onConfirm, onCancel }: DeleteFeeding
   return (
     <Dialog
       open={open}
+      appearance="ambient"
       onClose={onCancel}
       title={s.title}
       description={s.description}

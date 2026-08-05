@@ -8,10 +8,17 @@ export interface TextInputProps extends Omit<InputHTMLAttributes<HTMLInputElemen
   hint?: string;
   type?: "text" | "email" | "date" | "time";
   dir?: "ltr" | "rtl" | "auto";
+  /**
+   * "outline" is the legacy bordered box (default); "inset" is the
+   * redesign-language borderless frosted field (rollout language spec) —
+   * screens opt in with their rollout PR so unconverted screens keep the
+   * old look.
+   */
+  appearance?: "outline" | "inset";
 }
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function TextInput(
-  { label, error, hint, className, dir, id, type = "text", ...rest },
+  { label, error, hint, className, dir, id, type = "text", appearance = "outline", ...rest },
   ref
 ) {
   const reactId = useId();
@@ -35,14 +42,19 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
         aria-invalid={!!error || undefined}
         aria-describedby={errorId ?? hintId}
         className={cn(
-          "block w-full rounded-lg bg-paper text-body-lg text-ink",
+          "block w-full text-body-lg text-ink",
           "min-h-cta px-4",
-          "border-[1.5px] border-line",
           "placeholder:text-ink-3",
           "transition-colors duration-fast ease-out",
-          "focus:outline-none focus:border-ink focus:ring-2 focus:ring-ink/20",
+          "focus:outline-none",
           "disabled:opacity-40 disabled:pointer-events-none",
-          error && "border-danger focus:border-danger focus:ring-danger/20",
+          appearance === "inset"
+            ? "rounded-2xl bg-paper/70 focus:ring-2 focus:ring-ink/20"
+            : "rounded-lg bg-paper border-[1.5px] border-line focus:border-ink focus:ring-2 focus:ring-ink/20",
+          error &&
+            (appearance === "inset"
+              ? "ring-2 ring-danger/40 focus:ring-danger/40"
+              : "border-danger focus:border-danger focus:ring-danger/20"),
           className
         )}
         {...rest}
