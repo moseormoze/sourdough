@@ -17,6 +17,11 @@ export interface OptionalTimerProps {
   onResume: () => void;
   onReset: () => void;
   className?: string;
+  /**
+   * "inset" is the rollout-language frosted pill (no borders, no orange, mono
+   * value); "legacy" keeps the pre-redesign look for unconverted surfaces.
+   */
+  appearance?: "legacy" | "inset";
 }
 
 export function OptionalTimer({
@@ -28,7 +33,9 @@ export function OptionalTimer({
   onResume,
   onReset,
   className,
+  appearance = "legacy",
 }: OptionalTimerProps) {
+  const inset = appearance === "inset";
   const [now, setNow] = useState<number>(() => Date.now());
 
   const { phase, secondsLeft } = deriveTimerSnapshot({
@@ -57,8 +64,11 @@ export function OptionalTimer({
         onClick={() => onStart()}
         className={cn(
           "pressable inline-flex items-center gap-2 min-h-touch px-4 rounded-full",
-          "bg-bg-2 text-ink-2 text-body hover:bg-line transition-colors",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-3 focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+          "text-body transition-colors",
+          inset
+            ? "bg-paper/70 text-ink-2 hover:bg-paper/85 focus-visible:ring-ink-2"
+            : "bg-bg-2 text-ink-2 hover:bg-line focus-visible:ring-ink-3 focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+          "focus-visible:outline-none focus-visible:ring-2",
           className
         )}
       >
@@ -73,7 +83,11 @@ export function OptionalTimer({
       data-state={phase}
       className={cn(
         "inline-flex items-center gap-2 min-h-touch px-3 rounded-full",
-        finished ? "bg-sage-bg text-sage-2" : "bg-bg-2 text-ink-2",
+        finished
+          ? "bg-sage-bg text-sage-2"
+          : inset
+            ? "bg-paper/70 text-ink-2"
+            : "bg-bg-2 text-ink-2",
         className
       )}
     >
@@ -81,7 +95,10 @@ export function OptionalTimer({
       {finished ? (
         <span className="text-body">{strings.bake.timerFinished}</span>
       ) : (
-        <span dir="ltr" className="num font-mono text-body-lg">
+        <span
+          dir="ltr"
+          className={cn("num font-mono", inset ? "text-lg text-ink" : "text-body-lg")}
+        >
           {formatTimerTime(secondsLeft, durationSeconds, "floor")}
         </span>
       )}
@@ -102,7 +119,10 @@ export function OptionalTimer({
           type="button"
           onClick={onResume}
           aria-label={strings.bake.timerResume}
-          className="pressable min-h-touch min-w-touch inline-flex items-center justify-center text-accent hover:text-accent/80 transition-colors"
+          className={cn(
+            "pressable min-h-touch min-w-touch inline-flex items-center justify-center transition-colors",
+            inset ? "text-ink hover:text-ink-2" : "text-accent hover:text-accent/80",
+          )}
         >
           <Play size={18} aria-hidden />
         </button>

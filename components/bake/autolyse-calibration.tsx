@@ -18,7 +18,7 @@ export function AutolyseCalibration({ initialCheck }: AutolyseCalibrationProps) 
   return (
     <section
       data-testid="autolyse-calibration"
-      className="border-t border-line/70 pt-5"
+      className="border-t border-ink/[0.08] pt-5"
     >
       <div className="flex items-start gap-2.5 text-body font-medium text-ink">
         <span
@@ -37,9 +37,9 @@ export function AutolyseCalibration({ initialCheck }: AutolyseCalibrationProps) 
         rel="noreferrer"
         {...pressProps}
         className={cn(
-          "relative mt-4 block w-full overflow-hidden rounded-2xl border border-ink/[0.06] bg-ink/[0.035] p-4 text-start",
+          "relative mt-4 block w-full overflow-hidden rounded-2xl bg-ink/[0.035] p-4 text-start",
           "transition-[transform,background-color] duration-fast ease-out",
-          "hover:bg-ink/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+          "hover:bg-ink/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
           "motion-reduce:transform-none motion-reduce:transition-colors",
           pressed && "scale-[0.985] bg-ink/[0.06]",
         )}
@@ -47,13 +47,13 @@ export function AutolyseCalibration({ initialCheck }: AutolyseCalibrationProps) 
         <span className="flex items-center gap-3">
           <span
             aria-hidden
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#292A28] text-paper shadow-sm"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#292A28] text-paper"
           >
             <Play size={18} fill="currentColor" />
           </span>
           <span className="grid min-w-0 flex-1 gap-2 text-small leading-relaxed text-ink-2">
             <span>{copy.before}</span>
-            <span className="border-t border-line/70 pt-2 text-ink">{copy.after}</span>
+            <span className="border-t border-ink/[0.08] pt-2 text-ink">{copy.after}</span>
           </span>
         </span>
       </a>

@@ -30,6 +30,7 @@ export function RescueSheet({ stageN, isOpen, onClose }: RescueSheetProps) {
     <BottomSheet
       open={isOpen}
       size="full"
+      variant="pilot"
       title={strings.bake.rescueSheetTitle}
       onClose={onClose}
     >

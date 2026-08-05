@@ -21,6 +21,7 @@ import { StageKnowledgeTrigger } from "./stage-knowledge-hub";
 import { StageKnowledgeSheet } from "./stage-knowledge-sheet";
 import { AutolyseTimer } from "./autolyse-timer";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import { AMBIENT_CANVAS, AMBIENT_GLASS } from "@/components/ui/ambient";
 import {
   DEFAULT_AUTOLYSE_DURATION_SECONDS,
   deriveTimerSnapshot,
@@ -150,6 +151,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     return strings.bake.stageDone;
   })();
 
+  const glassCard = `${AMBIENT_GLASS} p-5 max-[340px]:p-4`;
   const showBulkTimer = stage.type === "bulk" && durationSeconds !== undefined;
   const showStandaloneTimer = stage.type === "timer" && durationSeconds !== undefined;
   const levainTimerSecs =
@@ -159,21 +161,15 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
 
   return (
     <>
+    <div className={cn("min-h-dvh", AMBIENT_CANVAS)}>
     <main
       data-testid={isAutolysePilot ? "autolyse-redesign-pilot" : undefined}
-      data-colorway={isAutolysePilot ? "ambient-gradient" : undefined}
-      className={isAutolysePilot
-        ? "relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-hidden bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)] px-5 pt-5 pb-44"
-        : "mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-44"}
-    >
-      {isAutolysePilot && (
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <span className="absolute -end-24 top-16 size-72 rounded-full bg-[#FFB26F]/28 blur-3xl" />
-          <span className="absolute -start-24 top-[30rem] size-72 rounded-full bg-[#C8E5EF]/55 blur-3xl" />
-          <span className="absolute start-10 top-[18rem] h-64 w-80 rounded-full bg-paper/30 blur-3xl" />
-        </div>
+      data-colorway="ambient-gradient"
+      className={cn(
+        "relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip",
+        "px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-44 max-[340px]:px-4",
       )}
-
+    >
       {isAutolysePilot ? (
         <>
           <div
@@ -189,12 +185,13 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
               flour={activeBake.recipe.flour}
               onTimelineOpen={() => setTimelineOpen(true)}
               variant="pilot"
+              rollout
             />
           </div>
           <div
             data-testid="autolyse-purpose-card"
             data-surface="glass"
-            className="mt-5 rounded-[2rem] border border-paper/55 bg-paper/25 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7),0_18px_45px_rgba(80,61,45,0.08)] backdrop-blur-[3px]"
+            className={cn("mt-5", glassCard)}
           >
             <Briefing briefing={briefing} disclosure={disclosure} variant="pilot" />
           </div>
@@ -208,13 +205,19 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           retardHours={activeBake.retardHours}
           flour={activeBake.recipe.flour}
           onTimelineOpen={() => setTimelineOpen(true)}
+          variant="pilot"
+          rollout
         />
       )}
 
-      <div className={isAutolysePilot ? "mt-5 flex flex-col gap-5" : "mt-6 flex flex-col gap-4"}>
+      <div className="mt-5 flex flex-col gap-5">
         {stage.type === "done" && <StageCelebration />}
         {warning && <SafetyWarning>{warning}</SafetyWarning>}
-        {!isAutolysePilot && <Briefing briefing={briefing} disclosure={disclosure} />}
+        {!isAutolysePilot && (
+          <div data-surface="glass" className={glassCard}>
+            <Briefing briefing={briefing} disclosure={disclosure} variant="pilot" />
+          </div>
+        )}
         {stage.type === "bulk" && stage.tempSensitiveBaseSecs != null && (
           <DoughTempCard
             doughTempC={activeBake.doughTempC}
@@ -235,7 +238,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           <div
             data-testid="autolyse-instructions-surface"
             data-surface="glass"
-            className="rounded-[2rem] border border-paper/55 bg-paper/35 p-5 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] backdrop-blur-md"
+            className={glassCard}
           >
             <InstructionCard
               steps={todoData.steps}
@@ -247,12 +250,15 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             <AutolyseCalibration initialCheck={checks?.[0] ?? ""} />
           </div>
         ) : todoData ? (
-          <InstructionCard
-            steps={todoData.steps}
-            tip={todoData.tip}
-            note={stage.todoNote}
-            quantities={quantities}
-          />
+          <div data-surface="glass" className={glassCard}>
+            <InstructionCard
+              steps={todoData.steps}
+              tip={todoData.tip}
+              note={stage.todoNote}
+              quantities={quantities}
+              variant="pilot"
+            />
+          </div>
         ) : null}
 
         {stage.n === 2 && (
@@ -272,7 +278,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         )}
 
         {stage.type === "bulk" && typeof stage.subSteps === "number" && (
-          <section className="rounded-2xl bg-paper shadow-sm p-5">
+          <section data-surface="glass" className={glassCard}>
             <h3 className="text-heading text-ink">קיפולים</h3>
             <p className="mt-1 text-small text-ink-2">
               <span dir="ltr" className="num">
@@ -289,7 +295,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             </div>
             {foldsRemaining ? (
               <div className="mt-4">
-                <Button variant="accent" size="sm" onClick={api.advanceSubStep}>
+                <Button variant="inset" size="sm" onClick={api.advanceSubStep}>
                   {strings.bake.stageFinishFold}
                 </Button>
               </div>
@@ -301,7 +307,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
               </p>
             )}
             {showBulkTimer && durationSeconds !== undefined && (
-              <div className="mt-4 pt-4 border-t border-line/60">
+              <div className="mt-4 pt-4 border-t border-ink/[0.08]">
                 <OptionalTimer
                   durationSeconds={durationSeconds}
                   startedAt={activeBake.timerStartedAt}
@@ -310,6 +316,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
                   onPause={api.pauseTimer}
                   onResume={api.resumeTimer}
                   onReset={api.resetTimer}
+                  appearance="inset"
                 />
                 <p className="mt-2 text-tiny text-ink-3 leading-relaxed">
                   {foldsRemaining
@@ -331,6 +338,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
               onPause={api.pauseTimer}
               onResume={api.resumeTimer}
               onReset={api.resetTimer}
+              appearance="inset"
             />
           </div>
         )}
@@ -344,7 +352,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             imageWidth={stage.checkImageWidth}
             imageHeight={stage.checkImageHeight}
             transition={isAutolysePilot && !autolyseFinished ? undefined : stage.transition}
-            variant={isAutolysePilot ? "pilot" : "default"}
+            variant="pilot"
             emphasized={false}
           />
         )}
@@ -363,6 +371,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
               onPause={api.pauseTimer}
               onResume={api.resumeTimer}
               onReset={api.resetTimer}
+              appearance="inset"
             />
           </div>
         )}
@@ -382,34 +391,22 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
       </div>
 
       {/* Sticky actions */}
-      <div className={isAutolysePilot
-        ? "fixed inset-x-0 bottom-0 z-sticky bg-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3"
-        : "fixed bottom-0 inset-x-0 z-sticky bg-bg/95 backdrop-blur-sm border-t border-line"}
-      >
-        <div className={isAutolysePilot
-          ? "mx-auto max-w-md rounded-[1.75rem] border border-paper/60 bg-paper/55 p-2 shadow-lg backdrop-blur-xl"
-          : "mx-auto max-w-md px-5 py-4"}
-        >
+      <div className="fixed inset-x-0 bottom-0 z-sticky border-t border-ink/[0.06] bg-[#FFF8F1]/90 supports-[backdrop-filter]:bg-paper/60 supports-[backdrop-filter]:backdrop-blur-md">
+        <div className="mx-auto max-w-md px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] max-[340px]:px-4">
           {stage.n > 1 ? (
             <div className="flex gap-3">
               <Button
                 variant="ghost"
                 onClick={handleBack}
-                className={cn(
-                  "flex-1",
-                  isAutolysePilot && "hover:!bg-ink/[0.04]",
-                )}
+                className="flex-1 hover:!bg-ink/[0.04]"
                 iconStart={<ChevronRight size={18} />}
               >
                 {strings.bake.stagePrev}
               </Button>
               <Button
-                variant={isAutolysePilot ? "soft" : "accent"}
+                variant="primary"
                 onClick={handlePrimary}
-                className={cn(
-                  "flex-1",
-                  isAutolysePilot && "hover:!bg-paper/75",
-                )}
+                className="flex-1"
                 data-priority={isAutolysePilot ? "secondary" : "primary"}
                 iconEnd={stage.type !== "done" ? <ChevronLeft size={18} /> : undefined}
               >
@@ -418,7 +415,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             </div>
           ) : (
             <Button
-              variant="accent"
+              variant="primary"
               onClick={handlePrimary}
               className="w-full"
               iconEnd={stage.type !== "done" ? <ChevronLeft size={18} /> : undefined}
@@ -429,6 +426,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         </div>
       </div>
     </main>
+    </div>
     <BakeTimelineSheet
       isOpen={timelineOpen}
       currentStage={activeBake.currentStage}
@@ -449,7 +447,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         <div
           data-testid="autolyse-advance-status"
           data-surface="inset"
-          className="flex items-center justify-between gap-4 rounded-2xl border border-ink/[0.06] bg-ink/[0.035] px-4 py-3"
+          className="flex items-center justify-between gap-4 rounded-2xl bg-ink/[0.04] px-4 py-3"
         >
           <p className="text-body font-medium text-ink">
             {autolyseTimerState === "idle"
@@ -465,8 +463,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         </div>
         <div className="mt-6 grid gap-2">
           <Button
-            variant="accent"
-            className="!text-ink hover:!bg-accent-2"
+            variant="primary"
             onClick={() => {
               setAdvanceConfirmOpen(false);
               commitPrimary();

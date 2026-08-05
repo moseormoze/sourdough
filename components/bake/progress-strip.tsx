@@ -26,9 +26,9 @@ export function ProgressStrip({ total, current }: ProgressStripProps) {
             data-state={isPast ? "past" : isCurrent ? "current" : "future"}
             className={cn(
               "flex-1 h-1.5 rounded-full transition-colors duration-base ease-out",
-              isPast && "bg-accent",
+              isPast && "bg-ink-3",
               isCurrent && "bg-accent",
-              !isPast && !isCurrent && "bg-line"
+              !isPast && !isCurrent && "bg-line-2"
             )}
           />
         );
