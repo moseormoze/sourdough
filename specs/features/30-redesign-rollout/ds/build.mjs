@@ -51,7 +51,9 @@ const CSS = `
     font:inherit; font-weight:500; font-size:16px;
   }
   .stepper{ display:flex; align-items:center; border-radius:999px; min-height:52px; }
-  .stepper .pm{ min-width:52px; text-align:center; font-size:20px; color:var(--ink-2); }
+  /* 32px visual box; the 44px hit area comes from a ::before overlay in code
+     (ui-playbook §10) — a 44px-wide stepper overflowed two-up columns. */
+  .stepper .pm{ width:32px; text-align:center; font-size:20px; color:var(--ink-2); }
   .stepper .val{ flex:1; text-align:center; font-size:18px; font-weight:600; color:var(--ink); }
   h2{ font-size:17px; font-weight:700; margin-bottom:4px; }
   .cap{ font-size:12px; color:var(--ink-3); margin:14px 0 8px; }
@@ -288,7 +290,7 @@ cards["selection/radio-cards/index.html"] = page("כרטיסי radio", "בחיר
 /* ═══════════════ שדות ═══════════════ */
 
 cards["fields/steppers/index.html"] = page("סטפרים", "שדות", `
-  <p class="cap">פיל חלבי בלי גבול · ערך mono ‏18 ממורכז · ± ‏44px בקצוות · אינדיקטור דפדפן מוסתר.</p>
+  <p class="cap">פיל חלבי בלי גבול · ערך mono ‏18 ממורכז · ± תיבה חזותית ‏32px בקצוות עם אזור מגע ‏44px ‏(<code>::before</code>) · אינדיקטור דפדפן מוסתר.</p>
   <div class="glass" style="display:flex;flex-direction:column;gap:12px">
     <div>
       <p style="font-size:13px;color:var(--ink-2);margin-bottom:6px">מהי טמפרטורת החדר?</p>
@@ -301,7 +303,7 @@ cards["fields/steppers/index.html"] = page("סטפרים", "שדות", `
   </div>`);
 
 cards["fields/text-input/index.html"] = page("שדות טקסט", "שדות", `
-  <p class="cap">קלט חופשי = מלבן מעוגל 16 (מבדיל מפיל הבחירה) · dir=auto · תווית מעל, hint מתחת.</p>
+  <p class="cap">קלט חופשי = מלבן מעוגל 16 (מבדיל מפיל הבחירה) · בלי <code>dir</code> — יורש ‏rtl מהדף כדי שה־placeholder יישאר בימין (<code>dir=auto</code> נופל ל־LTR בשדה ריק) · תווית מעל, hint מתחת.</p>
   <div class="glass" style="display:flex;flex-direction:column;gap:14px">
     <div>
       <label style="font-size:13px;color:var(--ink-2);display:block;margin-bottom:6px">שם המתכון</label>

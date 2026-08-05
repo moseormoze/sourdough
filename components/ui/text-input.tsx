@@ -25,7 +25,11 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(function T
   const inputId = id ?? reactId;
   const errorId = error ? `${inputId}-error` : undefined;
   const hintId = hint && !error ? `${inputId}-hint` : undefined;
-  const resolvedDir = dir ?? (type === "date" || type === "time" ? "ltr" : "auto");
+  // No dir on text/email: it inherits the page's RTL, so an *empty* field keeps its
+  // placeholder on the start (right) edge. dir="auto" resolved from the value, which
+  // is empty at first paint → LTR → the hint rendered on the left. Bidi still lays a
+  // Latin value (an email) out left-to-right inside the right-aligned field.
+  const resolvedDir = dir ?? (type === "date" || type === "time" ? "ltr" : undefined);
 
   return (
     <div className="block w-full">

@@ -10,23 +10,32 @@ describe("TextInput", () => {
     expect(input.tagName).toBe("INPUT");
   });
 
-  it("defaults to dir='auto' for mixed-language input", () => {
+  // dir="auto" resolves from the *value*, so an empty field falls back to LTR and
+  // its placeholder (the field's hint) aligns left inside an RTL form. Inheriting
+  // the page direction keeps the hint on the RTL start edge; bidi still renders a
+  // Latin value (an email) left-to-right inside the right-aligned field.
+  it("inherits the page direction for type='text' so an empty field's hint aligns to the RTL start", () => {
     render(<TextInput label="שם" />);
-    expect(screen.getByLabelText("שם")).toHaveAttribute("dir", "auto");
+    expect(screen.getByLabelText("שם")).not.toHaveAttribute("dir");
   });
 
-  it("keeps dir='auto' by default for type='email' (regression)", () => {
+  it("inherits the page direction for type='email' (empty value must not fall back to LTR)", () => {
     render(<TextInput label="אימייל" type="email" />);
     const input = screen.getByLabelText("אימייל");
-    expect(input).toHaveAttribute("dir", "auto");
+    expect(input).not.toHaveAttribute("dir");
     expect(input).toHaveAttribute("type", "email");
   });
 
-  it("keeps dir='auto' by default for type='text' (regression)", () => {
+  it("inherits the page direction for type='text' when passed explicitly", () => {
     render(<TextInput label="שם המתכון" type="text" />);
     const input = screen.getByLabelText("שם המתכון");
-    expect(input).toHaveAttribute("dir", "auto");
+    expect(input).not.toHaveAttribute("dir");
     expect(input).toHaveAttribute("type", "text");
+  });
+
+  it("still honours an explicit dir='auto'", () => {
+    render(<TextInput label="שם" dir="auto" />);
+    expect(screen.getByLabelText("שם")).toHaveAttribute("dir", "auto");
   });
 
   it("defaults to dir='ltr' for type='date'", () => {

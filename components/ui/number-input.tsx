@@ -24,6 +24,15 @@ export interface NumberInputProps
   appearance?: "outline" | "inset";
 }
 
+/**
+ * 32px visual box, 44px hit area via the ::before overlay (ui-playbook §10) — a
+ * 44px-*wide* stepper made the field demand more width than a two-up column can
+ * give (141px available vs 159px needed at 375px), pushing the sign outside the pill.
+ */
+const stepperClass =
+  "relative shrink-0 w-8 min-h-touch flex items-center justify-center text-ink-2 hover:text-ink disabled:opacity-40 " +
+  "before:absolute before:-inset-x-[6px] before:inset-y-0 before:content-['']";
+
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(function NumberInput(
   { label, unit, error, value, onChange, step = 1, min, max, disabled, className, id, compact = false, appearance = "outline", ...rest },
   ref
@@ -85,7 +94,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
             aria-label={strings.common.decrement}
             onClick={() => adjust(-step)}
             disabled={!canDecrement}
-            className="min-h-touch min-w-touch flex items-center justify-center text-ink-2 hover:text-ink disabled:opacity-40"
+            className={stepperClass}
           >
             <Minus size={18} />
           </button>
@@ -105,7 +114,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
           aria-describedby={errorId}
           onChange={(e) => handleInput(e.target.value)}
           className={cn(
-            "flex-1 min-h-cta bg-transparent font-mono text-ink",
+            // min-w-0 lets the value shrink instead of forcing the flex row wider
+            // than the pill — a number input's intrinsic min-width is several chars
+            "flex-1 min-w-0 min-h-cta bg-transparent font-mono text-ink",
             appearance === "inset" ? "text-lg" : "text-body-lg",
             // compact has no steppers framing the value — anchor the number
             // next to the unit so it reads as one token ("13 גרם"), instead
@@ -128,7 +139,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
             aria-label={strings.common.increment}
             onClick={() => adjust(step)}
             disabled={!canIncrement}
-            className="min-h-touch min-w-touch flex items-center justify-center text-ink-2 hover:text-ink disabled:opacity-40"
+            className={stepperClass}
           >
             <Plus size={18} />
           </button>
