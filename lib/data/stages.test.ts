@@ -477,3 +477,31 @@ describe("cover instructions name their method", () => {
     expect(getStage(6)!.todo!.steps.at(-1)).toMatch(/שקית|כובע מקלחת/);
   });
 });
+
+describe("stage 4 — bulk readiness gate (feature 31)", () => {
+  const bulk = getStage(4)!;
+
+  it("gates on four observable signs", () => {
+    expect(bulk.checks).toEqual([
+      "תפח משמעותית — 30–75% מהנפח שהיה בסוף הלישה",
+      "רוטט כמו ג׳לי כשמנערים בעדינות את הקערה",
+      "בועות על פני השטח ובדפנות",
+      "משתחרר מדפנות הקערה ולא נדבק חזק",
+    ]);
+  });
+
+  it("drops the judgment-dependent sign from the gate", () => {
+    expect(bulk.checks!.some((c) => c.includes("קליל וגמיש"))).toBe(false);
+  });
+
+  it("frames the stage as the most decisive and the hardest to read", () => {
+    expect(bulk.briefing.blurb).toContain("הכי משפיע על התוצאה");
+    expect(bulk.briefing.blurb).toContain("אין דרך לתקן אותו אחר כך");
+  });
+
+  it("offers the opening photo as an optional step and adds no upload UI", () => {
+    const photoStep = bulk.todo!.steps.find((s) => s.includes("צלמו"));
+    expect(photoStep).toBeDefined();
+    expect(photoStep).toMatch(/^אם תרצו/);
+  });
+});
