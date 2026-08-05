@@ -341,4 +341,61 @@ describe("BakePlannerScreen — manual-first", () => {
     fireEvent.click(screen.getByRole("button", { name: s.backToChooser }));
     expect(onBack).toHaveBeenCalled();
   });
+
+  // ── Redesigned composition (Feature 30 — ambient carry-over) ──────────────
+
+  it("paints the ambient canvas full-bleed with the content column inside", () => {
+    renderScreen();
+    const main = screen.getByRole("main");
+    expect(main).not.toHaveClass(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
+    );
+    expect(main.parentElement).toHaveClass(
+      "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
+    );
+    expect(main.parentElement).toHaveClass("min-h-dvh");
+    expect(main.parentElement?.className).not.toContain("max-w");
+    expect(main).toHaveClass("max-w-md", "isolate", "overflow-x-clip");
+  });
+
+  it("groups the form sections into glass surfaces", () => {
+    renderScreen();
+    const glassSections = document.querySelectorAll("[data-surface='glass']");
+    expect(glassSections.length).toBe(4);
+    for (const section of glassSections) {
+      expect(section.className).toContain("border-paper/60");
+      expect(section.className).toContain("supports-[backdrop-filter]:backdrop-blur-md");
+    }
+  });
+
+  it("renders the primary CTA as the charcoal surface, not an orange one", () => {
+    renderScreen();
+    const cta = screen.getByRole("button", { name: s.startButton });
+    expect(cta.className).toContain("bg-[#292A28]");
+    expect(cta.className).not.toContain("bg-accent");
+  });
+
+  it("selection controls invert tonally — charcoal fill when selected, no accent frames", () => {
+    renderScreen();
+
+    const chip = presetChip(s.presets.classic.name);
+    fireEvent.click(chip);
+    expect(chip.className).toContain("bg-[#292A28]");
+    expect(chip.className).not.toContain("accent");
+
+    const dirEnd = screen.getByRole("radio", { name: s.directionEnd });
+    expect(dirEnd).toHaveAttribute("aria-checked", "true");
+    expect(dirEnd.className).toContain("bg-[#292A28]");
+    expect(dirEnd.className).not.toContain("accent");
+
+    fireEvent.click(screen.getByTestId("ratio-btn-3"));
+    expect(screen.getByTestId("ratio-btn-3").className).toContain("bg-[#292A28]");
+    expect(screen.getByTestId("ratio-btn-3").className).not.toContain("accent");
+
+    const methodTitle = strings.bake.bakingMethod.methods["closed-vessel"].title;
+    const method = screen.getByRole("radio", { name: new RegExp(methodTitle) });
+    expect(method).toHaveAttribute("aria-checked", "true");
+    expect(method.className).not.toContain("accent");
+    expect(method.className).toContain("bg-ink/[0.04]");
+  });
 });

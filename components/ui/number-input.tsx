@@ -16,10 +16,16 @@ export interface NumberInputProps
   max?: number;
   /** Hide the −/+ steppers (input + unit only). For tight columns. */
   compact?: boolean;
+  /**
+   * "outline" is the legacy bordered box; "inset" is the redesign-language
+   * borderless pill (rollout language spec) — screens opt in with their
+   * rollout PR so unconverted screens keep the old look.
+   */
+  appearance?: "outline" | "inset";
 }
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(function NumberInput(
-  { label, unit, error, value, onChange, step = 1, min, max, disabled, className, id, compact = false, ...rest },
+  { label, unit, error, value, onChange, step = 1, min, max, disabled, className, id, compact = false, appearance = "outline", ...rest },
   ref
 ) {
   const reactId = useId();
@@ -61,11 +67,15 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
       )}
       <div
         className={cn(
-          "flex items-center rounded-lg bg-paper",
-          "border-[1.5px] border-line",
-          "focus-within:border-ink focus-within:ring-2 focus-within:ring-ink/20",
+          "flex items-center",
           "transition-colors duration-fast ease-out",
-          error && "border-danger focus-within:border-danger focus-within:ring-danger/20",
+          appearance === "inset"
+            ? "rounded-full bg-paper/70 focus-within:ring-2 focus-within:ring-ink/20"
+            : "rounded-lg bg-paper border-[1.5px] border-line focus-within:border-ink focus-within:ring-2 focus-within:ring-ink/20",
+          error &&
+            (appearance === "inset"
+              ? "ring-2 ring-danger/40 focus-within:ring-danger/40"
+              : "border-danger focus-within:border-danger focus-within:ring-danger/20"),
           disabled && "opacity-40 pointer-events-none"
         )}
       >
@@ -95,7 +105,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(functi
           aria-describedby={errorId}
           onChange={(e) => handleInput(e.target.value)}
           className={cn(
-            "flex-1 min-h-cta bg-transparent font-mono text-body-lg text-ink",
+            "flex-1 min-h-cta bg-transparent font-mono text-ink",
+            appearance === "inset" ? "text-lg" : "text-body-lg",
             // compact has no steppers framing the value — anchor the number
             // next to the unit so it reads as one token ("13 גרם"), instead
             // of floating centered with a gap between value and unit

@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AMBIENT_CANVAS, AMBIENT_GLASS, AMBIENT_CHARCOAL } from "@/components/ui/ambient";
 import { TempInput } from "@/components/recipes/temp-input";
 import { BakeTimeline } from "./bake-timeline";
 import { BakingMethodSelector } from "./baking-method-selector";
@@ -88,13 +89,10 @@ function PresetChip({ presetKey, name, selected, onSelect }: PresetChipProps) {
       onPointerLeave={() => setIsPressed(false)}
       onClick={onSelect}
       className={`shrink-0 flex items-center rounded-full px-4 min-h-[44px]
-        text-body font-medium border
-        transition-[transform,background-color,border-color] duration-[120ms] ease-out
+        text-body font-medium
+        transition-[transform,background-color,color] duration-[120ms] ease-out
         ${isPressed ? "scale-[0.965]" : "scale-100"}
-        ${selected
-          ? "border-[1.5px] border-accent bg-accent-bg text-accent"
-          : "border-line bg-paper text-ink-2"
-        }`}
+        ${selected ? AMBIENT_CHARCOAL : "bg-paper/70 text-ink-2"}`}
     >
       {name}
     </button>
@@ -261,10 +259,13 @@ export function BakePlannerScreen({
     onConfirm({ ...recipe, kitchenTemp }, bakingMethod, feedAt, peakAt, feedRatio, retardHours);
   }
 
+  const glassCard = `${AMBIENT_GLASS} p-5 max-[340px]:p-4 mb-4`;
+
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col">
+    <div className={`min-h-dvh ${AMBIENT_CANVAS}`}>
+    <main className="relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip">
       {/* Scrollable body */}
-      <div className="flex-1 px-5 pt-4 pb-4">
+      <div className="flex-1 px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-4 max-[340px]:px-4">
         <header className="flex items-center mb-4">
           <Button
             variant="ghost"
@@ -279,7 +280,7 @@ export function BakePlannerScreen({
         {/* Recipe header */}
         <div className="flex items-center gap-3 mb-6">
           {imageUrl && (
-            <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0">
+            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shrink-0">
               <Image src={imageUrl} alt="" fill className="object-cover" />
             </div>
           )}
@@ -291,19 +292,17 @@ export function BakePlannerScreen({
           </div>
         </div>
 
-        <div className="h-px bg-line mb-6" />
-
-        {/* Temperature */}
-        <div className="mb-2">
-          <TempInput label={s.tempQuestion} value={temp} onChange={(v) => setTemp(v)} />
-        </div>
-        <p className="text-tiny text-ink-3 mb-1">{s.tempHint}</p>
-        <p className="text-tiny text-ink-2 mb-6">{s.tempImportantHint}</p>
-
-        <div className="h-px bg-line mb-6" />
+        {/* Temperature — glass */}
+        <section data-surface="glass" className={glassCard}>
+          <div className="mb-2">
+            <TempInput label={s.tempQuestion} value={temp} onChange={(v) => setTemp(v)} appearance="inset" />
+          </div>
+          <p className="text-tiny text-ink-3 mb-1">{s.tempHint}</p>
+          <p className="text-tiny text-ink-2">{s.tempImportantHint}</p>
+        </section>
 
         {/* Schedule section — manual is the surface; presets seed it */}
-        <section className="mb-6">
+        <section data-surface="glass" className={glassCard}>
           <h2 className="text-heading text-ink mb-1">{s.scheduleSectionTitle}</h2>
           <p className="text-body-sm text-ink-3 mb-4">{s.scheduleSectionSubtitle}</p>
 
@@ -312,7 +311,7 @@ export function BakePlannerScreen({
           <div
             role="radiogroup"
             aria-label={s.presetRowLabel}
-            className="flex gap-2 overflow-x-auto pb-1 -mx-5 px-5 mb-6 scrollbar-none"
+            className="flex gap-2 overflow-x-auto pb-1 -mx-5 px-5 mb-6 scrollbar-none max-[340px]:-mx-4 max-[340px]:px-4"
             style={{ scrollbarWidth: "none" }}
           >
             {PRESET_LIST.map(({ key, name }) => (
@@ -339,12 +338,9 @@ export function BakePlannerScreen({
                   aria-checked={active}
                   onClick={() => handleDirection(dir)}
                   onPointerDown={() => handleDirection(dir)}
-                  className={`pressable flex-1 rounded-lg px-4 py-2.5 text-body font-medium
-                    border-[1.5px] transition-colors duration-fast ease-out
-                    ${active
-                      ? "border-accent bg-accent-bg text-accent"
-                      : "border-line bg-transparent text-ink-2"
-                    }`}
+                  className={`pressable flex-1 rounded-full px-4 py-2.5 text-body font-medium
+                    transition-colors duration-fast ease-out
+                    ${active ? AMBIENT_CHARCOAL : "bg-paper/70 text-ink-2"}`}
                 >
                   {label}
                 </button>
@@ -367,7 +363,7 @@ export function BakePlannerScreen({
 
             {/* Day pills */}
             <div
-              className="flex gap-2 overflow-x-auto pb-1 -mx-5 px-5 scrollbar-none"
+              className="flex gap-2 overflow-x-auto pb-1 -mx-5 px-5 scrollbar-none max-[340px]:-mx-4 max-[340px]:px-4"
               style={{ scrollbarWidth: "none" }}
             >
               {availableDays.map((day, idx) => (
@@ -380,12 +376,8 @@ export function BakePlannerScreen({
                     data-testid={`day-pill-${idx}`}
                     onClick={() => handleDaySelectManual(idx)}
                     className={`pressable rounded-full px-4 py-2 text-body font-medium
-                      border transition-colors duration-fast ease-out
-                      ${
-                        idx === dayIdx
-                          ? "bg-ink text-paper border-ink"
-                          : "bg-paper text-ink-2 border-line"
-                      }`}
+                      transition-colors duration-fast ease-out
+                      ${idx === dayIdx ? AMBIENT_CHARCOAL : "bg-paper/70 text-ink-2"}`}
                   >
                     {dayLabel(day, now)}
                   </button>
@@ -397,7 +389,7 @@ export function BakePlannerScreen({
             </div>
 
             {/* Hour stepper */}
-            <div className="flex items-center rounded-lg bg-paper border-[1.5px] border-line overflow-hidden">
+            <div className="flex items-center rounded-full bg-paper/70 overflow-hidden">
               <button
                 type="button"
                 aria-label="פחות שעה"
@@ -415,10 +407,11 @@ export function BakePlannerScreen({
                 aria-label={s.exactTimeLabel}
                 dir="ltr"
                 className="flex-1 min-h-touch bg-transparent text-center num font-mono
-                           text-body-lg text-ink cursor-pointer
+                           text-lg text-ink cursor-pointer
                            transition-transform duration-[120ms] ease-out active:scale-[0.985]
-                           focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-inset
-                           rounded-md"
+                           focus:outline-none focus:ring-2 focus:ring-ink/20 focus:ring-inset
+                           rounded-md
+                           [&::-webkit-calendar-picker-indicator]:hidden"
               />
               <button
                 type="button"
@@ -438,13 +431,13 @@ export function BakePlannerScreen({
           </div>
 
           {/* Ratio control — below the picker so the start time is the anchor */}
-          <div className="mb-6">
-            <RatioControl value={feedRatio} onChange={handleRatioChange} />
-          </div>
+          <RatioControl value={feedRatio} onChange={handleRatioChange} />
+        </section>
 
-          {/* Full timeline — always visible inline, with editable retard */}
+        {/* Full timeline — always visible inline, with editable retard */}
+        <section data-surface="glass" className={glassCard}>
           {isValid ? (
-            <section className="mb-2">
+            <>
               <div className="mb-4">
                 <h2 className="text-heading text-ink">{s.timelineTitle}</h2>
                 <p className="text-body-sm text-ink-3 mt-0.5">{s.timelineSubtitle}</p>
@@ -470,26 +463,24 @@ export function BakePlannerScreen({
                 </p>
               )}
               <p className="text-tiny text-ink-3 mt-4">{s.timelineEstimateNote}</p>
-            </section>
+            </>
           ) : (
-            <p className="text-body-sm text-warn mb-2" role="alert">
+            <p className="text-body-sm text-warn" role="alert">
               {s.tooSoon(minDateLabel)}
             </p>
           )}
         </section>
 
-        <div className="h-px bg-line mb-6" />
-
         {/* Baking method */}
-        <section className="mb-2">
+        <section data-surface="glass" className={glassCard}>
           <BakingMethodSelector value={bakingMethod} onChange={setBakingMethod} />
         </section>
       </div>
 
       {/* Sticky footer */}
-      <div className="sticky bottom-0 px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-line bg-bg/95 backdrop-blur-sm">
+      <div className="sticky bottom-0 px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-ink/[0.06] bg-[#FFF8F1]/90 supports-[backdrop-filter]:bg-paper/60 supports-[backdrop-filter]:backdrop-blur-md max-[340px]:px-4">
         <Button
-          variant="accent"
+          variant="primary"
           onClick={handleConfirm}
           disabled={!ctaEnabled}
           className="w-full"
@@ -498,5 +489,6 @@ export function BakePlannerScreen({
         </Button>
       </div>
     </main>
+    </div>
   );
 }

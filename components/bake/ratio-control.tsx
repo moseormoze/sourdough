@@ -1,6 +1,7 @@
 "use client";
 
 import { strings } from "@/lib/strings";
+import { AMBIENT_CHARCOAL } from "@/components/ui/ambient";
 import type { FeedRatio } from "@/lib/bake-timing";
 import { FEED_RATIO_LABELS } from "@/lib/bake-timing";
 
@@ -30,12 +31,9 @@ export function RatioControl({ value, onChange }: RatioControlProps) {
               onClick={() => onChange(r)}
               onPointerDown={() => onChange(r)}
               dir="ltr"
-              className={`pressable flex-1 min-h-touch rounded-lg text-label font-medium
-                border-[1.5px] transition-colors duration-fast ease-out
-                ${active
-                  ? "bg-accent text-paper border-accent"
-                  : "bg-transparent text-ink-2 border-line"
-                }`}
+              className={`pressable flex-1 min-h-touch rounded-full text-label font-medium
+                transition-colors duration-fast ease-out
+                ${active ? AMBIENT_CHARCOAL : "bg-paper/70 text-ink-2"}`}
             >
               {FEED_RATIO_LABELS[r]}
             </button>
