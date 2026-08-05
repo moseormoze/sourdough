@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AMBIENT_CANVAS, AMBIENT_GLASS } from "@/components/ui/ambient";
 import { EmptyFeedingsState } from "./empty-feedings-state";
 import { FeedingListItem } from "./feeding-list-item";
 import { listFeedings } from "@/lib/storage/feedings";
@@ -40,7 +41,8 @@ export function StarterTrackerScreen() {
   const { list } = strings.starterTracker;
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
+    <div className={`min-h-dvh ${AMBIENT_CANVAS}`}>
+    <main className="relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] max-[340px]:px-4">
       <header className="relative z-10 flex items-center gap-2 mb-6">
         <Button
           variant="ghost"
@@ -53,11 +55,11 @@ export function StarterTrackerScreen() {
         <div className="flex-1" />
       </header>
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between gap-3 mb-4">
         <h1 className="text-display-md text-ink">{list.pageTitle}</h1>
         {state.status === "loaded" && state.feedings.length > 0 && (
           <Button
-            variant="accent"
+            variant="primary"
             size="sm"
             onClick={() => router.push("/starter/new")}
           >
@@ -79,7 +81,7 @@ export function StarterTrackerScreen() {
       {state.status === "error" && (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center py-16">
           <p className="text-body-lg text-ink-2">{list.loadErrorMessage}</p>
-          <Button variant="soft" onClick={fetchFeedings}>
+          <Button variant="primary" onClick={fetchFeedings}>
             {list.retry}
           </Button>
         </div>
@@ -90,7 +92,10 @@ export function StarterTrackerScreen() {
       )}
 
       {state.status === "loaded" && state.feedings.length > 0 && (
-        <ul aria-label={list.pageTitle} className="flex flex-col gap-3">
+        <ul
+          aria-label={list.pageTitle}
+          className={`mb-28 overflow-hidden ${AMBIENT_GLASS} [&>*+*]:border-t [&>*+*]:border-ink/[0.06]`}
+        >
           {state.feedings.map((feeding) => (
             <li key={feeding.id}>
               <FeedingListItem feeding={feeding} />
@@ -99,5 +104,6 @@ export function StarterTrackerScreen() {
         </ul>
       )}
     </main>
+    </div>
   );
 }

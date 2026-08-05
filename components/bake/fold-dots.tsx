@@ -22,7 +22,7 @@ export function FoldDots({ total, current, label }: FoldDotsProps) {
             data-state={filled ? "filled" : "empty"}
             className={cn(
               "w-3 h-3 rounded-full transition-colors duration-base ease-out",
-              filled ? "bg-accent" : "bg-line border border-line-2"
+              filled ? "bg-[#292A28]" : "bg-ink/[0.08]"
             )}
           />
         );

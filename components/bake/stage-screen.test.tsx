@@ -388,7 +388,7 @@ describe("StageScreen — stage knowledge pilot", () => {
     const next = screen.getByRole("button", { name: /^הבא$/ });
     expect(next).toHaveAttribute("data-priority", "secondary");
     expect(next).toHaveClass("flex-1");
-    expect(next).toHaveClass("hover:!bg-paper/75");
+    expect(next).toHaveClass("bg-[#292A28]");
     expect(screen.getByRole("button", { name: /^חזרה$/ })).toHaveClass(
       "hover:!bg-ink/[0.04]",
     );
@@ -404,7 +404,7 @@ describe("StageScreen — stage knowledge pilot", () => {
     expect(within(dialog).getByText("הטיימר מושהה")).toBeInTheDocument();
     expect(within(dialog).getByText("44:00")).toHaveAttribute("dir", "ltr");
     expect(within(dialog).queryByText(/עכשיו עוברים/)).not.toBeInTheDocument();
-    expect(within(dialog).getByRole("button", { name: /^הבא$/ })).toHaveClass("!text-ink");
+    expect(within(dialog).getByRole("button", { name: /^הבא$/ })).toHaveClass("bg-[#292A28]");
     fireEvent.click(within(dialog).getByRole("button", { name: /^ביטול$/ }));
     expect(api.advanceTo).not.toHaveBeenCalled();
 
@@ -502,6 +502,110 @@ describe("StageScreen — stage knowledge pilot", () => {
     expect(stage.transition).toBe(
       "עכשיו עוברים ללישה ומוסיפים את השאור, המלח והמים ששמרתם — אין זמן המתנה נוסף.",
     );
+  });
+});
+
+describe("StageScreen — redesigned composition (wave 6 shell)", () => {
+  it("moves the ambient canvas to the page wrapper and drops the F26 blur blobs", () => {
+    const { container } = render(
+      <StageScreen stage={getStage(2)!} activeBake={makeBake(2)} api={makeApi()} />,
+    );
+    const main = screen.getByRole("main");
+    expect(main.parentElement!.className).toContain("bg-[linear-gradient(160deg,");
+    expect(main.className).not.toContain("bg-[linear-gradient(160deg,");
+    expect(container.querySelectorAll(".blur-3xl").length).toBe(0);
+  });
+
+  it("leaves the stage title plain on the canvas — charcoal is not title chrome", () => {
+    render(<StageScreen stage={getStage(4)!} activeBake={makeBake(4)} api={makeApi()} />);
+    const title = screen.getByTestId("stage-title");
+
+    expect(title).not.toHaveAttribute("data-surface", "charcoal");
+    expect(title.className).not.toContain("bg-[#292A28]");
+    const heading = within(title).getByRole("heading", { level: 1 });
+    expect(heading).toHaveTextContent("תסיסה ראשונית");
+    expect(heading.className).toContain("text-ink");
+    // the duration eyebrow is informational — tonal inset, never accent-filled
+    const eyebrow = within(title).getByTestId("stage-title-eyebrow");
+    expect(eyebrow.className).toContain("bg-ink/[0.04]");
+    expect(eyebrow.className).not.toContain("accent");
+  });
+
+  it("keeps a single charcoal surface per stage — the running timer only", () => {
+    const { container } = render(
+      <StageScreen
+        stage={getStage(2)!}
+        activeBake={makeBake(2, { timerDurationSeconds: 45 * 60, timerElapsedSeconds: 60 })}
+        api={makeApi()}
+      />,
+    );
+    const charcoal = container.querySelectorAll('[data-surface="charcoal"]');
+    expect(charcoal.length).toBe(1);
+    expect(charcoal[0]!.querySelector("h1")).toBeNull();
+  });
+
+  it("shows no charcoal surface at all on a stage without a timer", () => {
+    const { container } = render(
+      <StageScreen stage={getStage(3)!} activeBake={makeBake(3)} api={makeApi()} />,
+    );
+    expect(container.querySelectorAll('[data-surface="charcoal"]').length).toBe(0);
+    expect(screen.getByTestId("stage-title")).toBeInTheDocument();
+  });
+
+  it("renders the running timer digits huge, mono and white on charcoal", () => {
+    render(
+      <StageScreen
+        stage={getStage(2)!}
+        activeBake={makeBake(2, { timerDurationSeconds: 45 * 60, timerElapsedSeconds: 60 })}
+        api={makeApi()}
+      />,
+    );
+    const card = screen.getByTestId("autolyse-timer-card");
+    expect(card).toHaveAttribute("data-surface", "charcoal");
+    const digits = within(card).getByText("44:00");
+    expect(digits.className).toContain("font-mono");
+    expect(digits.className).toContain("text-display-lg");
+    // main sub-action on charcoal = white fill, charcoal text
+    const control = within(card).getByRole("button", {
+      name: strings.bake.autolyseTimer.resume,
+    });
+    expect(control.className).toContain("bg-paper");
+    expect(control.className).toContain("text-[#292A28]");
+    // secondary control = paper/10 inset
+    expect(
+      within(card).getByRole("button", { name: strings.bake.autolyseTimer.edit }).className,
+    ).toContain("bg-paper/10");
+  });
+
+  it("unifies content sections on the shared glass recipe", () => {
+    const { container } = render(
+      <StageScreen stage={getStage(4)!} activeBake={makeBake(4)} api={makeApi()} />,
+    );
+    expect(container.querySelectorAll(".bg-paper.shadow-sm").length).toBe(0);
+    const folds = screen.getByText("קיפולים").closest("section")!;
+    expect(folds.className).toContain("rounded-[2rem]");
+    expect(folds.className).toContain("supports-[backdrop-filter]:backdrop-blur-md");
+  });
+
+  it("makes the advance CTA the charcoal pill and keeps back quiet", () => {
+    render(<StageScreen stage={getStage(4)!} activeBake={makeBake(4)} api={makeApi()} />);
+    const next = screen.getByRole("button", { name: /^הבא$/ });
+    expect(next.className).toContain("bg-[#292A28]");
+    expect(next.className).toContain("rounded-full");
+    expect(screen.getByRole("button", { name: /^חזרה$/ }).className).not.toContain(
+      "bg-[#292A28]",
+    );
+  });
+
+  it("leaves one orange moment: the current progress dot", () => {
+    const { container } = render(
+      <StageScreen stage={getStage(4)!} activeBake={makeBake(4, { subStep: 2 })} api={makeApi()} />,
+    );
+    const strip = screen.getByRole("progressbar", { name: "שלב 4 מתוך 12" });
+    expect(strip.querySelector('[data-state="current"]')!.className).toContain("bg-accent");
+    expect(strip.querySelectorAll('[data-state="past"] , [data-state="future"]').length).toBe(11);
+    expect(container.querySelectorAll(".bg-accent").length).toBe(1);
+    expect(container.querySelectorAll(".text-accent").length).toBe(0);
   });
 });
 

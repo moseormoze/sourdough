@@ -2,7 +2,7 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { AMBIENT_CHARCOAL, AMBIENT_CHARCOAL_SHADOW } from "./ambient";
 
-export type ButtonVariant = "primary" | "accent" | "soft" | "ghost" | "warn";
+export type ButtonVariant = "primary" | "accent" | "soft" | "inset" | "ghost" | "warn";
 export type ButtonSize = "md" | "sm";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,6 +17,9 @@ const variantClasses: Record<ButtonVariant, string> = {
   primary: `${AMBIENT_CHARCOAL} ${AMBIENT_CHARCOAL_SHADOW} hover:bg-[#3A3B38] focus-visible:ring-ink-2`,
   accent: "bg-accent text-paper shadow-cta hover:bg-accent-2 focus-visible:ring-accent-2",
   soft: "bg-paper text-ink shadow-sm hover:bg-bg-2 focus-visible:ring-ink-3",
+  // Rollout language: a frosted inset pill on glass — no shadow, no border.
+  // Additive; `soft` stays as-is for screens that have not been converted.
+  inset: "bg-paper/70 text-ink hover:bg-paper/85 focus-visible:ring-ink-2",
   ghost: "bg-transparent text-ink-2 hover:bg-bg-2 focus-visible:ring-ink-3",
   warn: "bg-warn text-paper hover:opacity-90 focus-visible:ring-warn",
 };

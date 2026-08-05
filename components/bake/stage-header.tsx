@@ -19,6 +19,13 @@ export interface StageHeaderProps {
   flour?: Flour;
   onTimelineOpen?: () => void;
   variant?: "default" | "pilot";
+  /**
+   * Opt-in rollout title treatment: plain H1 on the canvas with a tonal
+   * duration eyebrow. Charcoal is reserved for the live moment (the running
+   * timer) and is never title chrome. Default keeps the legacy title so
+   * unconverted surfaces are untouched.
+   */
+  rollout?: boolean;
 }
 
 export function StageHeader({
@@ -30,6 +37,7 @@ export function StageHeader({
   flour,
   onTimelineOpen,
   variant = "default",
+  rollout = false,
 }: StageHeaderProps) {
   const { isPressed, pressProps } = usePressActivation<HTMLButtonElement>(onTimelineOpen);
 
@@ -100,18 +108,31 @@ export function StageHeader({
         strip
       )}
 
-      <div className={cn("mt-4", variant === "pilot" && "pt-1")}>
+      <div
+        data-testid={rollout ? "stage-title" : undefined}
+        className={cn("mt-4", variant === "pilot" && !rollout && "pt-1")}
+      >
         {durationLabel && (
-          <span className={cn(
-            "inline-block text-tiny font-medium px-3 py-1 rounded-full",
-            variant === "pilot"
-              ? "border border-paper/55 bg-paper/30 text-ink-2 shadow-sm backdrop-blur-sm"
-              : "bg-accent-bg text-accent",
-          )}>
+          <span
+            data-testid={rollout ? "stage-title-eyebrow" : undefined}
+            className={cn(
+              "inline-block text-tiny font-medium px-3 py-1 rounded-full",
+              rollout
+                ? "bg-ink/[0.04] text-ink-2"
+                : variant === "pilot"
+                  ? "border border-paper/55 bg-paper/30 text-ink-2 shadow-sm backdrop-blur-sm"
+                  : "bg-accent-bg text-accent",
+            )}
+          >
             {durationLabel}
           </span>
         )}
-        <h1 className={cn("mt-2 text-ink", variant === "pilot" ? "text-display-md" : "text-display-sm")}>
+        <h1
+          className={cn(
+            "mt-2 text-ink",
+            variant === "pilot" ? "text-display-md" : "text-display-sm",
+          )}
+        >
           {stage.name}
           {stage.hint && (
             <>

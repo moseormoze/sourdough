@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ArrowLeft, Check } from "lucide-react";
+import { AMBIENT_GLASS } from "@/components/ui/ambient";
 import { cn } from "@/lib/cn";
 
 export interface ChecklistReferenceProps {
@@ -42,15 +43,16 @@ export function ChecklistReference({
       data-surface={variant === "pilot" ? "glass" : undefined}
       className={cn(
         variant === "pilot"
-          ? "rounded-[2rem] border p-5 shadow-sm transition-[background-color,border-color] duration-base ease-out"
+          ? "p-5 max-[340px]:p-4 transition-[background-color,border-color] duration-base ease-out"
           : "rounded-2xl bg-bg-2/50 p-5",
-        variant === "pilot" && !emphasized && "border-paper/55 bg-paper/35 backdrop-blur-md",
-        variant === "pilot" && emphasized && "border-sage/45 bg-sage-bg/30 backdrop-blur-md",
+        variant === "pilot" && !emphasized && AMBIENT_GLASS,
+        variant === "pilot" && emphasized &&
+          "rounded-[2rem] border border-sage/45 bg-sage-bg/30 shadow-sm backdrop-blur-md",
       )}
     >
       <h3 className="text-heading text-ink">{title}</h3>
       {imageUrl && (
-        <div className="mt-3 overflow-hidden rounded-xl">
+        <div className="mt-3 overflow-hidden rounded-2xl">
           <Image
             src={imageUrl}
             alt={imageAlt ?? ""}
@@ -78,8 +80,8 @@ export function ChecklistReference({
         ))}
       </ul>
       {transition && (
-        <div className="mt-4 flex items-start gap-2 border-t border-line-2 pt-4">
-          <ArrowLeft size={17} className="mt-0.5 shrink-0 text-accent" aria-hidden />
+        <div className="mt-4 flex items-start gap-2 border-t border-ink/[0.08] pt-4">
+          <ArrowLeft size={17} className="mt-0.5 shrink-0 text-ink-2" aria-hidden />
           <p className="text-body font-medium leading-relaxed text-ink">{transition}</p>
         </div>
       )}

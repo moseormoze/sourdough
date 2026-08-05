@@ -19,7 +19,7 @@ export function EmptyRecipesState() {
         {strings.recipes.emptyDescription}
       </p>
       <div className="mt-8">
-        <Button variant="accent" onClick={() => router.push("/recipes/new")}>
+        <Button variant="primary" onClick={() => router.push("/recipes/new")}>
           {strings.recipes.newRecipe}
         </Button>
       </div>

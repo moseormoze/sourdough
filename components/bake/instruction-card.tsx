@@ -133,8 +133,8 @@ export function InstructionCard({
       </ol>
       {tip && (
         <aside className={cn(
-          "mt-4 rounded-xl border p-3.5",
-          variant === "pilot" ? "border-paper/50 bg-paper/25" : "border-line bg-bg/60",
+          "mt-4 rounded-2xl p-3.5",
+          variant === "pilot" ? "bg-ink/[0.04]" : "border border-line bg-bg/60",
         )}>
           <p className="text-small text-ink-2 leading-relaxed">
             <span className="font-semibold text-ink">טיפ: </span>

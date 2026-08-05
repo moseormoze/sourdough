@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Thermometer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NumberInput } from "@/components/ui/number-input";
+import { AMBIENT_GLASS } from "@/components/ui/ambient";
+import { cn } from "@/lib/cn";
 import { durationRangeLabel, fermentationStageSecs } from "@/lib/bake-timing";
 import { strings } from "@/lib/strings";
 import type { Flour } from "@/lib/types/recipe";
@@ -70,7 +72,8 @@ export function DoughTempCard({
   return (
     <section
       aria-label={t.fieldLabel}
-      className="rounded-2xl border border-line bg-paper p-4 shadow-sm transition-[height] duration-base ease-in-out"
+      data-surface="glass"
+      className={cn(AMBIENT_GLASS, "p-5 max-[340px]:p-4 transition-[height] duration-base ease-in-out")}
     >
       {editing ? (
         <div className="flex flex-col gap-3">
@@ -83,9 +86,10 @@ export function DoughTempCard({
             min={MIN_C}
             max={MAX_C}
             error={draftError}
+            appearance="inset"
           />
           <div className="flex items-center gap-2">
-            <Button variant="accent" size="sm" onClick={save} disabled={!draftValid}>
+            <Button variant="primary" size="sm" onClick={save} disabled={!draftValid}>
               {t.save}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>
@@ -100,7 +104,10 @@ export function DoughTempCard({
         </div>
       ) : shadow ? (
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 shrink-0 text-accent" aria-hidden>
+          <span
+            className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-2xl bg-ink/[0.04] text-ink"
+            aria-hidden
+          >
             <Thermometer size={20} />
           </span>
           <p className="flex-1 text-small leading-relaxed text-ink">
@@ -119,7 +126,10 @@ export function DoughTempCard({
         </div>
       ) : (
         <div className="flex items-center gap-3">
-          <span className="shrink-0 text-accent" aria-hidden>
+          <span
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-2xl bg-ink/[0.04] text-ink"
+            aria-hidden
+          >
             <Thermometer size={20} />
           </span>
           <p className="flex-1 text-small text-ink-2">{t.prompt}</p>

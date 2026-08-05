@@ -4,6 +4,7 @@ import DonePage from "./page";
 import { saveRecipe } from "@/lib/storage/recipes";
 import { saveActiveBake, loadActiveBake } from "@/lib/storage/active-bake";
 import { routerMock } from "../../../vitest.setup";
+import { AMBIENT_CANVAS, AMBIENT_CHARCOAL } from "@/components/ui/ambient";
 
 const sample = {
   name: "כפרי",
@@ -83,5 +84,48 @@ describe("/bake/done page", () => {
     await waitFor(() => {
       expect(routerMock.replace).toHaveBeenCalledWith("/");
     });
+  });
+});
+
+describe("/bake/done page — redesigned composition", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    routerMock.push.mockClear();
+    routerMock.replace.mockClear();
+  });
+
+  it("wraps the screen in the shared ambient canvas", async () => {
+    seedActive();
+    const { container } = render(<DonePage />);
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "הלחם מוכן!" })).toBeInTheDocument();
+    });
+    const main = container.querySelector("main");
+    expect(main?.parentElement?.className).toContain(AMBIENT_CANVAS);
+  });
+
+  it("renders the primary CTA filled charcoal, not the legacy accent fill", async () => {
+    seedActive();
+    render(<DonePage />);
+    const cta = await screen.findByRole("button", { name: "סיימתי" });
+    expect(cta.className).toContain(AMBIENT_CHARCOAL);
+    expect(cta.className).not.toContain("bg-accent");
+  });
+
+  it("has no accent-colored surfaces anywhere on the screen", async () => {
+    seedActive();
+    const { container } = render(<DonePage />);
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "הלחם מוכן!" })).toBeInTheDocument();
+    });
+    const accentSurfaces = container.querySelectorAll('[class*="bg-accent"]');
+    expect(accentSurfaces.length).toBe(0);
+  });
+
+  it("keeps the back-to-home control as a real button with unchanged accessible name", async () => {
+    seedActive();
+    render(<DonePage />);
+    const back = await screen.findByRole("button", { name: /חזרה למסך הבית/ });
+    expect(back.tagName).toBe("BUTTON");
   });
 });

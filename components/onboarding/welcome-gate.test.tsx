@@ -109,6 +109,40 @@ describe("WelcomeGate — validation", () => {
   });
 });
 
+describe("WelcomeGate — redesigned composition", () => {
+  it("paints the full-screen canvas gradient behind the gate", () => {
+    renderGate();
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.className).toContain("linear-gradient(160deg");
+  });
+
+  it("wraps the identify card in the glass surface", () => {
+    const { container } = renderGate();
+    const glass = container.querySelector('[class*="rounded-[2rem]"]');
+    expect(glass).not.toBeNull();
+    expect(glass?.textContent).toContain(strings.welcome.title);
+  });
+
+  it("renders the primary CTA as charcoal, not accent", () => {
+    renderGate();
+    expect(cta().className).toContain("#292A28");
+    expect(cta().className).not.toContain("bg-accent");
+  });
+
+  it("has no orange/accent surfaces anywhere in the gate", () => {
+    const { container } = renderGate();
+    expect(container.innerHTML).not.toContain("bg-accent");
+  });
+
+  it("renders both text inputs with the inset appearance", () => {
+    renderGate();
+    expect(nameInput().className).toContain("bg-paper/70");
+    expect(emailInput().className).toContain("bg-paper/70");
+    expect(nameInput().className).not.toContain("border-line");
+    expect(emailInput().className).not.toContain("border-line");
+  });
+});
+
 describe("WelcomeGate — submit", () => {
   it("saves a normalized identity, identifies, tracks, and removes the gate", async () => {
     renderGate();

@@ -26,7 +26,7 @@ export function StageMedia({ imageUrl, imageAlt, youtubeId, videoCaption }: Stag
   return (
     <section className="flex flex-col gap-3">
       {imageUrl && (
-        <div className="overflow-hidden rounded-2xl bg-paper shadow-sm">
+        <div className="overflow-hidden rounded-2xl bg-ink/[0.04]">
           <Image
             src={imageUrl}
             alt={imageAlt ?? ""}
@@ -38,7 +38,7 @@ export function StageMedia({ imageUrl, imageAlt, youtubeId, videoCaption }: Stag
         </div>
       )}
       {youtubeId && (
-        <div className="overflow-hidden rounded-2xl bg-paper shadow-sm">
+        <div className="overflow-hidden rounded-2xl bg-ink/[0.04]">
           <div className="relative aspect-video w-full">
             <iframe
               src={buildYouTubeEmbedSrc(youtubeId)}
