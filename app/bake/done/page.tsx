@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/cn";
+import { AMBIENT_CANVAS } from "@/components/ui/ambient";
 import { strings } from "@/lib/strings";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
 import { track } from "@/lib/analytics/track";
@@ -36,24 +36,17 @@ export default function Page() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-6 pb-10">
+    <div className={`min-h-dvh ${AMBIENT_CANVAS}`}>
+    <main className="relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] max-[340px]:px-4">
       <header className="relative z-10 flex items-center">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={finishBake}
-          className={cn(
-            "pressable inline-flex items-center gap-2 rounded-full",
-            "min-h-touch px-4 text-body font-medium",
-            "bg-transparent text-ink-2 hover:bg-bg-2",
-            "transition-colors duration-fast ease-out",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-3 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-          )}
+          iconStart={<ChevronRight size={20} aria-hidden />}
         >
-          <span aria-hidden>
-            <ChevronRight size={20} />
-          </span>
-          <span>{strings.bake.stagePlaceholderBackToHome}</span>
-        </button>
+          {strings.bake.stagePlaceholderBackToHome}
+        </Button>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center text-center gap-6">
@@ -61,10 +54,11 @@ export default function Page() {
         <p className="max-w-xs text-body-lg text-ink-2 leading-relaxed">
           {strings.bake.doneBlurb}
         </p>
-        <Button variant="accent" onClick={finishBake} className="mt-2">
+        <Button variant="primary" onClick={finishBake} className="mt-2">
           {strings.bake.doneButton}
         </Button>
       </div>
     </main>
+    </div>
   );
 }
