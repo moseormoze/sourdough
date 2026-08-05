@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { AMBIENT_CANVAS, AMBIENT_GLASS } from "@/components/ui/ambient";
 import { EmptyRecipesState } from "./empty-recipes-state";
 import { RecipeListItem } from "./recipe-list-item";
 import { deleteRecipe, listRecipes } from "@/lib/storage/recipes";
@@ -97,7 +98,8 @@ export function RecipeListScreen() {
       : [];
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
+    <div className={`min-h-dvh ${AMBIENT_CANVAS}`}>
+    <main className="relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-10 max-[340px]:px-4">
       <header className="relative z-10 flex items-center gap-2 mb-6">
         <Button
           variant="ghost"
@@ -114,7 +116,7 @@ export function RecipeListScreen() {
         <h1 className="text-display-md text-ink">{strings.recipes.pageTitle}</h1>
         {state.status === "loaded" && visibleRecipes.length > 0 && (
           <Button
-            variant="accent"
+            variant="primary"
             size="sm"
             onClick={() => router.push("/recipes/new")}
           >
@@ -132,7 +134,7 @@ export function RecipeListScreen() {
       {state.status === "loaded" && visibleRecipes.length > 0 && (
         <ul
           aria-label={strings.recipes.pageTitle}
-          className="flex flex-col gap-3"
+          className={`overflow-hidden ${AMBIENT_GLASS} [&>*+*]:border-t [&>*+*]:border-ink/[0.06]`}
         >
           {visibleRecipes.map((r) => (
             <li key={r.id}>
@@ -142,5 +144,6 @@ export function RecipeListScreen() {
         </ul>
       )}
     </main>
+    </div>
   );
 }

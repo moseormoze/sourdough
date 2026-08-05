@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type PointerEvent } from "react";
+import { Fragment, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -48,6 +48,21 @@ export function summarizeRecipe(recipe: Recipe): string {
   }
 
   return parts.join(" · ");
+}
+
+// Isolates numeric segments (e.g. "20%", "2") in ltr .num spans, per the
+// rollout carry-over contract (RTL numeral isolation), without changing the
+// plain-text contract of summarizeRecipe itself.
+function renderSummary(text: string): ReactNode[] {
+  return text.split(/(\d+%?)/g).map((part, index) =>
+    /^\d+%?$/.test(part) ? (
+      <span key={index} dir="ltr" className="num">
+        {part}
+      </span>
+    ) : (
+      <Fragment key={index}>{part}</Fragment>
+    )
+  );
 }
 
 interface DragState {
@@ -155,7 +170,7 @@ export function RecipeListItem({ recipe, onCommitDelete }: RecipeListItemProps) 
   const committed = offset >= SWIPE_OPEN_PX;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl">
+    <div className="relative overflow-hidden">
       <div
         className={cn(
           "absolute inset-y-0 end-0 flex items-center justify-end ps-5 pe-6 text-paper",
@@ -188,13 +203,23 @@ export function RecipeListItem({ recipe, onCommitDelete }: RecipeListItemProps) 
         }}
         onTransitionEnd={() => setSnapping(false)}
         className={cn(
-          "relative block w-full text-start rounded-2xl bg-paper shadow-sm p-4",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-3 focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+          // Opaque at rest (functional requirement, not decorative): this
+          // row masks the absolutely-positioned swipe-delete panel behind
+          // it. A translucent/transparent row (as in SavedRecipeRow, which
+          // has no such panel) would let the panel bleed through at rest —
+          // see delta-recipes-list.md for the dictionary-gap note.
+          "relative flex min-h-[64px] w-full items-center text-start px-5 py-3 bg-paper",
+          "transition-colors duration-fast ease-out",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-2 focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
           pressed && "bg-bg-2"
         )}
       >
-        <h3 className="text-heading text-ink">{recipe.name}</h3>
-        <p className="mt-1 text-small text-ink-2">{summarizeRecipe(recipe)}</p>
+        <span className="min-w-0 flex-1">
+          <h3 className="text-heading text-ink [overflow-wrap:anywhere]">{recipe.name}</h3>
+          <p className="mt-0.5 text-small text-ink-2 [overflow-wrap:anywhere]">
+            {renderSummary(summarizeRecipe(recipe))}
+          </p>
+        </span>
       </button>
     </div>
   );
