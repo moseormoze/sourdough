@@ -185,7 +185,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
               flour={activeBake.recipe.flour}
               onTimelineOpen={() => setTimelineOpen(true)}
               variant="pilot"
-              hero
+              rollout
             />
           </div>
           <div
@@ -206,7 +206,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           flour={activeBake.recipe.flour}
           onTimelineOpen={() => setTimelineOpen(true)}
           variant="pilot"
-          hero
+          rollout
         />
       )}
 

@@ -516,27 +516,40 @@ describe("StageScreen — redesigned composition (wave 6 shell)", () => {
     expect(container.querySelectorAll(".blur-3xl").length).toBe(0);
   });
 
-  it("wraps the stage eyebrow and H1 in one charcoal hero", () => {
+  it("leaves the stage title plain on the canvas — charcoal is not title chrome", () => {
     render(<StageScreen stage={getStage(4)!} activeBake={makeBake(4)} api={makeApi()} />);
-    const hero = screen.getByTestId("stage-hero");
+    const title = screen.getByTestId("stage-title");
 
-    expect(hero).toHaveAttribute("data-surface", "charcoal");
-    expect(hero.className).toContain("bg-[#292A28]");
-    expect(hero.className).toContain("rounded-[2rem]");
-    const heading = within(hero).getByRole("heading", { level: 1 });
+    expect(title).not.toHaveAttribute("data-surface", "charcoal");
+    expect(title.className).not.toContain("bg-[#292A28]");
+    const heading = within(title).getByRole("heading", { level: 1 });
     expect(heading).toHaveTextContent("תסיסה ראשונית");
-    expect(heading.className).toContain("text-paper");
-    // secondary text on charcoal — white at 65% clears 4.5:1
-    expect(within(hero).getByTestId("stage-hero-eyebrow").className).toContain(
-      "text-paper/65",
-    );
+    expect(heading.className).toContain("text-ink");
+    // the duration eyebrow is informational — tonal inset, never accent-filled
+    const eyebrow = within(title).getByTestId("stage-title-eyebrow");
+    expect(eyebrow.className).toContain("bg-ink/[0.04]");
+    expect(eyebrow.className).not.toContain("accent");
   });
 
-  it("keeps the hero to eyebrow + H1 on a stage without a timer", () => {
-    render(<StageScreen stage={getStage(3)!} activeBake={makeBake(3)} api={makeApi()} />);
-    const hero = screen.getByTestId("stage-hero");
-    expect(within(hero).getByRole("heading", { level: 1 })).toBeInTheDocument();
-    expect(within(hero).queryByTestId("autolyse-timer-card")).not.toBeInTheDocument();
+  it("keeps a single charcoal surface per stage — the running timer only", () => {
+    const { container } = render(
+      <StageScreen
+        stage={getStage(2)!}
+        activeBake={makeBake(2, { timerDurationSeconds: 45 * 60, timerElapsedSeconds: 60 })}
+        api={makeApi()}
+      />,
+    );
+    const charcoal = container.querySelectorAll('[data-surface="charcoal"]');
+    expect(charcoal.length).toBe(1);
+    expect(charcoal[0]!.querySelector("h1")).toBeNull();
+  });
+
+  it("shows no charcoal surface at all on a stage without a timer", () => {
+    const { container } = render(
+      <StageScreen stage={getStage(3)!} activeBake={makeBake(3)} api={makeApi()} />,
+    );
+    expect(container.querySelectorAll('[data-surface="charcoal"]').length).toBe(0);
+    expect(screen.getByTestId("stage-title")).toBeInTheDocument();
   });
 
   it("renders the running timer digits huge, mono and white on charcoal", () => {
