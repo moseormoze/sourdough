@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AMBIENT_CANVAS, AMBIENT_GLASS } from "@/components/ui/ambient";
 import { ChooserCard } from "./chooser-card";
+import { ChooserLoadingState } from "./chooser-loading-state";
 import { ReplaceBakeDialog } from "./replace-bake-dialog";
+import { SavedRecipeRow } from "./saved-recipe-row";
+import { summarizeRecipe } from "./recipe-summary";
 import { useActiveBake } from "@/lib/hooks/use-active-bake";
 import { savePendingRecipe } from "@/lib/storage/pending-plan";
 import { PRESETS, type Preset } from "@/lib/presets";
@@ -37,44 +41,20 @@ function presetToRecipe(preset: Preset): Recipe {
   };
 }
 
-type SummaryFlour = {
-  white: number;
-  wholeWheat: number;
-  rye: number;
-  speltWhite?: number;
-  speltWhole?: number;
-};
-
-function summarizeForCard(recipe: { flour: SummaryFlour; hydration: number }): string {
-  const { white, wholeWheat, rye } = recipe.flour;
-  const speltWhite = recipe.flour.speltWhite ?? 0;
-  const speltWhole = recipe.flour.speltWhole ?? 0;
-  const parts: string[] = [];
-  if (white >= 100) parts.push("100% לבן");
-  else if (wholeWheat >= 100) parts.push("100% מלא");
-  else if (rye >= 100) parts.push("100% שיפון");
-  else if (speltWhole >= 100) parts.push("100% כוסמין מלא");
-  else if (speltWhite >= 100) parts.push("100% כוסמין לבן");
-  else if (wholeWheat > 0) parts.push(`${wholeWheat}% מלא`);
-  else if (rye > 0) parts.push(`${rye}% שיפון`);
-  else if (speltWhole > 0) parts.push(`${speltWhole}% כוסמין מלא`);
-  else if (speltWhite > 0) parts.push(`${speltWhite}% כוסמין לבן`);
-  else if (white > 0) parts.push(`${white}% לבן`);
-  parts.push(`${recipe.hydration}% הידרציה`);
-  return parts.join(" · ");
-}
-
 export function ChooserScreen() {
   const router = useRouter();
   const { activeBake, loading: bakeLoading, abandon } = useActiveBake();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipesLoaded, setRecipesLoaded] = useState(false);
   const [pendingRecipe, setPendingRecipe] = useState<Recipe | null>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setRecipes(listRecipes());
     setRecipesLoaded(true);
   }, []);
+
+  const resolved = recipesLoaded && !bakeLoading;
 
   function goToPlanner(recipe: Recipe) {
     savePendingRecipe(recipe);
@@ -83,6 +63,8 @@ export function ChooserScreen() {
 
   function handleSelect(recipe: Recipe) {
     if (activeBake) {
+      restoreFocusRef.current =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
       setPendingRecipe(recipe);
       return;
     }
@@ -91,6 +73,7 @@ export function ChooserScreen() {
 
   function handleConfirmAbandon() {
     if (!pendingRecipe) return;
+    restoreFocusRef.current = null;
     abandon();
     goToPlanner(pendingRecipe);
     setPendingRecipe(null);
@@ -100,9 +83,17 @@ export function ChooserScreen() {
     setPendingRecipe(null);
   }
 
+  const handleAfterClose = useCallback(() => {
+    restoreFocusRef.current?.focus();
+    restoreFocusRef.current = null;
+  }, []);
+
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-4 pb-10">
-      <header className="relative z-10 flex items-center mb-2">
+    <main
+      aria-busy={!resolved}
+      className={`relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip ${AMBIENT_CANVAS} px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(9.25rem+env(safe-area-inset-bottom))] max-[340px]:px-4`}
+    >
+      <header className="relative z-10 mb-2 flex items-center">
         <Button
           variant="ghost"
           size="sm"
@@ -113,40 +104,57 @@ export function ChooserScreen() {
         </Button>
       </header>
 
-      <h1 className="text-display-md text-ink mb-6">{strings.bake.chooserTitle}</h1>
+      <h1 className="mb-6 text-display-md text-ink">{strings.bake.chooserTitle}</h1>
 
-      <h2 className="text-heading text-ink mb-3">{strings.bake.chooserRecipeHeading}</h2>
+      {!resolved && <ChooserLoadingState />}
 
-      <div className="grid grid-cols-2 gap-3">
-        {PRESETS.map((preset) => (
-          <ChooserCard
-            key={`preset-${preset.id}`}
-            name={preset.name}
-            summary={summarizeForCard(preset.data)}
-            imageSrc={preset.image}
-            onSelect={() => handleSelect(presetToRecipe(preset))}
-          />
-        ))}
-        {recipesLoaded &&
-          recipes.map((recipe) => (
-            <ChooserCard
-              key={`recipe-${recipe.id}`}
-              name={recipe.name}
-              summary={summarizeForCard(recipe)}
-              mine
-              onSelect={() => handleSelect(recipe)}
-            />
-          ))}
-      </div>
+      {resolved && (
+        <>
+          {recipes.length > 0 && (
+            <ul
+              aria-label={strings.bake.myBadge}
+              className={`mb-6 overflow-hidden ${AMBIENT_GLASS} [&>*+*]:border-t [&>*+*]:border-ink/[0.06]`}
+            >
+              {recipes.map((recipe) => (
+                <li key={recipe.id}>
+                  <SavedRecipeRow
+                    name={recipe.name}
+                    summary={summarizeRecipe(recipe)}
+                    onSelect={() => handleSelect(recipe)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <h2 className="mb-3 text-heading text-ink">{strings.bake.chooserRecipeHeading}</h2>
+
+          <ul
+            aria-label={strings.bake.chooserRecipeHeading}
+            className="grid grid-cols-2 gap-4 max-[340px]:gap-3"
+          >
+            {PRESETS.map((preset) => (
+              <li key={preset.id}>
+                <ChooserCard
+                  name={preset.name}
+                  summary={summarizeRecipe(preset.data)}
+                  imageSrc={preset.image}
+                  onSelect={() => handleSelect(presetToRecipe(preset))}
+                />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <ReplaceBakeDialog
         open={pendingRecipe !== null}
+        appearance="ambient"
         recipeName={activeBake?.recipe.name ?? ""}
         onConfirm={handleConfirmAbandon}
         onCancel={handleCancelAbandon}
+        onAfterClose={handleAfterClose}
       />
-
-      {bakeLoading && null}
     </main>
   );
 }

@@ -9,6 +9,8 @@ export interface ReplaceBakeDialogProps {
   recipeName: string;
   onConfirm: () => void;
   onCancel: () => void;
+  appearance?: "default" | "ambient";
+  onAfterClose?: () => void;
 }
 
 /**
@@ -20,11 +22,15 @@ export function ReplaceBakeDialog({
   recipeName,
   onConfirm,
   onCancel,
+  appearance = "default",
+  onAfterClose,
 }: ReplaceBakeDialogProps) {
   return (
     <Dialog
       open={open}
       onClose={onCancel}
+      onAfterClose={onAfterClose}
+      appearance={appearance}
       title={strings.bake.replaceTitle}
       description={strings.bake.replaceDescription(recipeName)}
       actions={
