@@ -140,4 +140,74 @@ describe("StarterTrackerScreen", () => {
     await screen.findByText("עדיין לא תיעדת האכלות");
     expect(listFeedingsMock).toHaveBeenCalledWith("baker@example.com");
   });
+
+  describe("Redesigned composition (feature 30 rollout language)", () => {
+    function classNamesIn(container: HTMLElement): string[] {
+      return Array.from(container.querySelectorAll<HTMLElement>("*")).map(
+        (element) => element.getAttribute("class") ?? ""
+      );
+    }
+
+    it("paints the ambient canvas behind a max-w-md content column", async () => {
+      listFeedingsMock.mockResolvedValue([makeFeeding()]);
+      render(<StarterTrackerScreen />);
+      await screen.findByText("1:2:2");
+
+      const main = screen.getByRole("main");
+      expect(main.parentElement?.className).toContain("bg-[linear-gradient(160deg");
+      expect(main.className).toContain("max-w-md");
+      expect(main.className).toContain("overflow-x-clip");
+      expect(main.className).toContain("isolate");
+    });
+
+    it("groups the feeding history into one glass group with flat rows", async () => {
+      listFeedingsMock.mockResolvedValue([makeFeeding({ id: "a" }), makeFeeding({ id: "b" })]);
+      render(<StarterTrackerScreen />);
+      await screen.findAllByText("1:2:2");
+
+      const list = screen.getByRole("list", { name: "מעקב סטארטר" });
+      expect(list.className).toContain("rounded-[2rem]");
+      expect(list.className).toContain("overflow-hidden");
+      expect(list.className).toContain("border-ink/[0.06]");
+
+      const rows = screen
+        .getAllByRole("button")
+        .filter((button) => button.hasAttribute("data-feeding-id"));
+      for (const row of rows) {
+        expect(row.className).not.toContain("shadow-sm");
+        expect(row.className).not.toContain("rounded-2xl");
+      }
+    });
+
+    it("renders the new-feeding action as the charcoal primary, not accent", async () => {
+      listFeedingsMock.mockResolvedValue([makeFeeding()]);
+      render(<StarterTrackerScreen />);
+
+      const newButton = await screen.findByRole("button", { name: "+ האכלה חדשה" });
+      expect(newButton.className).toContain("bg-[#292A28]");
+      expect(newButton.className).not.toContain("bg-accent");
+    });
+
+    it("uses no accent fills or frames anywhere on the loaded screen", async () => {
+      listFeedingsMock.mockResolvedValue([makeFeeding()]);
+      const { container } = render(<StarterTrackerScreen />);
+      await screen.findByText("1:2:2");
+
+      for (const className of classNamesIn(container)) {
+        expect(className).not.toMatch(/(^|[\s:])(bg|border|ring)-accent/);
+      }
+    });
+
+    it("keeps the empty state on the canvas with a charcoal CTA and no accent", async () => {
+      listFeedingsMock.mockResolvedValue([]);
+      const { container } = render(<StarterTrackerScreen />);
+      await screen.findByText("עדיין לא תיעדת האכלות");
+
+      const cta = screen.getByRole("button", { name: "+ האכלה ראשונה" });
+      expect(cta.className).toContain("bg-[#292A28]");
+      for (const className of classNamesIn(container)) {
+        expect(className).not.toMatch(/(^|[\s:])(bg|border|ring)-accent/);
+      }
+    });
+  });
 });

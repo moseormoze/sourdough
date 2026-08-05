@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/cn";
+import { usePressActivation } from "@/lib/hooks/use-press-activation";
 import { FEED_RATIO_LABELS } from "@/lib/bake-timing";
 import { strings } from "@/lib/strings";
 import type { Feeding } from "@/lib/types/feeding";
@@ -36,14 +38,22 @@ export interface FeedingListItemProps {
 export function FeedingListItem({ feeding }: FeedingListItemProps) {
   const router = useRouter();
   const gramsSummary = summarizeGrams(feeding);
+  const { isPressed, pressProps } = usePressActivation<HTMLButtonElement>(() =>
+    router.push(`/starter/${feeding.id}/edit`)
+  );
 
   return (
     <button
       type="button"
-      onClick={() => router.push(`/starter/${feeding.id}/edit`)}
+      {...pressProps}
       data-feeding-id={feeding.id}
-      className="pressable relative block min-h-touch w-full text-start rounded-2xl bg-paper shadow-sm p-4
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-3 focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      data-pressed={isPressed ? "" : undefined}
+      className={cn(
+        "relative block min-h-touch w-full text-start px-5 py-3.5 max-[340px]:px-4",
+        "transition-[transform,background-color] duration-fast ease-out motion-reduce:transform-none",
+        "focus-visible:outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink-2",
+        isPressed && "scale-[0.985] bg-ink/[0.05]"
+      )}
     >
       <h3 className="text-heading text-ink">{FEED_RATIO_LABELS[feeding.ratio]}</h3>
       <p className="mt-1 text-small text-ink-2">{formatFedAt(feeding.fedAt)}</p>

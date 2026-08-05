@@ -18,7 +18,7 @@ export function EmptyFeedingsState() {
         {strings.starterTracker.empty.emptyDescription}
       </p>
       <div className="mt-8">
-        <Button variant="accent" onClick={() => router.push("/starter/new")}>
+        <Button variant="primary" onClick={() => router.push("/starter/new")}>
           {strings.starterTracker.empty.newFeeding}
         </Button>
       </div>
