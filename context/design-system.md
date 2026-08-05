@@ -14,13 +14,21 @@ The screen list and product decisions inside `specs/design/HANDOFF.md` are **inp
 - **Viewport**: mobile-only, 375px reference width (no desktop/tablet in v1)
 - **Feel**: calm, beginner-respectful, hands-may-be-floury — generous spacing, no cramped layouts
 - **Tap targets**: minimum **44×44px** — non-negotiable (see [`ui-playbook.md`](../ui-playbook.md) §10)
-- **Forms**: inputs default to `dir="auto"` so users can type either language
+- **Forms**: inputs carry **no `dir`** — they inherit the page's `dir="rtl"`, so an
+  empty field keeps its placeholder on the right. Do **not** use `dir="auto"`: it
+  resolves from the *value*, so an empty field falls back to LTR and the hint jumps
+  left. Bidi still lays a Latin value (an email) out left-to-right inside the
+  right-aligned field. Exception: `type="date"`/`"time"` stay `dir="ltr"`.
 
 ## Color (named tokens — full values in `tokens.css`)
 
 - **Surfaces**: `bg` (cream), `bg-2`, `paper` (white), `line`, `line-2`
 - **Ink**: `ink` (text), `ink-2` (secondary), `ink-3` (tertiary) — body-on-bg AAA (14.2:1)
-- **Accent (clay)**: `accent`, `accent-2`, `accent-3`, `accent-bg` — used for **the** primary action per screen, never two
+- **Accent (clay)**: `accent`, `accent-2`, `accent-3`, `accent-bg` — ⚠️ **superseded during
+  the redesign rollout.** The primary action is now **charcoal** (`#292A28`); orange is a
+  closed list (the install CTA and the single "live/ready" moment per screen), never a
+  general primary. Authority: [`specs/features/30-redesign-rollout/language.md`](../specs/features/30-redesign-rollout/language.md)
+  (parts ג + ד). That spec merges into this file at the end of the rollout, via the Curator.
 - **Sage**: secondary / success — `sage`, `sage-2`, `sage-bg`
 - **Status**: `warn`/`warn-bg` (delays, caution), `danger`/`danger-bg` (errors)
 

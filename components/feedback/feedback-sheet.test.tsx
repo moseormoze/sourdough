@@ -87,4 +87,14 @@ describe("FeedbackSheet", () => {
       expect(onClose).not.toHaveBeenCalled();
     });
   });
+
+  // dir="auto" resolves from the value, so both fields start empty → LTR → their
+  // Hebrew placeholders rendered against the left edge inside an RTL sheet.
+  it("lets the name and description fields inherit the page RTL so placeholders start on the right", () => {
+    renderSheet();
+    expect(screen.getByPlaceholderText(strings.feedback.namePlaceholder)).not.toHaveAttribute("dir");
+    expect(
+      screen.getByPlaceholderText(strings.feedback.descriptionPlaceholder)
+    ).not.toHaveAttribute("dir");
+  });
 });

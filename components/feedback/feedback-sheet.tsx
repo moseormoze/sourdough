@@ -107,7 +107,6 @@ export function FeedbackSheet({ open, onClose }: FeedbackSheetProps) {
           <label className="text-sm font-medium text-ink-2">{strings.feedback.nameLabel}</label>
           <input
             type="text"
-            dir="auto"
             placeholder={strings.feedback.namePlaceholder}
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -119,7 +118,6 @@ export function FeedbackSheet({ open, onClose }: FeedbackSheetProps) {
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-ink-2">{strings.feedback.descriptionLabel}</label>
           <textarea
-            dir="auto"
             rows={4}
             placeholder={strings.feedback.descriptionPlaceholder}
             value={description}

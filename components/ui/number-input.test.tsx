@@ -77,4 +77,24 @@ describe("NumberInput", () => {
     expect(input.className).toContain("text-center");
     expect(input.className).not.toContain("text-start");
   });
+
+  // Two-up columns (the flour breakdown at 375px) gave the field 141px while the
+  // 44px-wide steppers + unit + the input's intrinsic min-width demanded 159px, so
+  // the + escaped 19px past the pill. The field must be allowed to shrink, and the
+  // steppers must claim their 44px hit area without reserving 44px of layout width.
+  it("lets the numeric field shrink so the steppers cannot overflow a narrow pill", () => {
+    render(<NumberInput label="x" value={100} unit="%" onChange={() => {}} />);
+    expect(screen.getByLabelText("x").className).toContain("min-w-0");
+  });
+
+  it("keeps a 44px stepper hit area without reserving 44px of width", () => {
+    render(<NumberInput label="x" value={50} unit="%" onChange={() => {}} />);
+    for (const label of ["עוד", "פחות"]) {
+      const button = screen.getByLabelText(label);
+      expect(button.className).not.toContain("min-w-touch");
+      expect(button.className).toContain("min-h-touch");
+      // hit area expanded past the visual box (ui-playbook §10)
+      expect(button.className).toContain("before:");
+    }
+  });
 });
