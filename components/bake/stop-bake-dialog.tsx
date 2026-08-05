@@ -9,7 +9,7 @@ export interface StopBakeDialogProps {
   recipeName: string;
   onConfirm: () => void;
   onCancel: () => void;
-  appearance?: "default" | "home";
+  appearance?: "default" | "ambient";
   onAfterClose?: () => void;
 }
 
