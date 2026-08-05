@@ -1,47 +1,51 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { Wheat } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { AMBIENT_GLASS } from "@/components/ui/ambient";
 import { usePressActivation } from "@/lib/hooks/use-press-activation";
-import { strings } from "@/lib/strings";
+import { RecipeSummary, type SummaryPart } from "./recipe-summary";
 
 export interface ChooserCardProps {
   name: string;
-  summary: string;
+  summary: SummaryPart[];
   imageSrc?: string;
-  mine?: boolean;
   onSelect: () => void;
 }
 
-function PlaceholderTile(): ReactNode {
+function PlaceholderTile() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-bg-2 text-ink-3">
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 flex items-center justify-center bg-ink/[0.04] text-ink-3"
+    >
       <Wheat size={56} strokeWidth={1.5} />
     </div>
   );
 }
 
-export function ChooserCard({ name, summary, imageSrc, mine, onSelect }: ChooserCardProps) {
+export function ChooserCard({ name, summary, imageSrc, onSelect }: ChooserCardProps) {
   const { isPressed: pressed, pressProps } = usePressActivation<HTMLButtonElement>(onSelect);
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = imageSrc !== undefined && !imageFailed;
 
   return (
     <button
       type="button"
       {...pressProps}
       data-pressed={pressed ? "" : undefined}
-      data-mine={mine ? "" : undefined}
-      aria-label={mine ? `${name} (${strings.bake.myBadge})` : name}
+      aria-label={name}
       className={cn(
-        "flex flex-col w-full text-start rounded-2xl bg-paper shadow-sm overflow-hidden",
-        "transition-[transform,box-shadow] duration-fast ease-out",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-3 focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
-        pressed && "scale-[0.97] shadow-none"
+        `flex h-full w-full flex-col overflow-hidden text-start ${AMBIENT_GLASS}`,
+        "transition-[transform,box-shadow] duration-fast ease-out motion-reduce:transform-none",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-2",
+        pressed && "scale-[0.97] shadow-none",
       )}
     >
-      <div className="relative aspect-[4/3] bg-bg-2">
-        {imageSrc ? (
+      <span className="relative block aspect-[4/3] w-full bg-ink/[0.04]">
+        {showImage ? (
           <Image
             src={imageSrc}
             alt=""
@@ -49,20 +53,19 @@ export function ChooserCard({ name, summary, imageSrc, mine, onSelect }: Chooser
             sizes="(max-width: 480px) 50vw, 240px"
             className="object-cover"
             priority={false}
+            onError={() => setImageFailed(true)}
           />
         ) : (
           <PlaceholderTile />
         )}
-        {mine && (
-          <span className="absolute top-2 start-2 rounded-full bg-ink/85 text-paper text-tiny font-medium px-2 py-1">
-            {strings.bake.myBadge}
-          </span>
-        )}
-      </div>
-      <div className="p-4 flex-1 flex flex-col">
-        <h3 className="text-heading text-ink">{name}</h3>
-        <p className="mt-1 text-small text-ink-2 line-clamp-2 min-h-[2.9em]">{summary}</p>
-      </div>
+      </span>
+      <span className="flex flex-1 flex-col p-4 max-[340px]:p-3">
+        <span className="block text-heading text-ink [overflow-wrap:anywhere]">{name}</span>
+        <RecipeSummary
+          parts={summary}
+          className="mt-1 text-small text-ink-2 [overflow-wrap:anywhere]"
+        />
+      </span>
     </button>
   );
 }

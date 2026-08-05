@@ -45,4 +45,24 @@ describe("ReplaceBakeDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "ביטול" }));
     expect(onCancel).toHaveBeenCalledOnce();
   });
+
+  it("forwards the ambient appearance without changing the default", () => {
+    const { rerender } = render(
+      <ReplaceBakeDialog
+        open
+        appearance="ambient"
+        recipeName="x"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("data-appearance", "ambient");
+    expect(dialog.firstElementChild).toHaveClass("rounded-[2rem]");
+
+    rerender(
+      <ReplaceBakeDialog open recipeName="x" onConfirm={vi.fn()} onCancel={vi.fn()} />,
+    );
+    expect(screen.getByRole("dialog")).toHaveAttribute("data-appearance", "default");
+  });
 });

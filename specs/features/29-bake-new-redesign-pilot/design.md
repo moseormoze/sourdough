@@ -17,9 +17,11 @@
 ## Canvas and Surface Contract
 
 - אותם ערכי קנבס של הבית, לרציפות המסלול בית→בוחר:
-  `linear-gradient(160deg, #FFF8F1 0%, #FFDDBD 22%, #F7F0E7 55%, #DDEDF2 100%)`,
-  scoped ל־root של המסך (`isolate`, ‏`overflow-x-clip`). רוחב `max-w-md`; gutter
-  ‏20px ו־16px עד 340px; למעלה `safe-area + 20px`; padding תחתון
+  `linear-gradient(160deg, #FFF8F1 0%, #FFDDBD 22%, #F7F0E7 55%, #DDEDF2 100%)`.
+  הקנבס הוא full-bleed — עוטף ברוחב מלא של ה־viewport (בבית ובבוחר כאחד;
+  הוחלט 2026-08-05 אחרי שבדסקטופ נראה ככרטיס עם שוליים), ועמודת התוכן
+  ממורכזת בתוכו: `max-w-md`, ‏`isolate`, ‏`overflow-x-clip`; gutter ‏20px
+  ו־16px עד 340px; למעלה `safe-area + 20px`; padding תחתון
   `calc(9.25rem + env(safe-area-inset-bottom))` כך שהשורה האחרונה נגללת אל מעל
   ה־FAB.
 - מתכון ה־glass זהה לזה של הבית (גבול `paper/60`, מילוי fallback כמעט אטום

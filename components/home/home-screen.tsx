@@ -84,9 +84,10 @@ export function HomeScreen() {
   const hasActiveBake = resolved && activeBake !== null && activeStage !== null;
 
   return (
+    <div className={`min-h-dvh ${AMBIENT_CANVAS}`}>
     <main
       aria-busy={!resolved}
-      className={`relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip ${AMBIENT_CANVAS} px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(9.25rem+env(safe-area-inset-bottom))] max-[340px]:px-4`}
+      className="relative isolate mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-clip px-5 pt-[calc(20px+env(safe-area-inset-top))] pb-[calc(9.25rem+env(safe-area-inset-bottom))] max-[340px]:px-4"
     >
       <header className="mb-5 text-center">
         <h1 className="sr-only">{strings.home.wordmark}</h1>
@@ -169,5 +170,6 @@ export function HomeScreen() {
         onAfterClose={handleAfterStopClose}
       />
     </main>
+    </div>
   );
 }
