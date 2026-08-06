@@ -1,0 +1,28 @@
+name: test
+
+# On a pull_request, Actions checks out the *merge* commit — the PR's code as it
+# would land on main. That is the gate that was missing: on 2026-08-06 two PRs
+# that were green apart broke main together, because each was only ever verified
+# against the main it branched from.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vitest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          # matches Vercel's Node
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
