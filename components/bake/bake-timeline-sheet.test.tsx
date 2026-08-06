@@ -26,6 +26,26 @@ describe("BakeTimelineSheet", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
+  it("renders into document.body no matter how deep it is mounted", () => {
+    const { container } = render(
+      <div style={{ position: "relative", zIndex: 0 }}>
+        <div style={{ transform: "translateZ(0)" }}>
+          <BakeTimelineSheet {...defaultProps} />
+        </div>
+      </div>,
+    );
+
+    // Both layers must sit at <body> level so their z-index is compared against
+    // page-level fixed elements (the feedback FAB), not against whatever
+    // stacking context the caller happens to sit in.
+    const dialog = screen.getByRole("dialog");
+    const backdrop = screen.getByTestId("timeline-backdrop");
+    expect(dialog.parentElement).toBe(document.body);
+    expect(backdrop.parentElement).toBe(document.body);
+    expect(container).not.toContainElement(dialog);
+    expect(container).not.toContainElement(backdrop);
+  });
+
   it("renders all 12 stages", () => {
     render(<BakeTimelineSheet {...defaultProps} />);
     expect(screen.getAllByRole("listitem")).toHaveLength(12);

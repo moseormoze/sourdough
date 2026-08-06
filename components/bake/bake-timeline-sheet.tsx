@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X, CheckCircle2 } from "lucide-react";
 import { STAGES } from "@/lib/data/stages";
 import { fermentationStageSecs, starterPeakSecs, durationRangeLabel, type FeedRatio } from "@/lib/bake-timing";
@@ -76,7 +77,14 @@ export function BakeTimelineSheet({
     }
   }
 
-  return (
+  // No document on the server — the sheet is interaction-driven and starts
+  // off-screen, so skipping it during SSR costs nothing.
+  if (typeof document === "undefined") return null;
+
+  // Portalled to <body> so the layering never depends on where the caller
+  // mounts it — deep in a screen it would otherwise land in a stacking context
+  // below page-level fixed elements such as the feedback FAB.
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -189,6 +197,7 @@ export function BakeTimelineSheet({
           </>
         )}
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
