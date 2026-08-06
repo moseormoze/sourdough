@@ -5,9 +5,13 @@ import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => index);
-const MINUTE_OPTIONS = Array.from({ length: 12 }, (_, index) => index * 5);
+// Every minute, not 5-minute steps: the baker picks the exact minute, and there
+// is no reason to constrain the range (user decision, 2026-08-06).
+const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, index) => index);
 const ITEM_HEIGHT_PX = 56;
 const SCROLL_SETTLE_MS = 100;
+/** ui-playbook §1 `justFinishedDrag`: momentum must not override an explicit tap. */
+const TAP_WINS_MS = 200;
 
 interface WheelColumnProps {
   label: string;
@@ -26,6 +30,7 @@ function WheelColumn({
 }: WheelColumnProps) {
   const listRef = useRef<HTMLDivElement | null>(null);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tapAtRef = useRef<number>(0);
 
   useEffect(() => {
     const selectedIndex = options.indexOf(value);
@@ -40,18 +45,34 @@ function WheelColumn({
     };
   }, []);
 
+  function cancelPendingSettle() {
+    if (scrollTimerRef.current !== null) {
+      clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = null;
+    }
+  }
+
   function handleScroll(event: UIEvent<HTMLDivElement>) {
     const list = event.currentTarget;
-    if (scrollTimerRef.current !== null) clearTimeout(scrollTimerRef.current);
+    cancelPendingSettle();
     scrollTimerRef.current = setTimeout(() => {
+      scrollTimerRef.current = null;
+      // A tap is an explicit choice; momentum settling just after it is not.
+      if (Date.now() - tapAtRef.current < TAP_WINS_MS) return;
       const nextIndex = Math.max(
         0,
         Math.min(options.length - 1, Math.round(list.scrollTop / ITEM_HEIGHT_PX))
       );
       const nextValue = options[nextIndex];
       if (nextValue !== undefined && nextValue !== value) onChange(nextValue);
-      scrollTimerRef.current = null;
     }, SCROLL_SETTLE_MS);
+  }
+
+  function handlePick(option: number) {
+    // The tap wins over any scroll still waiting to settle.
+    cancelPendingSettle();
+    tapAtRef.current = Date.now();
+    onChange(option);
   }
 
   return (
@@ -74,7 +95,7 @@ function WheelColumn({
               role="option"
               aria-selected={selected}
               aria-label={optionLabel(option)}
-              onClick={() => onChange(option)}
+              onClick={() => handlePick(option)}
               className={cn(
                 "relative z-[2] flex min-h-14 w-full snap-center items-center justify-center rounded-xl px-2 font-mono tabular-nums transition-[color,font-size,opacity,background-color] duration-fast ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink-3 motion-reduce:transition-none",
                 selected
