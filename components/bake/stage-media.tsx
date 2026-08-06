@@ -15,9 +15,10 @@ export interface StageMediaProps {
   videoLabel?: string;
   youtubeOrientation?: StageVideoOrientation;
   /**
-   * Portrait only. The sheet is owned by the screen, not by this component:
-   * mounted from here it lands under the feedback FAB's stacking context and
-   * the FAB paints on top of the player (verified in the browser at 375px).
+   * Portrait only. The sheet is owned by the screen, not by this component, so
+   * media stays presentational. This started as a layering workaround — mounted
+   * from here the sheet landed under the feedback FAB's stacking context — but
+   * `BottomSheet` now portals to <body>, so that reason no longer holds.
    */
   onOpenVideo?: () => void;
 }
