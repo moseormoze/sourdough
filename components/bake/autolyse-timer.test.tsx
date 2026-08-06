@@ -97,13 +97,14 @@ describe("AutolyseTimer", () => {
     const dialog = screen.getByRole("dialog", { name: "בחירת זמן" });
     const hoursWheel = within(dialog).getByRole("listbox", { name: "שעות" });
     const minutesWheel = within(dialog).getByRole("listbox", { name: "דקות" });
+    // minutes are exact now, so index 37 is 37 minutes — not 5-minute steps
     Object.defineProperty(hoursWheel, "scrollTop", { value: 2 * 56, writable: true });
-    Object.defineProperty(minutesWheel, "scrollTop", { value: 4 * 56, writable: true });
+    Object.defineProperty(minutesWheel, "scrollTop", { value: 37 * 56, writable: true });
     fireEvent.scroll(hoursWheel);
     fireEvent.scroll(minutesWheel);
     act(() => vi.advanceTimersByTime(100));
     fireEvent.click(within(dialog).getByRole("button", { name: "הפעל טיימר" }));
-    expect(onStart).toHaveBeenCalledWith(140 * 60);
+    expect(onStart).toHaveBeenCalledWith((2 * 60 + 37) * 60);
 
     rerender(
       <AutolyseTimer
