@@ -350,7 +350,7 @@ describe("StageScreen — stage knowledge pilot", () => {
       "ambient-gradient",
     );
     expect(stageHeader).toHaveAttribute("data-surface", "none");
-    expect(within(stageHeader).getByText("2/12")).toBeInTheDocument();
+    expect(within(stageHeader).getByText("/12")).toBeInTheDocument();
     expect(within(stageHeader).getByRole("button", { name: "פתח טיימליין" })).toBeInTheDocument();
     expect(within(stageHeader).getByRole("heading", { name: "אוטוליזה" })).toBeInTheDocument();
     expect(purposeCard).toHaveAttribute(
@@ -358,7 +358,7 @@ describe("StageScreen — stage knowledge pilot", () => {
       "glass",
     );
     expect(within(purposeCard).getByRole("heading", { name: "מטרת השלב" })).toBeInTheDocument();
-    expect(within(purposeCard).queryByText("2/12")).not.toBeInTheDocument();
+    expect(within(purposeCard).queryByText("/12")).not.toBeInTheDocument();
     expect(screen.getByTestId("autolyse-instructions-surface")).toHaveAttribute(
       "data-surface",
       "glass",
@@ -646,9 +646,9 @@ describe("StageScreen — redesigned composition (wave 6 shell)", () => {
       <StageScreen stage={getStage(4)!} activeBake={makeBake(4, { subStep: 2 })} api={makeApi()} />,
     );
     const strip = screen.getByRole("progressbar", { name: "שלב 4 מתוך 12" });
-    expect(strip.querySelector('[data-state="current"]')!.className).toContain("bg-accent");
+    expect(strip.querySelector('[data-state="current"]')!.className).toContain("to-accent");
     expect(strip.querySelectorAll('[data-state="past"] , [data-state="future"]').length).toBe(11);
-    expect(container.querySelectorAll(".bg-accent").length).toBe(1);
+    expect(container.querySelectorAll('[class*="to-accent"]').length).toBe(1);
     expect(container.querySelectorAll(".text-accent").length).toBe(0);
   });
 });

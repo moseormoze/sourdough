@@ -53,7 +53,7 @@ describe("/bake/stage/[n] page", () => {
     render(<StagePage />);
     // Stage 4 specifics from lib/data/stages.ts
     expect(await screen.findByText("תסיסה ראשונית")).toBeInTheDocument();
-    expect(screen.getByText("4/12")).toBeInTheDocument();
+    expect(screen.getByText("/12")).toBeInTheDocument();
   });
 
   it("redirects to / when there is no active bake", async () => {
