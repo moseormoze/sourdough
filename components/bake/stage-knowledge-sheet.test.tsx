@@ -5,6 +5,9 @@ import type { Recipe } from "@/lib/types/recipe";
 import { StageKnowledgeSheet } from "./stage-knowledge-sheet";
 
 const content = getStageKnowledge(2)!;
+// the autolyse guide is the one that carries a graph and a practical check
+const graphCopy = content.graph!;
+const practicalCheck = content.practicalCheck!;
 
 function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
   return {
@@ -77,7 +80,7 @@ describe("StageKnowledgeSheet", () => {
       screen.getByRole("heading", { name: content.mechanism.heading }),
     ).toBeInTheDocument();
     expect(screen.getByText(content.mechanism.body)).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: content.graph.description })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: graphCopy.description })).toBeInTheDocument();
     const plot = screen.getByTestId("autolyse-conceptual-plot");
     expect(plot).toHaveAttribute("data-surface", "inset");
     expect(plot).toHaveClass("bg-ink/[0.03]");
@@ -86,11 +89,11 @@ describe("StageKnowledgeSheet", () => {
     expect(graph.querySelectorAll("linearGradient, filter, circle")).toHaveLength(0);
     expect(graph.querySelector('[data-curve="hydration"]')).toHaveClass("text-ink-2");
     expect(graph.querySelector('[data-curve="weakening"]')).toHaveClass("text-accent");
-    expect(screen.getByText(content.graph.startLabel)).toBeInTheDocument();
-    expect(screen.getByText(content.graph.endLabel)).toBeInTheDocument();
-    expect(screen.getByText(content.graph.startLabel).parentElement).toHaveClass("text-ink-2");
-    expect(screen.getByText(content.graph.description)).toHaveClass("text-ink-2");
-    expect(screen.getByText(content.practicalCheck)).toBeInTheDocument();
+    expect(screen.getByText(graphCopy.startLabel)).toBeInTheDocument();
+    expect(screen.getByText(graphCopy.endLabel)).toBeInTheDocument();
+    expect(screen.getByText(graphCopy.startLabel).parentElement).toHaveClass("text-ink-2");
+    expect(screen.getByText(graphCopy.description)).toHaveClass("text-ink-2");
+    expect(screen.getByText(practicalCheck)).toBeInTheDocument();
     expect(screen.getByText(content.decisionRule)).toBeInTheDocument();
   });
 
@@ -188,5 +191,28 @@ describe("StageKnowledgeSheet", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "סגור" }));
     expect(onClose).toHaveBeenCalledOnce();
+  });
+  it("renders a guide that carries no graph and no practical check (F31 T4)", () => {
+    const { graph, practicalCheck: _drop, ...rest } = content;
+    void graph;
+    void _drop;
+
+    render(
+      <StageKnowledgeSheet
+        open
+        content={rest}
+        recipe={makeRecipe()}
+        onClose={() => {}}
+      />,
+    );
+
+    // the sections a bulk-shaped guide omits simply do not paint
+    expect(screen.queryByTestId("autolyse-guide-graph")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("autolyse-conceptual-graph")).not.toBeInTheDocument();
+    expect(screen.queryByText(practicalCheck)).not.toBeInTheDocument();
+    // everything else still renders, decision rule included
+    expect(screen.getByText(content.intro)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: content.mechanism.heading })).toBeInTheDocument();
+    expect(screen.getByText(content.decisionRule)).toBeInTheDocument();
   });
 });

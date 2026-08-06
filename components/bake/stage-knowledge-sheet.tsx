@@ -2,7 +2,7 @@
 
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import {
-  getAutolyseGuidance,
+  getStageGuidance,
   type StageKnowledgeContent,
 } from "@/lib/data/stage-knowledge";
 import { strings } from "@/lib/strings";
@@ -53,7 +53,9 @@ function FlourSummary({ flour }: { flour: Flour }) {
   );
 }
 
-function ConceptualGraph({ graph }: { graph: StageKnowledgeContent["graph"] }) {
+type GuideGraph = NonNullable<StageKnowledgeContent["graph"]>;
+
+function ConceptualGraph({ graph }: { graph: GuideGraph }) {
   return (
     <figure className="mt-4">
       <div
@@ -125,7 +127,7 @@ function RecipeContext({
   content: StageKnowledgeContent["recipeContext"];
   recipe: Recipe;
 }) {
-  const guidance = getAutolyseGuidance(recipe);
+  const guidance = getStageGuidance(recipe);
 
   return (
     <section
@@ -237,19 +239,21 @@ export function StageKnowledgeSheet({
           </p>
         </section>
 
-        <section
-          data-testid="autolyse-guide-graph"
-          data-surface="glass"
-          className="rounded-[2rem] border border-paper/55 bg-paper/30 p-5 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] backdrop-blur-sm"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-heading text-ink">{content.graph.title}</h3>
-            <span className="rounded-full bg-[#F28A55]/12 px-3 py-1 text-tiny font-medium text-ink-2">
-              {content.graph.badge}
-            </span>
-          </div>
-          <ConceptualGraph graph={content.graph} />
-        </section>
+        {content.graph && (
+          <section
+            data-testid="autolyse-guide-graph"
+            data-surface="glass"
+            className="rounded-[2rem] border border-paper/55 bg-paper/30 p-5 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] backdrop-blur-sm"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-heading text-ink">{content.graph.title}</h3>
+              <span className="rounded-full bg-[#F28A55]/12 px-3 py-1 text-tiny font-medium text-ink-2">
+                {content.graph.badge}
+              </span>
+            </div>
+            <ConceptualGraph graph={content.graph} />
+          </section>
+        )}
 
         <RecipeContext content={content.recipeContext} recipe={recipe} />
 
@@ -258,9 +262,11 @@ export function StageKnowledgeSheet({
           data-surface="glass"
           className="rounded-[2rem] border border-paper/55 bg-paper/30 p-5 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] backdrop-blur-sm"
         >
-          <p className="text-body leading-relaxed text-ink">
-            {content.practicalCheck}
-          </p>
+          {content.practicalCheck && (
+            <p className="text-body leading-relaxed text-ink">
+              {content.practicalCheck}
+            </p>
+          )}
           <p
             data-testid="autolyse-guide-inset"
             data-surface="inset"
