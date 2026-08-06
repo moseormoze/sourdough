@@ -53,7 +53,7 @@ const shape = await page.evaluate(() => {
 check("two columns are present", shape.length === 2, JSON.stringify(shape.map((s) => s.label)));
 const hours = shape.find((s) => s.label === "שעות");
 const minutes = shape.find((s) => s.label === "דקות");
-check("hours column offers 24 values", hours?.count === 24, `${hours?.count}`);
+check("hours column offers 0-99 with no ceiling at a day", hours?.count === 100, `${hours?.count}`);
 check("minutes column offers every minute (60)", minutes?.count === 60, `${minutes?.count}`);
 check("both columns scroll", hours?.scrollable && minutes?.scrollable, JSON.stringify([hours?.scrollable, minutes?.scrollable]));
 check("rows meet the 44px floor", Math.min(hours?.minRow ?? 0, minutes?.minRow ?? 0) >= 44, `${Math.min(hours?.minRow ?? 0, minutes?.minRow ?? 0)}px`);
@@ -79,6 +79,25 @@ await page.waitForTimeout(500);
 const bake = await page.evaluate(() => JSON.parse(localStorage.getItem("sourdough:v1:active-bake")));
 check("the exact chosen duration starts", bake.timerDurationSeconds === 37 * 60, `${bake.timerDurationSeconds}s`);
 await page.screenshot({ path: `${OUT}/t3-timer-started.png` });
+
+// a duration longer than a day is expressible and survives to storage
+await page.evaluate(() => {
+  const b = JSON.parse(localStorage.getItem("sourdough:v1:active-bake"));
+  localStorage.setItem("sourdough:v1:active-bake", JSON.stringify({ ...b, timerStartedAt: null, timerElapsedSeconds: 0, timerDurationSeconds: null }));
+});
+await page.goto(BASE + "/bake/stage/2", { waitUntil: "networkidle" });
+await page.getByRole("button", { name: "הפעל טיימר" }).first().click();
+await page.waitForTimeout(400);
+await page.evaluate(async () => {
+  const hoursList = [...document.querySelectorAll('[role="listbox"]')].find((l) => l.getAttribute("aria-label") === "שעות");
+  [...hoursList.querySelectorAll('[role="option"]')].find((o) => o.textContent.trim() === "36").click();
+  await new Promise((r) => setTimeout(r, 300));
+});
+await page.getByRole("dialog").getByRole("button", { name: "הפעל טיימר" }).click();
+await page.waitForTimeout(500);
+const longBake = await page.evaluate(() => JSON.parse(localStorage.getItem("sourdough:v1:active-bake")));
+check("a 36-hour duration is expressible and persists", longBake.timerDurationSeconds >= 36 * 3600, `${longBake.timerDurationSeconds}s`);
+await page.screenshot({ path: `${OUT}/t3-long-duration.png` });
 
 const overflow = await page.evaluate(() => {
   const d = document.documentElement;

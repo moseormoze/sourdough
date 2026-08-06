@@ -4,9 +4,10 @@ import { useEffect, useRef, type UIEvent } from "react";
 import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
 
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => index);
-// Every minute, not 5-minute steps: the baker picks the exact minute, and there
-// is no reason to constrain the range (user decision, 2026-08-06).
+// No ceiling worth defending: the baker picks the time, so hours run to 99 and
+// minutes are exact. A long cold retard is a real duration, not an edge case
+// (user decision, 2026-08-06).
+const HOUR_OPTIONS = Array.from({ length: 100 }, (_, index) => index);
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, index) => index);
 const ITEM_HEIGHT_PX = 56;
 const SCROLL_SETTLE_MS = 100;
