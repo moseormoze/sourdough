@@ -1,4 +1,5 @@
 import type { BakingMethod } from "@/lib/types/baking-method";
+import type { StageVideoOrientation } from "@/lib/youtube";
 
 export type StageType = "check" | "bulk" | "timer" | "done";
 
@@ -52,8 +53,21 @@ export interface Stage {
   checkImageHeight?: number;
   youtubeId?: string;
   videoCaption?: string;
+  /** Portrait assets open in a sheet instead of embedding in the page flow. */
+  youtubeOrientation?: StageVideoOrientation;
+  /** Card label for a portrait asset; ignored in landscape. */
+  videoLabel?: string;
   byMethod?: Partial<Record<BakingMethod, StageMethodContent>>;
 }
+
+/**
+ * The stretch & fold demo, off stage 4's main path since the readiness short
+ * took the slot. Kept here so the bulk deep-dive guide can place it.
+ */
+export const STRETCH_AND_FOLD_VIDEO = {
+  youtubeId: "jrDy90gD710",
+  videoCaption: "טכניקת stretch & fold · The Perfect Loaf / Maurizio Leo",
+} as const;
 
 export const STAGES: readonly Stage[] = [
   {
@@ -161,8 +175,10 @@ export const STAGES: readonly Stage[] = [
     name: "תסיסה ראשונית",
     hint: "(Bulk fermentation)",
     type: "bulk",
-    youtubeId: "jrDy90gD710",
-    videoCaption: "טכניקת stretch & fold · The Perfect Loaf / Maurizio Leo",
+    youtubeId: "vkJqIwbapf0",
+    youtubeOrientation: "portrait",
+    videoLabel: "ככה נראה בצק מוכן",
+    videoCaption: "Milk and Pop",
     durationLabel: "כ-4 שעות · 3–4 קיפולים",
     tempSensitiveBaseSecs: 4 * 3600,
     durationLabelSuffix: " · 3–4 קיפולים",

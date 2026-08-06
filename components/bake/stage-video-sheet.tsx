@@ -5,9 +5,13 @@ import { ExternalLink } from "lucide-react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { cn } from "@/lib/cn";
 import { strings } from "@/lib/strings";
-import { buildYouTubeEmbedSrc, buildYouTubeWatchUrl } from "@/lib/youtube";
+import {
+  buildYouTubeEmbedSrc,
+  buildYouTubeWatchUrl,
+  type StageVideoOrientation,
+} from "@/lib/youtube";
 
-export type StageVideoOrientation = "landscape" | "portrait";
+export type { StageVideoOrientation };
 
 export interface StageVideoSheetProps {
   open: boolean;

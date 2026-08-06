@@ -1,3 +1,6 @@
+/** Landscape assets embed in the page flow; portrait ones open in a sheet. */
+export type StageVideoOrientation = "landscape" | "portrait";
+
 export function buildYouTubeEmbedSrc(id: string): string {
   const params = new URLSearchParams({
     autoplay: "1",
