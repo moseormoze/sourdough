@@ -25,7 +25,7 @@ describe("strings — stage knowledge", () => {
   it("keeps the approved autolyse guide copy in the shared Hebrew string catalog", () => {
     const knowledge = strings.bake.stageKnowledge;
 
-    expect(knowledge.trigger).toBe("הסבר על אוטוליזה");
+    expect(knowledge.guides.autolyse.triggerLabel).toBe("הסבר על אוטוליזה");
     expect(knowledge.calibration).toEqual({
       before: "מיד אחרי הערבוב – הבצק עדיין גס ולא אחיד.",
       after: "אחרי המנוחה – הבצק מחובר יותר ונמתח בקלות רבה יותר.",

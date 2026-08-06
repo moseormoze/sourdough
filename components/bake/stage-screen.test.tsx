@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { StageScreen } from "./stage-screen";
 import { getStage } from "@/lib/data/stages";
+import { getStageKnowledge } from "@/lib/data/stage-knowledge";
 import { routerMock } from "../../vitest.setup";
 import { strings } from "@/lib/strings";
 import type { ActiveBake } from "@/lib/types/active-bake";
@@ -1225,5 +1226,47 @@ describe("StageScreen — stage 4 readiness video in the decision zone (F31 T3)"
     expect(
       (iframe.compareDocumentPosition(checklist) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
     ).toBe(true);
+  });
+});
+
+describe("StageScreen — bulk depth layer (F31 T5)", () => {
+  it("offers the bulk guide from stage 4 under its own label", () => {
+    render(<StageScreen stage={getStage(4)!} activeBake={makeBake(4)} api={makeApi()} />);
+    expect(
+      screen.getByRole("button", { name: "הסבר על התסיסה הראשונית" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "הסבר על אוטוליזה" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens the guide without disturbing the bake, and closes back to the trigger", async () => {
+    const api = makeApi();
+    const bake = makeBake(4, { subStep: 2, doughTempC: 27 });
+    render(<StageScreen stage={getStage(4)!} activeBake={bake} api={api} />);
+
+    const trigger = screen.getByRole("button", { name: "הסבר על התסיסה הראשונית" });
+    trigger.focus();
+    fireEvent.click(trigger);
+
+    const guide = screen.getByRole("dialog");
+    expect(within(guide).getByTestId("guide-folds")).toBeInTheDocument();
+    // the measured dough temp reaches the guidance engine
+    expect(
+      within(guide).getByText(
+        getStageKnowledge(4)!.recipeContext.guidance.warmKitchen!,
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(within(guide).getByRole("button", { name: "סגור" }));
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+    expect(api.advanceSubStep).not.toHaveBeenCalled();
+    expect(api.startTimer).not.toHaveBeenCalled();
+    expect(api.setDoughTemp).not.toHaveBeenCalled();
+  });
+
+  it("keeps stage 2's guide on its own label", () => {
+    render(<StageScreen stage={getStage(2)!} activeBake={makeBake(2)} api={makeApi()} />);
+    expect(screen.getByRole("button", { name: "הסבר על אוטוליזה" })).toBeInTheDocument();
   });
 });

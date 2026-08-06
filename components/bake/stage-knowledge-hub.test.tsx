@@ -1,10 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { strings } from "@/lib/strings";
 import { StageKnowledgeTrigger } from "./stage-knowledge-hub";
 
 describe("StageKnowledgeTrigger", () => {
   it("renders one direct, accessible entry to the guide", () => {
-    render(<StageKnowledgeTrigger onOpen={() => {}} />);
+    render(<StageKnowledgeTrigger label={strings.bake.stageKnowledge.guides.autolyse.triggerLabel} onOpen={() => {}} />);
 
     const button = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
     expect(screen.getAllByRole("button")).toHaveLength(1);
@@ -20,7 +21,7 @@ describe("StageKnowledgeTrigger", () => {
 
   it("opens exactly once after a tap", () => {
     const onOpen = vi.fn();
-    render(<StageKnowledgeTrigger onOpen={onOpen} />);
+    render(<StageKnowledgeTrigger label={strings.bake.stageKnowledge.guides.autolyse.triggerLabel} onOpen={onOpen} />);
     const button = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
 
     fireEvent.pointerDown(button, { pointerId: 1, clientX: 10, clientY: 10 });
@@ -34,7 +35,7 @@ describe("StageKnowledgeTrigger", () => {
 
   it("opens from native keyboard activation", () => {
     const onOpen = vi.fn();
-    render(<StageKnowledgeTrigger onOpen={onOpen} />);
+    render(<StageKnowledgeTrigger label={strings.bake.stageKnowledge.guides.autolyse.triggerLabel} onOpen={onOpen} />);
 
     fireEvent.click(screen.getByRole("button", { name: "הסבר על אוטוליזה" }), {
       detail: 0,
@@ -45,7 +46,7 @@ describe("StageKnowledgeTrigger", () => {
 
   it("suppresses opening when pointer movement exceeds 5px", () => {
     const onOpen = vi.fn();
-    render(<StageKnowledgeTrigger onOpen={onOpen} />);
+    render(<StageKnowledgeTrigger label={strings.bake.stageKnowledge.guides.autolyse.triggerLabel} onOpen={onOpen} />);
     const button = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
 
     fireEvent.pointerDown(button, { pointerId: 1, clientX: 10, clientY: 10 });
@@ -61,7 +62,7 @@ describe("StageKnowledgeTrigger", () => {
     "cleans press state and does not open after %s",
     (eventName) => {
       const onOpen = vi.fn();
-      render(<StageKnowledgeTrigger onOpen={onOpen} />);
+      render(<StageKnowledgeTrigger label={strings.bake.stageKnowledge.guides.autolyse.triggerLabel} onOpen={onOpen} />);
       const button = screen.getByRole("button", { name: "הסבר על אוטוליזה" });
 
       fireEvent.pointerDown(button, { pointerId: 1, clientX: 0, clientY: 0 });

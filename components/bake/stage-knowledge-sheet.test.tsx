@@ -216,3 +216,94 @@ describe("StageKnowledgeSheet", () => {
     expect(screen.getByText(content.decisionRule)).toBeInTheDocument();
   });
 });
+
+describe("StageKnowledgeSheet — bulk guide (F31 T5)", () => {
+  const bulk = getStageKnowledge(4)!;
+
+  function openBulk(recipe = makeRecipe(), doughTempC?: number | null) {
+    return render(
+      <StageKnowledgeSheet
+        open
+        content={bulk}
+        recipe={recipe}
+        doughTempC={doughTempC}
+        onClose={() => {}}
+      />,
+    );
+  }
+
+  it("renders the guide sections in order and no graph", () => {
+    openBulk();
+    expect(screen.getByText(bulk.intro)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: bulk.mechanism.heading })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: bulk.folds!.heading })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: bulk.recipeContext.heading })).toBeInTheDocument();
+    expect(screen.getByText(bulk.decisionRule)).toBeInTheDocument();
+    // locked in design: no quantified axes around rise percentages
+    expect(screen.queryByTestId("autolyse-guide-graph")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("autolyse-conceptual-graph")).not.toBeInTheDocument();
+  });
+
+  it("plays the stretch & fold demo inline and landscape — no card, no nested sheet", () => {
+    const { container } = openBulk();
+    const folds = screen.getByTestId("guide-folds");
+    const iframe = folds.querySelector("iframe")!;
+    expect(iframe.getAttribute("src")).toContain("youtube.com/embed/jrDy90gD710");
+    expect(iframe.parentElement!.className).toContain("aspect-video");
+    // one dialog only: the guide itself
+    expect(container.ownerDocument.querySelectorAll('[role="dialog"]').length).toBe(1);
+    expect(screen.queryByRole("button", { name: /ככה נראה בצק מוכן/ })).not.toBeInTheDocument();
+  });
+
+  it("follows a measured dough temperature over the kitchen temperature", () => {
+    const coolKitchen = makeRecipe({ kitchenTemp: 22 });
+    openBulk(coolKitchen, 27);
+    expect(screen.getByText(bulk.recipeContext.guidance.warmKitchen!)).toBeInTheDocument();
+  });
+
+  it("skips a factor that has no approved copy instead of rendering a blank", () => {
+    // a plain white bake resolves to `generic`, which is still COPY_TBD
+    const plain = makeRecipe({
+      flour: { white: 100, wholeWheat: 0, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
+      hydration: 72,
+      kitchenTemp: 22,
+    });
+    openBulk(plain, null);
+    const factors = screen.queryAllByTestId("autolyse-guidance-factor");
+    expect(factors).toHaveLength(0);
+    // the section itself still renders the recipe facts
+    expect(screen.getByRole("heading", { name: bulk.recipeContext.heading })).toBeInTheDocument();
+  });
+});
+
+describe("StageKnowledgeSheet — the facts panel names the temperature in play", () => {
+  const bulk = getStageKnowledge(4)!;
+
+  it("shows the measured dough temperature when the guidance used it", () => {
+    render(
+      <StageKnowledgeSheet
+        open
+        content={bulk}
+        recipe={makeRecipe({ kitchenTemp: 22 })}
+        doughTempC={27}
+        onClose={() => {}}
+      />,
+    );
+    expect(screen.getByText("טמפ׳ הבצק")).toBeInTheDocument();
+    expect(screen.getByText("27°C")).toBeInTheDocument();
+    expect(screen.queryByText("טמפ׳ מטבח")).not.toBeInTheDocument();
+  });
+
+  it("falls back to the kitchen temperature when nothing was measured", () => {
+    render(
+      <StageKnowledgeSheet
+        open
+        content={bulk}
+        recipe={makeRecipe({ kitchenTemp: 22 })}
+        onClose={() => {}}
+      />,
+    );
+    expect(screen.getByText("טמפ׳ מטבח")).toBeInTheDocument();
+    expect(screen.getByText("22°C")).toBeInTheDocument();
+  });
+});

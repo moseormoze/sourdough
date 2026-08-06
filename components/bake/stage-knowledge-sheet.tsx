@@ -6,12 +6,15 @@ import {
   type StageKnowledgeContent,
 } from "@/lib/data/stage-knowledge";
 import { strings } from "@/lib/strings";
+import { buildYouTubeEmbedSrc } from "@/lib/youtube";
 import type { Flour, Recipe } from "@/lib/types/recipe";
 
 export interface StageKnowledgeSheetProps {
   open: boolean;
   content: StageKnowledgeContent;
   recipe: Recipe;
+  /** Measured dough temperature, when the baker took one. */
+  doughTempC?: number | null;
   onClose: () => void;
 }
 
@@ -123,11 +126,13 @@ function ConceptualGraph({ graph }: { graph: GuideGraph }) {
 function RecipeContext({
   content,
   recipe,
+  doughTempC,
 }: {
   content: StageKnowledgeContent["recipeContext"];
   recipe: Recipe;
+  doughTempC?: number | null;
 }) {
-  const guidance = getStageGuidance(recipe);
+  const guidance = getStageGuidance({ ...recipe, doughTempC });
 
   return (
     <section
@@ -168,15 +173,27 @@ function RecipeContext({
           data-testid="autolyse-guide-inset"
           className="grid gap-1 rounded-2xl border border-ink/[0.06] bg-ink/[0.035] p-3.5"
         >
-          <dt className="text-tiny text-ink-2">{strings.form.kitchenTemp}</dt>
+          {/* Show the temperature the guidance actually used, or the panel reads
+              "kitchen 22°" directly above advice that fired on a 27° dough. */}
+          <dt className="text-tiny text-ink-2">
+            {typeof doughTempC === "number"
+              ? strings.bake.doughTemp.fieldLabel
+              : strings.form.kitchenTemp}
+          </dt>
           <dd className="text-body-lg font-semibold text-ink">
-            <NumberValue>{`${numberFormatter.format(recipe.kitchenTemp)}°C`}</NumberValue>
+            <NumberValue>
+              {`${numberFormatter.format(
+                typeof doughTempC === "number" ? doughTempC : recipe.kitchenTemp,
+              )}°C`}
+            </NumberValue>
           </dd>
         </div>
       </dl>
 
       <div className="mt-4 grid gap-3">
-        {guidance.map((factor) => (
+        {guidance
+          .filter((factor) => content.guidance[factor])
+          .map((factor) => (
           <p
             key={factor}
             data-testid="autolyse-guidance-factor"
@@ -195,6 +212,7 @@ export function StageKnowledgeSheet({
   open,
   content,
   recipe,
+  doughTempC,
   onClose,
 }: StageKnowledgeSheetProps) {
   return (
@@ -255,7 +273,44 @@ export function StageKnowledgeSheet({
           </section>
         )}
 
-        <RecipeContext content={content.recipeContext} recipe={recipe} />
+        {content.folds && (
+          <section
+            data-testid="guide-folds"
+            data-surface="glass"
+            className="rounded-[2rem] border border-paper/55 bg-paper/30 p-5 shadow-[0_1px_0_rgba(255,255,255,0.65),0_14px_36px_rgba(80,61,45,0.07)] backdrop-blur-sm"
+          >
+            <h3 className="text-heading text-ink">{content.folds.heading}</h3>
+            <p className="mt-3 text-body leading-relaxed text-ink-2">
+              {content.folds.body}
+            </p>
+            {content.folds.youtubeId && (
+              <div className="mt-4 overflow-hidden rounded-2xl bg-ink/[0.04]">
+                {/* Landscape, inline: a technique demo belongs beside the words
+                    it explains. A nested sheet is ruled out by the pilot. */}
+                <div className="relative aspect-video w-full">
+                  <iframe
+                    src={buildYouTubeEmbedSrc(content.folds.youtubeId)}
+                    title={content.folds.videoCaption ?? strings.bake.stageVideo.playerTitle}
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 h-full w-full"
+                  />
+                </div>
+                {content.folds.videoCaption && (
+                  <p className="px-4 py-2 text-tiny leading-relaxed text-ink-3">
+                    {content.folds.videoCaption}
+                  </p>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+
+        <RecipeContext
+          content={content.recipeContext}
+          recipe={recipe}
+          doughTempC={doughTempC}
+        />
 
         <div
           data-testid="autolyse-guide-practical"
