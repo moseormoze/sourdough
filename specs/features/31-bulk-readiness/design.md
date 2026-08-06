@@ -56,11 +56,13 @@ StickyActions (ללא שינוי)
   `{ open, onClose, youtubeId, orientation, caption, watchUrl }`. הנגן מקבל
   `aspect-[9/16]` לשורט ו-`aspect-video` לרגיל. מתחת לנגן **תמיד** שורת
   "פתחו ב-YouTube" — היא גם ה-fallback כשהנגן ריק.
-  **נקבע ב-T2 מ-QA מרונדר:** ה-Sheet חייב להיות מרונדר מ-`StageScreen`, כמו
-  `RescueSheet`, ולא מתוך `StageMedia`. כשהוא מורכב בעומק זרימת התוכן הוא נופל
-  להקשר ערימה (stacking context) שמתחת ל-FAB של המשוב, וה-FAB מצויר מעל הנגן
-  למרות ‏`z-sheet`. לכן `StageMedia` חושף `onOpenVideo` ואינו מחזיק state של
-  Sheet. ‏T3 מרכיב את ה-Sheet ברמת המסך.
+  **נקבע ב-T2 מ-QA מרונדר:** ה-Sheet מרונדר מ-`StageScreen`, כמו `RescueSheet`,
+  ולא מתוך `StageMedia`; ‏`StageMedia` חושף `onOpenVideo` ואינו מחזיק state של
+  Sheet, ו-T3 מרכיב את ה-Sheet ברמת המסך. **הנימוק המקורי כבר לא תקף:** אז
+  הרכבה בעומק זרימת התוכן הפילה את ה-Sheet להקשר ערימה (stacking context) שמתחת
+  ל-FAB של המשוב. ‏`BottomSheet` עבר מאז ל-`createPortal` ל-`body` (‏PR #110),
+  ולכן השכבה כבר לא תלויה במקום ההרכבה. החלוקה נשארת כי היא נכונה עיצובית —
+  המדיה נשארת רכיב תצוגה וה-state של ה-Sheet שייך למסך — ולא כי הפרימיטיב שביר.
 - **Modified: `StageMedia`** — מקבל `youtubeOrientation?: "landscape" | "portrait"`.
   ב-`portrait` הוא **אינו** מטמיע inline אלא מרנדר `StageVideoCard`. הסיבה נעולה
   מהפיילוט: מדיה אנכית בזרימת העמוד "תופסת כמעט מסך שלם" — זו הבעיה שפיילוט
@@ -79,8 +81,9 @@ StickyActions (ללא שינוי)
   החוזה שלו.
 - **Modified: `lib/data/stage-knowledge.ts`** — הכללה מטיפוס אוטוליזה יחיד למדריך
   פר-שלב + תוכן לשלב 4.
-- **Reused ללא שינוי:** `BottomSheet` (חוזה גרירה, focus trap, Escape,
-  scroll-lock, `prefers-reduced-motion`), `RescueSheet`, `StageKnowledgeSheet`,
+- **Reused:** `BottomSheet` — חוזה הגרירה, ‏focus trap, ‏Escape, ‏scroll-lock
+  ו-`prefers-reduced-motion` ללא שינוי; מאז ‏#110 הוא מרונדר ל-`body` דרך
+  `createPortal`, שינוי מבני שאינו נראה לקורא. גם `RescueSheet`, `StageKnowledgeSheet`,
   `StageKnowledgeTrigger`, `DoughTempCard`, `FoldDots`, `OptionalTimer`,
   `Briefing`, `InstructionCard`, `usePressActivation`.
 
