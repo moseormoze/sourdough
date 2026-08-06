@@ -505,3 +505,22 @@ describe("stage 4 — bulk readiness gate (feature 31)", () => {
     expect(photoStep).toMatch(/^אם תרצו/);
   });
 });
+
+describe("stage 4 — no judgment-dependent phrasing anywhere (feature 31)", () => {
+  const bulk = getStage(4)!;
+
+  it("keeps 'קליל וגמיש' out of every stage-4 string, not just the gate", () => {
+    const allCopy = [
+      bulk.briefing.blurb,
+      ...bulk.briefing.takeaways,
+      ...bulk.todo!.steps,
+      bulk.todo!.tip ?? "",
+      ...(bulk.checks ?? []),
+    ];
+    expect(allCopy.filter((s) => s.includes("קליל וגמיש"))).toEqual([]);
+  });
+
+  it("closes the instructions on the same observable sign as the gate", () => {
+    expect(bulk.todo!.steps.at(-1)).toContain("רוטט כמו ג׳לי");
+  });
+});
