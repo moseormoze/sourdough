@@ -76,7 +76,7 @@ describe("useActiveBake", () => {
     expect(loadActiveBake()).toBeNull();
   });
 
-  it("advanceTo() updates currentStage and stageStartedAt", async () => {
+  it("commitTo() updates currentStage and stageStartedAt", async () => {
     const recipe = saveRecipe(sample);
     const { result } = renderHook(() => useActiveBake());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -89,18 +89,18 @@ describe("useActiveBake", () => {
     await new Promise((r) => setTimeout(r, 2));
 
     act(() => {
-      result.current.advanceTo(4);
+      result.current.commitTo(4);
     });
     expect(result.current.activeBake?.currentStage).toBe(4);
     expect(result.current.activeBake?.stageStartedAt).toBeGreaterThan(startedAt);
     expect(loadActiveBake()?.currentStage).toBe(4);
   });
 
-  it("advanceTo() no-ops when there's no active bake", async () => {
+  it("commitTo() no-ops when there's no active bake", async () => {
     const { result } = renderHook(() => useActiveBake());
     await waitFor(() => expect(result.current.loading).toBe(false));
     act(() => {
-      result.current.advanceTo(5);
+      result.current.commitTo(5);
     });
     expect(result.current.activeBake).toBeNull();
   });
@@ -119,14 +119,14 @@ describe("useActiveBake — 03 extensions", () => {
     expect(result.current.activeBake?.subStep).toBe(2);
   });
 
-  it("advanceTo() resets subStep back to 0", async () => {
+  it("commitTo() resets subStep back to 0", async () => {
     const recipe = saveRecipe(sample);
     const { result } = renderHook(() => useActiveBake());
     await waitFor(() => expect(result.current.loading).toBe(false));
     act(() => { result.current.start(recipe); });
     act(() => { result.current.advanceSubStep(); });
     act(() => { result.current.advanceSubStep(); });
-    act(() => { result.current.advanceTo(5); });
+    act(() => { result.current.commitTo(5); });
     expect(result.current.activeBake?.subStep).toBe(0);
     expect(result.current.activeBake?.currentStage).toBe(5);
   });
@@ -235,7 +235,7 @@ describe("useActiveBake — 03 extensions", () => {
     expect(result.current.activeBake?.timerStartedAt).toBe(startedAt);
   });
 
-  it("advanceTo() clears timerStartedAt AND timerElapsedSeconds", async () => {
+  it("commitTo() clears timerStartedAt AND timerElapsedSeconds", async () => {
     const recipe = saveRecipe(sample);
     const { result } = renderHook(() => useActiveBake());
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -247,10 +247,94 @@ describe("useActiveBake — 03 extensions", () => {
     act(() => { result.current.pauseTimer(); });
     expect(result.current.activeBake?.timerElapsedSeconds).toBe(30);
 
-    act(() => { result.current.advanceTo(3); });
+    act(() => { result.current.commitTo(3); });
     expect(result.current.activeBake?.timerStartedAt).toBeNull();
     expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
     expect(result.current.activeBake?.timerDurationSeconds).toBeNull();
+
+    vi.restoreAllMocks();
+  });
+});
+
+// T1 (feature 27): navigating away from a stage must not destroy a running
+// timer. Committing forward ends the wait; anything else leaves it alone.
+describe("useActiveBake — T1 commit vs peek", () => {
+  it("commitTo() a stage already reached leaves a running timer untouched", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    act(() => { result.current.commitTo(4); });
+
+    const t0 = 30_000_000;
+    vi.spyOn(Date, "now").mockReturnValue(t0);
+    act(() => { result.current.startTimer(1800); });
+    expect(result.current.activeBake?.timerStartedAt).toBe(t0);
+
+    // The baker peeked back to stage 3 and tapped the primary action there,
+    // which asks to commit to 4 — a stage the bake already occupies. That is
+    // navigation, not a new advance, so the stage-4 timer must survive.
+    act(() => { result.current.commitTo(4); });
+    expect(result.current.activeBake?.timerStartedAt).toBe(t0);
+    expect(result.current.activeBake?.timerDurationSeconds).toBe(1800);
+    expect(result.current.activeBake?.currentStage).toBe(4);
+
+    vi.restoreAllMocks();
+  });
+
+  it("commitTo() an earlier stage does not reset subStep or the timer", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    act(() => { result.current.commitTo(4); });
+    act(() => { result.current.advanceSubStep(); });
+
+    const t0 = 40_000_000;
+    vi.spyOn(Date, "now").mockReturnValue(t0);
+    act(() => { result.current.startTimer(900); });
+    act(() => { result.current.commitTo(2); });
+
+    expect(result.current.activeBake?.currentStage).toBe(4);
+    expect(result.current.activeBake?.subStep).toBe(1);
+    expect(result.current.activeBake?.timerStartedAt).toBe(t0);
+    expect(result.current.activeBake?.timerDurationSeconds).toBe(900);
+
+    vi.restoreAllMocks();
+  });
+
+  it("commitTo() forward still ends the wait and resets stage state", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    act(() => { result.current.commitTo(4); });
+    act(() => { result.current.advanceSubStep(); });
+    act(() => { result.current.startTimer(600); });
+
+    act(() => { result.current.commitTo(5); });
+    expect(result.current.activeBake?.currentStage).toBe(5);
+    expect(result.current.activeBake?.subStep).toBe(0);
+    expect(result.current.activeBake?.timerStartedAt).toBeNull();
+    expect(result.current.activeBake?.timerElapsedSeconds).toBe(0);
+    expect(result.current.activeBake?.timerDurationSeconds).toBeNull();
+  });
+
+  it("persists the preserved timer, so a reload still shows it running", async () => {
+    const recipe = saveRecipe(sample);
+    const { result } = renderHook(() => useActiveBake());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => { result.current.start(recipe); });
+    act(() => { result.current.commitTo(4); });
+
+    const t0 = 50_000_000;
+    vi.spyOn(Date, "now").mockReturnValue(t0);
+    act(() => { result.current.startTimer(1200); });
+    act(() => { result.current.commitTo(3); });
+
+    expect(loadActiveBake()?.timerStartedAt).toBe(t0);
+    expect(loadActiveBake()?.timerDurationSeconds).toBe(1200);
+    expect(loadActiveBake()?.currentStage).toBe(4);
 
     vi.restoreAllMocks();
   });

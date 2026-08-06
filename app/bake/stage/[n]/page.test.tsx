@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import StagePage from "./page";
 import { saveRecipe } from "@/lib/storage/recipes";
 import { saveActiveBake } from "@/lib/storage/active-bake";
+import { getStage } from "@/lib/data/stages";
 import { routerMock, paramsMock } from "../../../../vitest.setup";
 
 const sample = {
@@ -63,12 +64,25 @@ describe("/bake/stage/[n] page", () => {
     });
   });
 
-  it("redirects to the correct stage when currentStage differs from URL", async () => {
+  // T1 (feature 27): an already-completed stage stays readable, so the baker can
+  // re-read an earlier step while the current wait keeps running. Only skipping
+  // ahead is still redirected.
+  it("renders an earlier stage without redirecting", async () => {
     seedActive(7);
     paramsMock.n = "3";
     render(<StagePage />);
     await waitFor(() => {
-      expect(routerMock.replace).toHaveBeenCalledWith("/bake/stage/7");
+      expect(screen.getByText(getStage(3)!.briefing.heading)).toBeInTheDocument();
+    });
+    expect(routerMock.replace).not.toHaveBeenCalled();
+  });
+
+  it("redirects when the URL stage is ahead of the bake", async () => {
+    seedActive(3);
+    paramsMock.n = "7";
+    render(<StagePage />);
+    await waitFor(() => {
+      expect(routerMock.replace).toHaveBeenCalledWith("/bake/stage/3");
     });
   });
 

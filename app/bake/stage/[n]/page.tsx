@@ -12,7 +12,7 @@ export default function Page() {
   const {
     activeBake,
     loading,
-    advanceTo,
+    commitTo,
     advanceSubStep,
     setDoughTemp,
     setTimerRemaining,
@@ -36,12 +36,15 @@ export default function Page() {
       router.replace(`/bake/stage/${activeBake.currentStage}`);
       return;
     }
-    if (activeBake.currentStage !== requested) {
+    // Stages already completed stay readable — that is how the baker re-reads an
+    // earlier step while the current wait keeps running. Only skipping *ahead*
+    // is redirected, which preserves the original no-skip guard.
+    if (requested > activeBake.currentStage) {
       router.replace(`/bake/stage/${activeBake.currentStage}`);
     }
   }, [loading, activeBake, validRequest, requested, router]);
 
-  if (loading || !activeBake || !validRequest || activeBake.currentStage !== requested) {
+  if (loading || !activeBake || !validRequest || requested > activeBake.currentStage) {
     return null;
   }
 
@@ -53,7 +56,7 @@ export default function Page() {
       stage={stage}
       activeBake={activeBake}
       api={{
-        advanceTo,
+        commitTo,
         advanceSubStep,
         setDoughTemp,
         setTimerRemaining,

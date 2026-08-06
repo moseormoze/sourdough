@@ -42,7 +42,7 @@ export interface StageScreenProps {
   activeBake: ActiveBake;
   api: Pick<
     UseActiveBakeApi,
-    | "advanceTo"
+    | "commitTo"
     | "advanceSubStep"
     | "setDoughTemp"
     | "setTimerRemaining"
@@ -118,26 +118,38 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
     typeof stage.subSteps === "number" &&
     activeBake.subStep < stage.subSteps;
 
+  // The bake owns ONE timer, and it belongs to the stage the bake is actually
+  // on. A stage being re-read is not that stage, so it must not render timer UI:
+  // otherwise an earlier stage paints the current stage's countdown as its own,
+  // and its pause button would control a wait it doesn't own. The travelling
+  // timer that *does* follow the baker is T4's job.
+  const isCurrentStage = stage.n === activeBake.currentStage;
+
   function commitPrimary() {
     if (stage.type === "done") {
       router.push("/bake/done");
       return;
     }
-    api.advanceTo(stage.n + 1);
+    api.commitTo(stage.n + 1);
     router.push(`/bake/stage/${stage.n + 1}`);
   }
 
   function handlePrimary() {
-    if (isAutolysePilot && !autolyseFinished) {
+    // The early-advance confirmation belongs to the stage that owns the timer.
+    // Walking forward through an already-completed stage must not raise it.
+    if (isAutolysePilot && isCurrentStage && !autolyseFinished) {
       setAdvanceConfirmOpen(true);
       return;
     }
     commitPrimary();
   }
 
+  // Back is a peek: it re-reads an earlier stage while the current wait keeps
+  // running, so it touches no bake state at all. The route is the view pointer;
+  // `currentStage` is how far the bake has actually got, and it owns the timer.
+  // This used to call advanceTo(n-1), which cleared all three timer fields.
   function handleBack() {
     if (stage.n <= 1) return;
-    api.advanceTo(stage.n - 1);
     router.push(`/bake/stage/${stage.n - 1}`);
   }
 
@@ -152,10 +164,12 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   })();
 
   const glassCard = `${AMBIENT_GLASS} p-5 max-[340px]:p-4`;
-  const showBulkTimer = stage.type === "bulk" && durationSeconds !== undefined;
-  const showStandaloneTimer = stage.type === "timer" && durationSeconds !== undefined;
+  const showBulkTimer =
+    isCurrentStage && stage.type === "bulk" && durationSeconds !== undefined;
+  const showStandaloneTimer =
+    isCurrentStage && stage.type === "timer" && durationSeconds !== undefined;
   const levainTimerSecs =
-    stage.n === 1
+    isCurrentStage && stage.n === 1
       ? starterPeakSecs(activeBake.recipe.kitchenTemp, activeBake.feedRatio)
       : null;
 
@@ -261,7 +275,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           </div>
         ) : null}
 
-        {stage.n === 2 && (
+        {stage.n === 2 && isCurrentStage && (
           <AutolyseTimer
             durationSeconds={
               autolyseDurationSeconds
