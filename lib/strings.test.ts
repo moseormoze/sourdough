@@ -32,9 +32,9 @@ describe("strings — stage knowledge", () => {
       caveat:
         "המראה תלוי בקמח ובהידרציה; השוו את הבצק לעצמו בתחילת המנוחה, לא למראה קבוע אחד.",
     });
-    expect(knowledge.guide.title).toBe("להבין את הבצק");
-    expect(knowledge.guide.recipeContext.guidance).toHaveProperty("generic");
-    expect(knowledge.guide.recipeContext.guidance).not.toHaveProperty("white");
+    expect(knowledge.guides.autolyse.title).toBe("להבין את הבצק");
+    expect(knowledge.guides.autolyse.recipeContext.guidance).toHaveProperty("generic");
+    expect(knowledge.guides.autolyse.recipeContext.guidance).not.toHaveProperty("white");
     expect(knowledge).not.toHaveProperty("faqTitle");
     expect(knowledge).not.toHaveProperty("troubleshootingTitle");
   });
