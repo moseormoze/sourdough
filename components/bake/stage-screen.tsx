@@ -26,6 +26,7 @@ import {
   DEFAULT_AUTOLYSE_DURATION_SECONDS,
   deriveTimerSnapshot,
   formatTimerTime,
+  resolveStageTimerOptions,
 } from "@/lib/bake-timer";
 import { getStage, TOTAL_STAGES, type Stage } from "@/lib/data/stages";
 import { getRescue } from "@/lib/data/rescue";
@@ -268,6 +269,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             }
             startedAt={activeBake.timerStartedAt}
             elapsedSeconds={activeBake.timerElapsedSeconds}
+            options={resolveStageTimerOptions(activeBake, stage)}
             nowMs={timerNow}
             onStart={(durationSeconds) => api.startTimer(durationSeconds)}
             onPause={api.pauseTimer}

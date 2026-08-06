@@ -14,6 +14,7 @@ function renderTimer(
       durationSeconds={DEFAULT_DURATION}
       startedAt={null}
       elapsedSeconds={0}
+      options={[30 * 60, 45 * 60, 60 * 60]}
       onStart={noop}
       onPause={noop}
       onResume={noop}
@@ -57,17 +58,13 @@ describe("AutolyseTimer", () => {
   it("keeps the duration selector behind the requested CTA", () => {
     renderTimer();
 
-    expect(screen.queryByRole("listbox", { name: "שעות" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("listbox", { name: "דקות" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "הפעל טיימר" }));
 
     const dialog = screen.getByRole("dialog", { name: "בחירת זמן" });
-    expect(within(dialog).getByRole("listbox", { name: "שעות" })).toBeInTheDocument();
-    expect(within(dialog).getByRole("listbox", { name: "דקות" })).toBeInTheDocument();
-    expect(within(dialog).getByRole("option", { name: "0 שעות" })).toHaveAttribute(
-      "aria-selected",
-      "true"
-    );
+    // T3: one column of the stage's curated stops, not free hours × minutes
+    expect(within(dialog).getByRole("listbox")).toBeInTheDocument();
+    expect(within(dialog).getAllByRole("option")).toHaveLength(3);
     expect(within(dialog).getByRole("option", { name: "45 דקות" })).toHaveAttribute(
       "aria-selected",
       "true"
@@ -80,36 +77,33 @@ describe("AutolyseTimer", () => {
     fireEvent.click(screen.getByRole("button", { name: "הפעל טיימר" }));
 
     const dialog = screen.getByRole("dialog", { name: "בחירת זמן" });
-    fireEvent.click(within(dialog).getByRole("option", { name: "1 שעה" }));
-    fireEvent.click(within(dialog).getByRole("option", { name: "30 דקות" }));
+    fireEvent.click(within(dialog).getByRole("option", { name: "60 דקות" }));
     fireEvent.click(within(dialog).getByRole("button", { name: "הפעל טיימר" }));
 
-    expect(onStart).toHaveBeenCalledWith(90 * 60);
+    expect(onStart).toHaveBeenCalledWith(60 * 60);
     act(() => vi.advanceTimersByTime(250));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("selects an hour by dragging the wheel and displays long timers as hours", () => {
+  it("selects a stop by dragging the wheel and displays long timers as hours", () => {
     const onStart = vi.fn();
     const { rerender } = renderTimer({ onStart });
     fireEvent.click(screen.getByRole("button", { name: "הפעל טיימר" }));
 
     const dialog = screen.getByRole("dialog", { name: "בחירת זמן" });
-    const hoursWheel = within(dialog).getByRole("listbox", { name: "שעות" });
-    const minutesWheel = within(dialog).getByRole("listbox", { name: "דקות" });
-    Object.defineProperty(hoursWheel, "scrollTop", { value: 2 * 56, writable: true });
-    Object.defineProperty(minutesWheel, "scrollTop", { value: 4 * 56, writable: true });
-    fireEvent.scroll(hoursWheel);
-    fireEvent.scroll(minutesWheel);
-    act(() => vi.advanceTimersByTime(100));
+    const wheel = within(dialog).getByRole("listbox");
+    Object.defineProperty(wheel, "scrollTop", { value: 0, writable: true });
+    fireEvent.scroll(wheel);
+    act(() => vi.advanceTimersByTime(150));
     fireEvent.click(within(dialog).getByRole("button", { name: "הפעל טיימר" }));
-    expect(onStart).toHaveBeenCalledWith(140 * 60);
+    expect(onStart).toHaveBeenCalledWith(30 * 60);
 
     rerender(
       <AutolyseTimer
         durationSeconds={140 * 60}
         startedAt={Date.now()}
         elapsedSeconds={0}
+        options={[30 * 60, 45 * 60, 60 * 60]}
         onStart={noop}
         onPause={noop}
         onResume={noop}
@@ -168,14 +162,14 @@ describe("AutolyseTimer", () => {
     expect(dialog).toHaveClass(
       "bg-[linear-gradient(160deg,_#FFF8F1_0%,_#FFDDBD_22%,_#F7F0E7_55%,_#DDEDF2_100%)]",
     );
-    expect(within(dialog).getByTestId("autolyse-duration-wheel")).toHaveAttribute(
+    expect(within(dialog).getByTestId("duration-wheel")).toHaveAttribute(
       "data-surface",
       "glass",
     );
-    expect(within(dialog).getByTestId("autolyse-duration-wheel")).not.toHaveClass(
+    expect(within(dialog).getByTestId("duration-wheel")).not.toHaveClass(
       "from-[#FFD0A0]/55",
     );
-    expect(within(dialog).getByRole("listbox", { name: "שעות" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("listbox")).toBeInTheDocument();
     expect(within(dialog).queryByRole("progressbar", { name: "זמן שנותר" })).not.toBeInTheDocument();
     expect(screen.queryByRole("dialog", { name: "טיימר אוטוליזה" })).not.toBeInTheDocument();
   });
@@ -186,11 +180,11 @@ describe("AutolyseTimer", () => {
     fireEvent.click(screen.getByRole("button", { name: "עריכת זמן" }));
 
     const dialog = screen.getByRole("dialog", { name: "עריכת זמן שנותר" });
-    fireEvent.click(within(dialog).getByRole("option", { name: "1 שעה" }));
     fireEvent.click(within(dialog).getByRole("option", { name: "30 דקות" }));
     expect(onSetRemaining).not.toHaveBeenCalled();
     fireEvent.click(within(dialog).getByRole("button", { name: "שמור זמן" }));
-    expect(onSetRemaining).toHaveBeenCalledWith(90 * 60);
+    // one stop = one duration: picking "30 דקות" sets 30 minutes remaining
+    expect(onSetRemaining).toHaveBeenCalledWith(30 * 60);
     act(() => vi.advanceTimersByTime(250));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
@@ -227,6 +221,7 @@ describe("AutolyseTimer", () => {
         durationSeconds={DEFAULT_DURATION}
         startedAt={Date.now()}
         elapsedSeconds={60}
+        options={[30 * 60, 45 * 60, 60 * 60]}
         onStart={noop}
         onPause={noop}
         onResume={noop}

@@ -5,6 +5,7 @@ import {
   deriveTimerSnapshot,
   formatTimerTime,
   resolveCurrentStageTimer,
+  resolveStageTimerOptions,
 } from "./bake-timer";
 
 function makeBake(overrides: Partial<ActiveBake> = {}): ActiveBake {
@@ -153,5 +154,64 @@ describe("resolveCurrentStageTimer", () => {
         getStage(3)!,
       ),
     ).toBeNull();
+  });
+});
+
+describe("resolveStageTimerOptions", () => {
+  const MIN = 60;
+
+  it("returns no stops for a stage without a timer", () => {
+    expect(resolveStageTimerOptions(makeBake({ currentStage: 3 }), getStage(3)!)).toEqual([]);
+  });
+
+  // Every set must contain the duration the stage already ships with, so opening
+  // the wheel can never silently move a default.
+  it.each([
+    [2, 45 * MIN],
+    [4, 30 * MIN],
+    [9, 20 * MIN],
+    [10, 22 * MIN],
+    [11, 60 * MIN],
+  ])("stage %i includes its shipped default (%i s)", (stage, shipped) => {
+    const options = resolveStageTimerOptions(
+      makeBake({ currentStage: stage }),
+      getStage(stage)!,
+    );
+    expect(options).toContain(shipped);
+  });
+
+  it("stage 8 covers both per-method preheat durations", () => {
+    const options = resolveStageTimerOptions(makeBake({ currentStage: 8 }), getStage(8)!);
+    expect(options).toContain(45 * MIN);
+    expect(options).toContain(50 * MIN);
+  });
+
+  it("stage 1 spreads an hour either side of the computed peak", () => {
+    const bake = makeBake({ currentStage: 1 });
+    const options = resolveStageTimerOptions(bake, getStage(1)!);
+    const computed = resolveCurrentStageTimer(bake, getStage(1)!)!.durationSeconds;
+    expect(options).toContain(computed);
+    expect(options).toHaveLength(3);
+    expect(Math.min(...options)).toBe(computed - 3600);
+    expect(Math.max(...options)).toBe(computed + 3600);
+  });
+
+  it("stage 7 spreads the planned retard and clamps to 8–48h", () => {
+    const options = resolveStageTimerOptions(
+      makeBake({ currentStage: 7, retardHours: 10 }),
+      getStage(7)!,
+    );
+    // 10h planned → 8 (clamped from 6), 10, 14
+    expect(options).toContain(10 * 3600);
+    expect(Math.min(...options)).toBeGreaterThanOrEqual(8 * 3600);
+    expect(Math.max(...options)).toBeLessThanOrEqual(48 * 3600);
+  });
+
+  it("always returns ascending, de-duplicated stops", () => {
+    for (const n of [1, 2, 4, 7, 8, 9, 10, 11]) {
+      const options = resolveStageTimerOptions(makeBake({ currentStage: n }), getStage(n)!);
+      expect(options.length).toBeGreaterThan(0);
+      expect([...options]).toEqual([...new Set(options)].sort((a, b) => a - b));
+    }
   });
 });

@@ -101,3 +101,69 @@ export function resolveCurrentStageTimer(
     ? null
     : { durationSeconds, clampFutureStart: false, rounding: "floor" };
 }
+
+const MIN = 60;
+const HOUR = 60 * MIN;
+
+/**
+ * Curated stops per stage, anchored so that each set contains the duration the
+ * stage already ships with — choosing a timer never changes a default silently.
+ * Durations are recycled from the earlier feature-27 analysis, but mapped onto
+ * the stage list on `main` (that analysis was written against a list where 9 was
+ * scoring, so its stage numbers are off by one from 9 upward).
+ *
+ * Stages 1 and 7 are computed per bake and resolved in `resolveStageTimerOptions`.
+ * Stages 3, 5, 6 and 12 carry no timer.
+ */
+const STATIC_TIMER_OPTIONS: Record<number, readonly number[]> = {
+  2: [30 * MIN, 45 * MIN, 60 * MIN], // autolyse — ships 45
+  4: [15 * MIN, 20 * MIN, 30 * MIN, 45 * MIN], // bulk fold reminder — ships 30
+  8: [30 * MIN, 45 * MIN, 50 * MIN, 60 * MIN], // preheat — ships 45, or 50 by method
+  9: [18 * MIN, 20 * MIN, 22 * MIN, 25 * MIN], // covered bake — ships 20
+  10: [20 * MIN, 22 * MIN, 25 * MIN, 30 * MIN], // uncovered bake — ships 22
+  11: [45 * MIN, 60 * MIN, 90 * MIN], // cooling — ships 60
+};
+
+const LEVAIN_SPREAD_SECONDS = HOUR;
+const RETARD_SPREAD_HOURS = 4;
+const RETARD_MIN_HOURS = 8;
+const RETARD_MAX_HOURS = 48;
+
+function unique(values: number[]): number[] {
+  return [...new Set(values)].sort((a, b) => a - b);
+}
+
+/**
+ * The stops offered for a stage's timer. Empty when the stage has no timer.
+ * The resolved duration is always included, so the wheel can always show the
+ * value it is currently sitting on.
+ */
+export function resolveStageTimerOptions(
+  activeBake: ActiveBake,
+  stage: Stage,
+): readonly number[] {
+  const resolved = resolveCurrentStageTimer(activeBake, stage);
+  if (resolved === null) return [];
+
+  if (stage.n === 1) {
+    const base = resolved.durationSeconds;
+    return unique([
+      Math.max(MIN, base - LEVAIN_SPREAD_SECONDS),
+      base,
+      base + LEVAIN_SPREAD_SECONDS,
+    ]);
+  }
+
+  if (stage.n === 7) {
+    const planned = activeBake.retardHours;
+    const hours = unique(
+      [planned - RETARD_SPREAD_HOURS, planned, planned + RETARD_SPREAD_HOURS]
+        .map((h) => Math.min(RETARD_MAX_HOURS, Math.max(RETARD_MIN_HOURS, h))),
+    );
+    return unique([...hours.map((h) => h * HOUR), resolved.durationSeconds]);
+  }
+
+  const options = STATIC_TIMER_OPTIONS[stage.n];
+  if (options === undefined) return [resolved.durationSeconds];
+  return unique([...options, resolved.durationSeconds]);
+}

@@ -29,6 +29,8 @@ export interface AutolyseTimerProps {
   elapsedSeconds: number;
   /** shared page clock; defaults to the current time for static renders */
   nowMs?: number;
+  /** the stage's curated stops, in seconds */
+  options: readonly number[];
   onStart: (durationSeconds: number) => void;
   onPause: () => void;
   onResume: () => void;
@@ -59,8 +61,12 @@ export function formatAutolyseCountdown(secondsLeft: number): string {
   return formatTimerTime(secondsLeft, secondsLeft, "ceil");
 }
 
-function nearestWheelMinutes(seconds: number): number {
-  return Math.min(23 * 60 + 55, Math.max(5, Math.round(seconds / 60 / 5) * 5));
+/** Snap an arbitrary duration onto the nearest curated stop. */
+function nearestOption(seconds: number, options: readonly number[]): number {
+  if (options.length === 0) return seconds;
+  return options.reduce((best, option) =>
+    Math.abs(option - seconds) < Math.abs(best - seconds) ? option : best
+  );
 }
 
 function TimerSignal({ finished }: { finished: boolean }) {
@@ -160,6 +166,7 @@ export function AutolyseTimer({
   startedAt,
   elapsedSeconds,
   nowMs = Date.now(),
+  options,
   onStart,
   onPause,
   onResume,
@@ -168,7 +175,7 @@ export function AutolyseTimer({
 }: AutolyseTimerProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<SheetMode>("setup");
-  const [draftMinutes, setDraftMinutes] = useState(() => nearestWheelMinutes(durationSeconds));
+  const [draftSeconds, setDraftSeconds] = useState(() => nearestOption(durationSeconds, options));
 
   const { state: timerPhase, secondsLeft } = getAutolyseTimerState(
     durationSeconds,
@@ -189,24 +196,24 @@ export function AutolyseTimer({
         : strings.bake.autolyseTimer.running;
 
   function openSetup() {
-    setDraftMinutes(nearestWheelMinutes(durationSeconds));
+    setDraftSeconds(nearestOption(durationSeconds, options));
     setSheetMode("setup");
     setSheetOpen(true);
   }
 
   function openEdit() {
-    setDraftMinutes(nearestWheelMinutes(secondsLeft));
+    setDraftSeconds(nearestOption(secondsLeft, options));
     setSheetMode("edit");
     setSheetOpen(true);
   }
 
   function startSelectedTimer() {
-    onStart(draftMinutes * 60);
+    onStart(draftSeconds);
     setSheetOpen(false);
   }
 
   function saveRemainingTime() {
-    onSetRemaining(draftMinutes * 60);
+    onSetRemaining(draftSeconds);
     setSheetOpen(false);
   }
 
@@ -339,11 +346,15 @@ export function AutolyseTimer({
             ? strings.bake.autolyseTimer.setupHint
             : strings.bake.autolyseTimer.editHint}
         </p>
-        <DurationWheel valueMinutes={draftMinutes} onChange={setDraftMinutes} />
+        <DurationWheel
+          options={options}
+          valueSeconds={draftSeconds}
+          onChange={setDraftSeconds}
+        />
         <Button
           variant="primary"
           onClick={sheetMode === "setup" ? startSelectedTimer : saveRemainingTime}
-          disabled={draftMinutes === 0}
+          disabled={draftSeconds === 0}
           className="mt-5 w-full bg-[#292A28] hover:!bg-[#343532]"
           iconStart={sheetMode === "setup" ? <Play size={18} /> : undefined}
         >
