@@ -31,6 +31,11 @@ function open(props: Partial<React.ComponentProps<typeof StageVideoSheet>> = {})
   return { ...result, onClose };
 }
 
+// The sheet portals to <body>, so it is never inside render()'s container.
+const getPanel = () => screen.getByRole("dialog");
+const getIframe = () => getPanel().querySelector("iframe");
+const getHandle = () => getPanel().querySelector(".cursor-grab")!;
+
 describe("StageVideoSheet", () => {
   it("renders nothing while closed", () => {
     const { container } = render(
@@ -42,26 +47,27 @@ describe("StageVideoSheet", () => {
       />,
     );
     expect(container.firstChild).toBeNull();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("plays a portrait asset in a 9:16 frame", () => {
-    const { container } = open();
-    const iframe = container.querySelector("iframe");
+    open();
+    const iframe = getIframe();
     expect(iframe).toBeInTheDocument();
     expect(iframe!.parentElement!.className).toContain("aspect-[9/16]");
     expect(iframe!.parentElement!.className).not.toContain("aspect-video");
   });
 
   it("plays a landscape asset in a 16:9 frame", () => {
-    const { container } = open({ orientation: "landscape" });
-    const iframe = container.querySelector("iframe");
+    open({ orientation: "landscape" });
+    const iframe = getIframe();
     expect(iframe!.parentElement!.className).toContain("aspect-video");
     expect(iframe!.parentElement!.className).not.toContain("aspect-[9/16]");
   });
 
   it("starts muted, looping, inline, with controls and no related videos", () => {
-    const { container } = open();
-    const src = container.querySelector("iframe")!.getAttribute("src")!;
+    open();
+    const src = getIframe()!.getAttribute("src")!;
     expect(src).toContain(`youtube.com/embed/${youtubeId}`);
     for (const param of [
       "autoplay=1",
@@ -78,8 +84,8 @@ describe("StageVideoSheet", () => {
   });
 
   it("gives the player an accessible title", () => {
-    const { container } = open({ caption: "Milk and Pop" });
-    expect(container.querySelector("iframe")!.getAttribute("title")).toBeTruthy();
+    open({ caption: "Milk and Pop" });
+    expect(getIframe()!.getAttribute("title")).toBeTruthy();
   });
 
   it("renders the source caption", () => {
@@ -88,7 +94,7 @@ describe("StageVideoSheet", () => {
   });
 
   it("always offers the external escape route beneath the player", () => {
-    const { container } = open();
+    open();
     const link = screen.getByRole("link", { name: strings.bake.stageVideo.watchOnYouTube });
     expect(link).toHaveAttribute("href", `https://www.youtube.com/watch?v=${youtubeId}`);
     expect(link).toHaveAttribute("target", "_blank");
@@ -96,8 +102,8 @@ describe("StageVideoSheet", () => {
     expect(link.className).toContain("min-h-touch");
 
     // beneath, not above
-    const nodes = Array.from(container.querySelectorAll("iframe, a"));
-    expect(nodes.indexOf(container.querySelector("iframe")!)).toBeLessThan(
+    const nodes = Array.from(getPanel().querySelectorAll("iframe, a"));
+    expect(nodes.indexOf(getIframe()!)).toBeLessThan(
       nodes.indexOf(link),
     );
   });
@@ -111,8 +117,8 @@ describe("StageVideoSheet", () => {
 
   it("replaces the player with a message and the link when offline", () => {
     setOnline(false);
-    const { container } = open();
-    expect(container.querySelector("iframe")).toBeNull();
+    open();
+    expect(getIframe()).toBeNull();
     expect(screen.getByText(strings.bake.stageVideo.offline)).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: strings.bake.stageVideo.watchOnYouTube }),
@@ -121,18 +127,18 @@ describe("StageVideoSheet", () => {
 
   it("recovers the player when the connection comes back while open", () => {
     setOnline(false);
-    const { container } = open();
-    expect(container.querySelector("iframe")).toBeNull();
+    open();
+    expect(getIframe()).toBeNull();
     act(() => {
       setOnline(true);
       window.dispatchEvent(new Event("online"));
     });
-    expect(container.querySelector("iframe")).toBeInTheDocument();
+    expect(getIframe()).toBeInTheDocument();
   });
 
   it("keeps the BottomSheet drag-dismiss contract", () => {
-    const { container, onClose } = open();
-    const handle = container.querySelector(".cursor-grab")!;
+    const { onClose } = open();
+    const handle = getHandle();
     fireEvent.pointerDown(handle, { clientY: 0 });
     fireEvent.pointerMove(handle, { clientY: 100 });
     fireEvent.pointerUp(handle, { clientY: 100 });
@@ -140,8 +146,8 @@ describe("StageVideoSheet", () => {
   });
 
   it("dismisses on a short flick (velocity rule)", () => {
-    const { container, onClose } = open();
-    const handle = container.querySelector(".cursor-grab")!;
+    const { onClose } = open();
+    const handle = getHandle();
     fireEvent.pointerDown(handle, { clientY: 0 });
     fireEvent.pointerMove(handle, { clientY: 20 });
     fireEvent.pointerUp(handle, { clientY: 20 });
@@ -151,8 +157,8 @@ describe("StageVideoSheet", () => {
   it("snaps back on a short, slow drag", () => {
     vi.useFakeTimers();
     try {
-      const { container, onClose } = open();
-      const handle = container.querySelector(".cursor-grab")!;
+      const { onClose } = open();
+      const handle = getHandle();
       fireEvent.pointerDown(handle, { clientY: 0 });
       fireEvent.pointerMove(handle, { clientY: 20 });
       vi.advanceTimersByTime(400); // 20px / 400ms = 0.05px/ms — well under 0.5
@@ -164,8 +170,8 @@ describe("StageVideoSheet", () => {
   });
 
   it("does not dismiss when the pointer never crosses the 5px drag threshold", () => {
-    const { container, onClose } = open();
-    const handle = container.querySelector(".cursor-grab")!;
+    const { onClose } = open();
+    const handle = getHandle();
     fireEvent.pointerDown(handle, { clientY: 0 });
     fireEvent.pointerMove(handle, { clientY: 3 });
     fireEvent.pointerUp(handle, { clientY: 3 });
