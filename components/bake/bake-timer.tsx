@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import { Pause, Pencil, Play, RotateCcw, Timer } from "lucide-react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import { DurationWheel } from "./duration-wheel";
 
 export { DEFAULT_AUTOLYSE_DURATION_SECONDS } from "@/lib/bake-timer";
 
-export interface AutolyseTimerProps {
+export interface BakeTimerProps {
   durationSeconds: number;
   /** epoch ms when the current run segment started, or null when idle/paused */
   startedAt: number | null;
@@ -29,6 +29,14 @@ export interface AutolyseTimerProps {
   elapsedSeconds: number;
   /** shared page clock; defaults to the current time for static renders */
   nowMs?: number;
+  /**
+   * Stage-specific copy. Omitted where the stage has no approved wording yet —
+   * T6 fills the remaining stages; nothing generic is invented in the meantime.
+   */
+  idleHint?: string;
+  setupHint?: string;
+  /** T4b widens this to "travelling" | "status". */
+  variant?: "stage";
   onStart: (durationSeconds: number) => void;
   onPause: () => void;
   onResume: () => void;
@@ -37,14 +45,14 @@ export interface AutolyseTimerProps {
 }
 
 type SheetMode = "setup" | "edit";
-export type AutolyseTimerState = TimerPhase;
+export type BakeTimerState = TimerPhase;
 
-export function getAutolyseTimerState(
+export function getBakeTimerState(
   durationSeconds: number,
   startedAt: number | null,
   elapsedSeconds: number,
   nowMs = Date.now(),
-): { state: AutolyseTimerState; secondsLeft: number } {
+): { state: BakeTimerState; secondsLeft: number } {
   const { phase, secondsLeft } = deriveTimerSnapshot({
     durationSeconds,
     startedAt,
@@ -55,7 +63,7 @@ export function getAutolyseTimerState(
   return { state: phase, secondsLeft };
 }
 
-export function formatAutolyseCountdown(secondsLeft: number): string {
+export function formatBakeCountdown(secondsLeft: number): string {
   return formatTimerTime(secondsLeft, secondsLeft, "ceil");
 }
 
@@ -63,114 +71,58 @@ function nearestWheelMinutes(seconds: number): number {
   return Math.min(23 * 60 + 55, Math.max(5, Math.round(seconds / 60 / 5) * 5));
 }
 
-function TimerSignal({ finished }: { finished: boolean }) {
-  const signalId = useId().replace(/:/g, "");
-  const glowId = `timer-signal-glow-${signalId}`;
-  // Monochrome on charcoal: the screen's single live colour is the current
-  // progress dot (rollout language spec).
-  const signalStroke = finished ? "rgba(31,26,20,0.45)" : "rgba(255,255,255,0.92)";
-  const smokeId = `timer-signal-smoke-${signalId}`;
-  const path =
-    "M4 23 C22 23 29 13 44 14 C57 15 64 25 78 23 C96 20 103 8 119 10 C137 12 145 20 156 12";
+function TimerProgress({
+  secondsLeft,
+  durationSeconds,
+}: {
+  secondsLeft: number;
+  durationSeconds: number;
+}) {
+  const ratio =
+    durationSeconds > 0
+      ? Math.min(1, Math.max(0, secondsLeft / durationSeconds))
+      : 0;
+  const width = `${Math.round(ratio * 10000) / 100}%`;
 
   return (
     <span
-      data-testid="autolyse-timer-signal"
-      aria-hidden
-      className="mt-0.5 block h-5 w-full"
+      data-testid="timer-progress"
+      aria-hidden="true"
+      className="mt-2 block h-[3px] w-full overflow-hidden rounded-full bg-paper/20"
     >
-      <svg
-        viewBox="0 0 160 28"
-        preserveAspectRatio="none"
-        className="h-full w-full overflow-visible"
-        focusable="false"
-      >
-        <defs>
-          <filter id={glowId} x="-20%" y="-80%" width="140%" height="260%">
-            <feGaussianBlur stdDeviation="1.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id={smokeId} x="-25%" y="-130%" width="150%" height="360%">
-            <feTurbulence
-              type="fractalNoise"
-              baseFrequency="0.012 0.14"
-              numOctaves="2"
-              seed="7"
-              result="noise"
-            />
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="noise"
-              scale="8"
-              xChannelSelector="R"
-              yChannelSelector="B"
-              result="drift"
-            />
-            <feGaussianBlur in="drift" stdDeviation="3.6" />
-          </filter>
-        </defs>
-        <g
-          data-testid="autolyse-timer-smoke"
-          opacity={finished ? 0.04 : 0.18}
-          filter={`url(#${smokeId})`}
-        >
-          <path
-            d={path}
-            fill="none"
-            stroke={signalStroke}
-            strokeWidth="5"
-            strokeLinecap="round"
-          />
-          <path
-            d={path}
-            fill="none"
-            stroke={finished ? "rgba(31,26,20,0.35)" : "white"}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            transform="translate(0 -2)"
-          />
-        </g>
-        <path
-          d={path}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="0.8"
-          strokeLinecap="round"
-          className={finished ? "text-ink/10" : "text-paper/15"}
-        />
-        <path
-          data-testid="autolyse-timer-line"
-          d={path}
-          fill="none"
-          stroke={signalStroke}
-          strokeWidth="1.25"
-          strokeLinecap="round"
-          filter={`url(#${glowId})`}
-        />
-      </svg>
+      {/*
+        Physical `to-l` is deliberate: the app is RTL-only, so the fill grows
+        from the start (right) edge and the warm end sits where reading begins.
+        Tailwind has no logical gradient direction.
+      */}
+      <span
+        data-testid="timer-progress-fill"
+        style={{ width }}
+        className="block h-full rounded-full bg-gradient-to-l from-accent to-accent-2 transition-[width] duration-base ease-out motion-reduce:transition-none"
+      />
     </span>
   );
 }
 
-export function AutolyseTimer({
+export function BakeTimer({
   durationSeconds,
   startedAt,
   elapsedSeconds,
   nowMs = Date.now(),
+  idleHint,
+  setupHint,
+  variant = "stage",
   onStart,
   onPause,
   onResume,
   onReset,
   onSetRemaining,
-}: AutolyseTimerProps) {
+}: BakeTimerProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<SheetMode>("setup");
   const [draftMinutes, setDraftMinutes] = useState(() => nearestWheelMinutes(durationSeconds));
 
-  const { state: timerPhase, secondsLeft } = getAutolyseTimerState(
+  const { state: timerPhase, secondsLeft } = getBakeTimerState(
     durationSeconds,
     startedAt,
     elapsedSeconds,
@@ -179,14 +131,14 @@ export function AutolyseTimer({
   const isIdle = timerPhase === "idle";
   const isFinished = timerPhase === "finished";
   const isPaused = timerPhase === "paused";
-  const formattedTime = formatAutolyseCountdown(secondsLeft);
+  const formattedTime = formatBakeCountdown(secondsLeft);
   const timerState = isIdle
-    ? strings.bake.autolyseTimer.heading
+    ? strings.bake.bakeTimer.heading
     : isFinished
-      ? strings.bake.autolyseTimer.finished
+      ? strings.bake.bakeTimer.finished
       : isPaused
-        ? strings.bake.autolyseTimer.paused
-        : strings.bake.autolyseTimer.running;
+        ? strings.bake.bakeTimer.paused
+        : strings.bake.bakeTimer.running;
 
   function openSetup() {
     setDraftMinutes(nearestWheelMinutes(durationSeconds));
@@ -212,7 +164,12 @@ export function AutolyseTimer({
 
   return (
     <>
-      <div id="autolyse-timer" data-testid="autolyse-timer" data-state={timerPhase}>
+      <div
+        id="bake-timer"
+        data-testid="bake-timer"
+        data-state={timerPhase}
+        data-timer-variant={variant}
+      >
         {!isIdle && (
           <span role="status" aria-live="polite" aria-atomic="true" className="sr-only">
             {timerState}
@@ -221,7 +178,7 @@ export function AutolyseTimer({
 
         {isIdle ? (
           <section
-            data-testid="autolyse-timer-card"
+            data-testid="bake-timer-card"
             data-variant="compact"
             data-surface="glass"
             className={cn("overflow-hidden p-5", AMBIENT_GLASS)}
@@ -237,9 +194,11 @@ export function AutolyseTimer({
                 <h3 className="text-tiny font-medium text-ink-2" dir="rtl">
                   {timerState}
                 </h3>
-                <p className="mt-1 text-small leading-relaxed text-ink-2">
-                  {strings.bake.autolyseTimer.idleHint}
-                </p>
+                {idleHint && (
+                  <p className="mt-1 text-small leading-relaxed text-ink-2">
+                    {idleHint}
+                  </p>
+                )}
               </div>
             </div>
             <Button
@@ -249,12 +208,12 @@ export function AutolyseTimer({
               className="mt-4 w-full"
               iconStart={<Timer size={17} />}
             >
-              {strings.bake.autolyseTimer.start}
+              {strings.bake.bakeTimer.start}
             </Button>
           </section>
         ) : (
           <section
-            data-testid="autolyse-timer-card"
+            data-testid="bake-timer-card"
             data-variant="compact"
             data-surface={isFinished ? "glass" : "charcoal"}
             className={cn(
@@ -273,7 +232,7 @@ export function AutolyseTimer({
                   )}
                   dir="rtl"
                 >
-                  {strings.bake.autolyseTimer.heading}
+                  {strings.bake.bakeTimer.heading}
                 </h3>
                 <span
                   dir="ltr"
@@ -281,7 +240,10 @@ export function AutolyseTimer({
                 >
                   {formattedTime}
                 </span>
-                <TimerSignal finished={isFinished} />
+                <TimerProgress
+                  secondsLeft={secondsLeft}
+                  durationSeconds={durationSeconds}
+                />
               </div>
 
               <div className="flex shrink-0 items-center gap-1.5 pe-3 ps-1">
@@ -289,10 +251,10 @@ export function AutolyseTimer({
                   type="button"
                   onClick={isFinished ? onReset : isPaused ? onResume : onPause}
                   aria-label={isFinished
-                    ? strings.bake.autolyseTimer.reset
+                    ? strings.bake.bakeTimer.reset
                     : isPaused
-                      ? strings.bake.autolyseTimer.resume
-                      : strings.bake.autolyseTimer.pause}
+                      ? strings.bake.bakeTimer.resume
+                      : strings.bake.bakeTimer.pause}
                   className={cn(
                     "pressable inline-flex size-11 items-center justify-center rounded-full transition-colors duration-fast ease-out focus-visible:outline-none focus-visible:ring-2",
                     isFinished
@@ -309,7 +271,7 @@ export function AutolyseTimer({
                 <button
                   type="button"
                   onClick={openEdit}
-                  aria-label={strings.bake.autolyseTimer.edit}
+                  aria-label={strings.bake.bakeTimer.edit}
                   className={cn(
                     "pressable inline-flex size-11 items-center justify-center rounded-full transition-colors duration-fast ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-2",
                     isFinished
@@ -330,15 +292,15 @@ export function AutolyseTimer({
         onClose={() => setSheetOpen(false)}
         size="peek"
         title={sheetMode === "setup"
-          ? strings.bake.autolyseTimer.setupTitle
-          : strings.bake.autolyseTimer.editTitle}
+          ? strings.bake.bakeTimer.setupTitle
+          : strings.bake.bakeTimer.editTitle}
         variant="pilot"
       >
-        <p className="mb-4 text-body leading-relaxed text-ink-2">
-          {sheetMode === "setup"
-            ? strings.bake.autolyseTimer.setupHint
-            : strings.bake.autolyseTimer.editHint}
-        </p>
+        {(sheetMode === "setup" ? setupHint : strings.bake.bakeTimer.editHint) && (
+          <p className="mb-4 text-body leading-relaxed text-ink-2">
+            {sheetMode === "setup" ? setupHint : strings.bake.bakeTimer.editHint}
+          </p>
+        )}
         <DurationWheel valueMinutes={draftMinutes} onChange={setDraftMinutes} />
         <Button
           variant="primary"
@@ -348,8 +310,8 @@ export function AutolyseTimer({
           iconStart={sheetMode === "setup" ? <Play size={18} /> : undefined}
         >
           {sheetMode === "setup"
-            ? strings.bake.autolyseTimer.start
-            : strings.bake.autolyseTimer.saveTime}
+            ? strings.bake.bakeTimer.start
+            : strings.bake.bakeTimer.saveTime}
         </Button>
       </BottomSheet>
     </>

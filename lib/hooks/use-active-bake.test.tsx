@@ -3,7 +3,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { useActiveBake } from "./use-active-bake";
 import { saveRecipe } from "@/lib/storage/recipes";
 import { loadActiveBake } from "@/lib/storage/active-bake";
-import { getAutolyseTimerState } from "@/components/bake/autolyse-timer";
+import { getBakeTimerState } from "@/components/bake/bake-timer";
 
 const sample = {
   name: "כפרי",
@@ -172,7 +172,7 @@ describe("useActiveBake — 03 extensions", () => {
     expect(pausedTimer?.timerElapsedSeconds).toBe(5 * 60);
     expect(pausedTimer?.timerStartedAt).toBeNull();
     expect(
-      getAutolyseTimerState(
+      getBakeTimerState(
         pausedTimer?.timerDurationSeconds ?? 0,
         pausedTimer?.timerStartedAt ?? null,
         pausedTimer?.timerElapsedSeconds ?? 0,

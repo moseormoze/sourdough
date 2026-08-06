@@ -487,6 +487,64 @@ cards["dark/controls/index.html"] = page("בקרות על כהה", "עולם כ�
     </div>
   </div>`);
 
+cards["dark/timer/index.html"] = page("טיימר — הקונכייה המשותפת", "עולם כהה", `
+  <p class="cap">קונכייה אחת לכל שלב שנושא המתנה (‏1, 2, 4, 7–11). ‏idle/סיום = glass; ריצה/השהיה = charcoal. הפס מייצג זמן — <code>secondsLeft / durationSeconds</code> — ואינו קפיץ (‏playbook §4).</p>
+
+  <p class="cap">idle — הרמז פר־שלב, ומושמט בשלב שאין לו קופי מאושר</p>
+  <div class="glass" style="padding:20px">
+    <div style="display:flex;align-items:flex-start;gap:12px">
+      <span style="width:40px;height:40px;border-radius:16px;background:rgba(31,26,20,.04);display:flex;align-items:center;justify-content:center;flex:0 0 auto">⏱</span>
+      <div style="min-width:0;flex:1">
+        <p style="font-size:12px;font-weight:500;color:var(--ink-2)">טיימר</p>
+        <p style="font-size:13px;color:var(--ink-2);margin-top:4px;line-height:1.6">אחרי שכל הקמח רטוב והקערה מכוסה, אפשר להפעיל טיימר למנוחה.</p>
+      </div>
+    </div>
+    <button class="chip" style="width:100%;margin-top:16px;background:rgba(255,255,255,.7);color:var(--ink-2)">הפעל טיימר</button>
+  </div>
+
+  <p class="cap">ריצה — hero charcoal, זמן display mono, פס כתום</p>
+  <div class="charcoal charcoal-shadow" style="border-radius:32px;display:flex;align-items:stretch;overflow:hidden">
+    <div style="min-width:0;flex:1;padding:14px 20px;text-align:start">
+      <p style="font-size:12px;font-weight:500;color:rgba(255,255,255,.65)">טיימר</p>
+      <p class="num" style="font-size:44px;font-weight:600;line-height:1;margin-top:4px">32:10</p>
+      <div style="height:3px;border-radius:999px;background:rgba(255,255,255,.2);overflow:hidden;margin-top:8px">
+        <div style="width:71%;height:100%;border-radius:999px;background:linear-gradient(270deg,#E66B3D,#F2BC8E)"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding-inline-end:12px;padding-inline-start:4px;flex:0 0 auto">
+      <span style="width:44px;height:44px;border-radius:999px;background:#fff;color:var(--charcoal);display:flex;align-items:center;justify-content:center">❚❚</span>
+      <span style="width:44px;height:44px;border-radius:999px;background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center">✎</span>
+    </div>
+  </div>
+
+  <p class="cap">השהיה — זהה, ‏play במקום pause, הפס קפוא</p>
+  <div class="charcoal charcoal-shadow" style="border-radius:32px;display:flex;align-items:stretch;overflow:hidden">
+    <div style="min-width:0;flex:1;padding:14px 20px;text-align:start">
+      <p style="font-size:12px;font-weight:500;color:rgba(255,255,255,.65)">טיימר</p>
+      <p class="num" style="font-size:44px;font-weight:600;line-height:1;margin-top:4px">32:10</p>
+      <div style="height:3px;border-radius:999px;background:rgba(255,255,255,.2);overflow:hidden;margin-top:8px">
+        <div style="width:71%;height:100%;border-radius:999px;background:linear-gradient(270deg,#E66B3D,#F2BC8E)"></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding-inline-end:12px;padding-inline-start:4px;flex:0 0 auto">
+      <span style="width:44px;height:44px;border-radius:999px;background:#fff;color:var(--charcoal);display:flex;align-items:center;justify-content:center">▶</span>
+      <span style="width:44px;height:44px;border-radius:999px;background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center">✎</span>
+    </div>
+  </div>
+
+  <p class="cap">סיום — sage, ‏reset במקום pause. הפס ריק</p>
+  <div style="border:1px solid rgba(191,199,160,.5);background:rgba(236,239,220,.7);border-radius:32px;display:flex;align-items:stretch;overflow:hidden">
+    <div style="min-width:0;flex:1;padding:14px 20px;text-align:start">
+      <p style="font-size:12px;font-weight:500;color:var(--ink-2)">טיימר</p>
+      <p class="num" style="font-size:44px;font-weight:600;line-height:1;margin-top:4px;color:var(--ink)">00:00</p>
+      <div style="height:3px;border-radius:999px;background:rgba(31,26,20,.08);overflow:hidden;margin-top:8px"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding-inline-end:12px;padding-inline-start:4px;flex:0 0 auto">
+      <span style="width:44px;height:44px;border-radius:999px;background:var(--charcoal);color:var(--paper);display:flex;align-items:center;justify-content:center">↺</span>
+      <span style="width:44px;height:44px;border-radius:999px;background:rgba(31,26,20,.04);color:var(--ink-2);display:flex;align-items:center;justify-content:center">✎</span>
+    </div>
+  </div>`);
+
 /* ═══════════════ build ═══════════════ */
 
 rmSync(OUT, { recursive: true, force: true });

@@ -162,10 +162,10 @@ export function DurationWheel({ valueMinutes, onChange }: DurationWheelProps) {
 
       <div className="relative flex items-start gap-3" dir="ltr">
         <WheelColumn
-          label={strings.bake.autolyseTimer.hoursLabel}
+          label={strings.bake.bakeTimer.hoursLabel}
           options={HOUR_OPTIONS}
           value={hours}
-          optionLabel={strings.bake.autolyseTimer.hoursOption}
+          optionLabel={strings.bake.bakeTimer.hoursOption}
           onChange={changeHours}
         />
         <span
@@ -175,10 +175,10 @@ export function DurationWheel({ valueMinutes, onChange }: DurationWheelProps) {
           :
         </span>
         <WheelColumn
-          label={strings.bake.autolyseTimer.minutesLabel}
+          label={strings.bake.bakeTimer.minutesLabel}
           options={MINUTE_OPTIONS}
           value={minutes}
-          optionLabel={strings.bake.autolyseTimer.durationOption}
+          optionLabel={strings.bake.bakeTimer.durationOption}
           onChange={changeMinutes}
         />
       </div>

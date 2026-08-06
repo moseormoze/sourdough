@@ -138,7 +138,18 @@ describe("StageScreen — basic stage", () => {
   it("stage 1 shows a levain timer based on feed ratio and kitchen temp", () => {
     const stage = getStage(1)!;
     render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
-    expect(screen.getByRole("button", { name: /התחל טיימר/ })).toBeInTheDocument();
+    expect(screen.getByTestId("bake-timer-card")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: strings.bake.bakeTimer.start }),
+    ).toBeInTheDocument();
+  });
+
+  it("carries no autolyse hint onto stages that have no approved copy yet", () => {
+    const stage = getStage(1)!;
+    render(<StageScreen stage={stage} activeBake={makeBake(1)} api={makeApi()} />);
+    expect(
+      screen.queryByText(strings.bake.autolyseTimer.idleHint),
+    ).not.toBeInTheDocument();
   });
 
   it("stage 1 checklist has title 'מתי להמשיך לשלב הבא'", () => {
@@ -225,7 +236,7 @@ describe("StageScreen — basic stage", () => {
     });
     // viewing stage 2 (autolyse) while the bake is on stage 4
     render(<StageScreen stage={getStage(2)!} activeBake={bake} api={makeApi()} />);
-    expect(screen.queryByTestId("autolyse-timer-card")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("bake-timer-card")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "השהה" })).not.toBeInTheDocument();
   });
 
@@ -236,7 +247,7 @@ describe("StageScreen — basic stage", () => {
       timerDurationSeconds: 1800,
     });
     render(<StageScreen stage={getStage(2)!} activeBake={bake} api={makeApi()} />);
-    expect(screen.getByTestId("autolyse-timer-card")).toBeInTheDocument();
+    expect(screen.getByTestId("bake-timer-card")).toBeInTheDocument();
   });
 
   it("back button does not touch a running timer", () => {
@@ -363,7 +374,7 @@ describe("StageScreen — stage knowledge pilot", () => {
       "data-surface",
       "glass",
     );
-    const timer = screen.getByTestId("autolyse-timer");
+    const timer = screen.getByTestId("bake-timer");
     expect(within(timer).getByRole("heading", { name: "טיימר" })).toBeInTheDocument();
     expect(within(timer).getByRole("status")).toHaveTextContent("הטיימר מושהה");
     expect(within(timer).getByText("44:00")).toHaveAttribute("dir", "ltr");
@@ -383,9 +394,9 @@ describe("StageScreen — stage knowledge pilot", () => {
 
     expect(screen.queryByTestId("autolyse-reentry-cue")).not.toBeInTheDocument();
     expect(
-      within(screen.getByTestId("autolyse-timer")).getByRole("heading", { name: "טיימר" }),
+      within(screen.getByTestId("bake-timer")).getByRole("heading", { name: "טיימר" }),
     ).toBeInTheDocument();
-    expect(within(screen.getByTestId("autolyse-timer")).getByRole("status")).toHaveTextContent(
+    expect(within(screen.getByTestId("bake-timer")).getByRole("status")).toHaveTextContent(
       "הטיימר הסתיים",
     );
     expect(screen.getByRole("region", { name: "מתי להמשיך לשלב הבא" })).not.toHaveClass(
@@ -412,7 +423,7 @@ describe("StageScreen — stage knowledge pilot", () => {
 
     expect(setIntervalSpy).toHaveBeenCalledTimes(1);
     act(() => { vi.advanceTimersByTime(2_000); });
-    expect(screen.getByTestId("autolyse-timer")).toHaveAttribute("data-state", "finished");
+    expect(screen.getByTestId("bake-timer")).toHaveAttribute("data-state", "finished");
     expect(vi.getTimerCount()).toBe(0);
   });
 
@@ -604,20 +615,20 @@ describe("StageScreen — redesigned composition (wave 6 shell)", () => {
         api={makeApi()}
       />,
     );
-    const card = screen.getByTestId("autolyse-timer-card");
+    const card = screen.getByTestId("bake-timer-card");
     expect(card).toHaveAttribute("data-surface", "charcoal");
     const digits = within(card).getByText("44:00");
     expect(digits.className).toContain("font-mono");
     expect(digits.className).toContain("text-display-lg");
     // main sub-action on charcoal = white fill, charcoal text
     const control = within(card).getByRole("button", {
-      name: strings.bake.autolyseTimer.resume,
+      name: strings.bake.bakeTimer.resume,
     });
     expect(control.className).toContain("bg-paper");
     expect(control.className).toContain("text-[#292A28]");
     // secondary control = paper/10 inset
     expect(
-      within(card).getByRole("button", { name: strings.bake.autolyseTimer.edit }).className,
+      within(card).getByRole("button", { name: strings.bake.bakeTimer.edit }).className,
     ).toContain("bg-paper/10");
   });
 
@@ -692,12 +703,18 @@ describe("StageScreen — bulk (stage 4) sub-step flow", () => {
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/5");
   });
 
-  it("shows the optional 30-min rest timer inside the folds section", () => {
+  it("lifts the bulk timer out of the folds section into the shared card", () => {
     const stage = getStage(4)!;
     render(<StageScreen stage={stage} activeBake={makeBake(4)} api={makeApi()} />);
-    const timer = screen.getByRole("button", { name: /התחל טיימר/ });
+    const card = screen.getByTestId("bake-timer-card");
     const foldsSection = screen.getByText("קיפולים").closest("section");
-    expect(foldsSection).toContainElement(timer);
+
+    // The charcoal hero must not nest inside the folds glass card, but the
+    // fold-cadence hint it used to sit under stays where it was.
+    expect(foldsSection).not.toContainElement(card);
+    expect(
+      within(foldsSection!).getByText(/המרווחים יכולים לגדול ככל שהבצק מתחזק/),
+    ).toBeInTheDocument();
   });
 
   it("shows the fold interval hint near the timer", () => {
@@ -866,10 +883,16 @@ describe("StageScreen — bakingMethod variants (stages 8-10)", () => {
 });
 
 describe("StageScreen — timer stage", () => {
-  it("shows the optional timer button in idle state", () => {
+  it("shows the shared timer card in idle state", () => {
     const stage = getStage(7)!;
     render(<StageScreen stage={stage} activeBake={makeBake(7)} api={makeApi()} />);
-    expect(screen.getByRole("button", { name: /התחל טיימר/ })).toBeInTheDocument();
+    expect(screen.getByTestId("bake-timer-card")).toHaveAttribute(
+      "data-surface",
+      "glass",
+    );
+    expect(
+      screen.getByRole("button", { name: strings.bake.bakeTimer.start }),
+    ).toBeInTheDocument();
   });
 
   it("'הבא' is still enabled regardless of timer state", () => {
@@ -882,12 +905,22 @@ describe("StageScreen — timer stage", () => {
     expect(api.commitTo).toHaveBeenCalledWith(8);
   });
 
-  it("clicking 'התחל טיימר' calls startTimer", () => {
+  it("starts the wait through the wheel instead of a fixed stage duration", () => {
     const stage = getStage(7)!;
     const api = makeApi();
     render(<StageScreen stage={stage} activeBake={makeBake(7)} api={api} />);
-    fireEvent.click(screen.getByRole("button", { name: /התחל טיימר/ }));
-    expect(api.startTimer).toHaveBeenCalledWith();
+
+    // The card opens the picker; nothing starts until the baker confirms.
+    fireEvent.click(screen.getByRole("button", { name: strings.bake.bakeTimer.start }));
+    expect(api.startTimer).not.toHaveBeenCalled();
+
+    const dialog = screen.getByRole("dialog", { name: strings.bake.bakeTimer.setupTitle });
+    fireEvent.click(within(dialog).getByRole("option", { name: "10 שעות" }));
+    fireEvent.click(within(dialog).getByRole("option", { name: "30 דקות" }));
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: strings.bake.bakeTimer.start }),
+    );
+    expect(api.startTimer).toHaveBeenCalledWith((10 * 60 + 30) * 60);
   });
 });
 
@@ -1074,5 +1107,47 @@ describe("StageScreen — bulk decision zone (feature 31)", () => {
       ).not.toBeInTheDocument();
       unmount();
     }
+  });
+});
+
+describe("StageScreen — one shared timer shell (feature 27, T4a)", () => {
+  it.each([[1], [2], [4], [7], [8], [9], [10], [11]])(
+    "stage %i renders the shared BakeTimer card, not the old pill",
+    (n) => {
+      const stage = getStage(n)!;
+      const { unmount } = render(
+        <StageScreen stage={stage} activeBake={makeBake(n)} api={makeApi()} />,
+      );
+      expect(screen.getByTestId("bake-timer-card")).toBeInTheDocument();
+      unmount();
+    },
+  );
+
+  it.each([[3], [5], [6], [12]])("stage %i carries no timer at all", (n) => {
+    const stage = getStage(n)!;
+    const { unmount } = render(
+      <StageScreen stage={stage} activeBake={makeBake(n)} api={makeApi()} />,
+    );
+    expect(screen.queryByTestId("bake-timer-card")).not.toBeInTheDocument();
+    unmount();
+  });
+
+  it("keeps the migrated stages on the shared clock so the countdown ticks", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-06T10:00:00Z"));
+    const stage = getStage(7)!;
+    render(
+      <StageScreen
+        stage={stage}
+        activeBake={makeBake(7, {
+          timerStartedAt: Date.now(),
+          timerDurationSeconds: 20 * 60,
+        })}
+        api={makeApi()}
+      />,
+    );
+    expect(screen.getByText("20:00")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(screen.getByText("19:00")).toBeInTheDocument();
   });
 });

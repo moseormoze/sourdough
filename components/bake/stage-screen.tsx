@@ -12,14 +12,13 @@ import { InstructionCard } from "./instruction-card";
 import { ChecklistReference } from "./checklist-reference";
 import { DoughTempCard } from "./dough-temp-card";
 import { FoldDots } from "./fold-dots";
-import { OptionalTimer } from "./optional-timer";
 import { SafetyWarning } from "./safety-warning";
 import { StageCelebration } from "./stage-celebration";
 import { StageMedia } from "./stage-media";
 import { AutolyseCalibration } from "./autolyse-calibration";
 import { StageKnowledgeTrigger } from "./stage-knowledge-hub";
 import { StageKnowledgeSheet } from "./stage-knowledge-sheet";
-import { AutolyseTimer } from "./autolyse-timer";
+import { BakeTimer } from "./bake-timer";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { AMBIENT_CANVAS, AMBIENT_GLASS } from "@/components/ui/ambient";
 import {
@@ -79,51 +78,65 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const durationSeconds = methodOverride?.durationSeconds ?? stage.durationSeconds;
   const warning = methodOverride?.warning;
   const isAutolysePilot = stage.n === 2;
-  const autolyseDurationSeconds =
-    activeBake.timerDurationSeconds ?? DEFAULT_AUTOLYSE_DURATION_SECONDS;
-  const autolyseTimerSnapshot = deriveTimerSnapshot({
-    durationSeconds: autolyseDurationSeconds,
+
+  // The bake owns ONE timer, and it belongs to the stage the bake is actually
+  // on. A stage being re-read is not that stage, so it must not render timer UI:
+  // otherwise an earlier stage paints the current stage's countdown as its own,
+  // and its pause button would control a wait it doesn't own. The travelling
+  // timer that *does* follow the baker is T4b's job.
+  const isCurrentStage = stage.n === activeBake.currentStage;
+
+  // Every stage that carries a wait now runs through one shell, one duration and
+  // one clock. `null` means this stage has no timer at all (3, 5, 6, 12).
+  const stageTimerDefaultSeconds: number | null =
+    stage.n === 2
+      ? DEFAULT_AUTOLYSE_DURATION_SECONDS
+      : stage.n === 1
+        ? starterPeakSecs(activeBake.recipe.kitchenTemp, activeBake.feedRatio)
+        : (stage.type === "bulk" || stage.type === "timer") &&
+            durationSeconds !== undefined
+          ? durationSeconds
+          : null;
+  const showStageTimer = isCurrentStage && stageTimerDefaultSeconds !== null;
+  // A time the baker picked on the wheel outranks the stage's suggestion.
+  const stageTimerSeconds =
+    activeBake.timerDurationSeconds ?? stageTimerDefaultSeconds ?? 0;
+  const timerSnapshot = deriveTimerSnapshot({
+    durationSeconds: stageTimerSeconds,
     startedAt: activeBake.timerStartedAt,
     elapsedSeconds: activeBake.timerElapsedSeconds,
     nowMs: timerNow,
   });
-  const autolyseTimerState = autolyseTimerSnapshot.phase;
+  const autolyseTimerState = timerSnapshot.phase;
   const autolyseFinished = autolyseTimerState === "finished";
   const autolyseTimerStatus = autolyseFinished
-    ? strings.bake.autolyseTimer.finished
+    ? strings.bake.bakeTimer.finished
     : autolyseTimerState === "paused"
-      ? strings.bake.autolyseTimer.paused
+      ? strings.bake.bakeTimer.paused
       : autolyseTimerState === "running"
-        ? strings.bake.autolyseTimer.running
-        : strings.bake.autolyseTimer.heading;
+        ? strings.bake.bakeTimer.running
+        : strings.bake.bakeTimer.heading;
   const autolyseFormattedTime = formatTimerTime(
-    autolyseTimerSnapshot.secondsLeft,
-    autolyseDurationSeconds,
+    timerSnapshot.secondsLeft,
+    stageTimerSeconds,
     "ceil",
   );
 
   useEffect(() => {
     if (
-      !isAutolysePilot ||
+      !showStageTimer ||
       activeBake.timerStartedAt === null ||
       autolyseFinished
     ) return;
     setTimerNow(Date.now());
     const intervalId = window.setInterval(() => setTimerNow(Date.now()), 1000);
     return () => window.clearInterval(intervalId);
-  }, [activeBake.timerStartedAt, autolyseFinished, isAutolysePilot]);
+  }, [activeBake.timerStartedAt, autolyseFinished, showStageTimer]);
 
   const foldsRemaining =
     stage.type === "bulk" &&
     typeof stage.subSteps === "number" &&
     activeBake.subStep < stage.subSteps;
-
-  // The bake owns ONE timer, and it belongs to the stage the bake is actually
-  // on. A stage being re-read is not that stage, so it must not render timer UI:
-  // otherwise an earlier stage paints the current stage's countdown as its own,
-  // and its pause button would control a wait it doesn't own. The travelling
-  // timer that *does* follow the baker is T4's job.
-  const isCurrentStage = stage.n === activeBake.currentStage;
 
   function commitPrimary() {
     if (stage.type === "done") {
@@ -164,14 +177,6 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   })();
 
   const glassCard = `${AMBIENT_GLASS} p-5 max-[340px]:p-4`;
-  const showBulkTimer =
-    isCurrentStage && stage.type === "bulk" && durationSeconds !== undefined;
-  const showStandaloneTimer =
-    isCurrentStage && stage.type === "timer" && durationSeconds !== undefined;
-  const levainTimerSecs =
-    isCurrentStage && stage.n === 1
-      ? starterPeakSecs(activeBake.recipe.kitchenTemp, activeBake.feedRatio)
-      : null;
 
   return (
     <>
@@ -275,15 +280,16 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
           </div>
         ) : null}
 
-        {stage.n === 2 && isCurrentStage && (
-          <AutolyseTimer
-            durationSeconds={
-              autolyseDurationSeconds
-            }
+        {showStageTimer && (
+          <BakeTimer
+            variant="stage"
+            durationSeconds={stageTimerSeconds}
             startedAt={activeBake.timerStartedAt}
             elapsedSeconds={activeBake.timerElapsedSeconds}
             nowMs={timerNow}
-            onStart={(durationSeconds) => api.startTimer(durationSeconds)}
+            idleHint={isAutolysePilot ? strings.bake.autolyseTimer.idleHint : undefined}
+            setupHint={isAutolysePilot ? strings.bake.autolyseTimer.setupHint : undefined}
+            onStart={(seconds) => api.startTimer(seconds)}
             onPause={api.pauseTimer}
             onResume={api.resumeTimer}
             onReset={api.resetTimer}
@@ -320,41 +326,14 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
                 בסימני ״מתי להמשיך״ שלמטה.
               </p>
             )}
-            {showBulkTimer && durationSeconds !== undefined && (
-              <div className="mt-4 pt-4 border-t border-ink/[0.08]">
-                <OptionalTimer
-                  durationSeconds={durationSeconds}
-                  startedAt={activeBake.timerStartedAt}
-                  elapsedSeconds={activeBake.timerElapsedSeconds}
-                  onStart={api.startTimer}
-                  onPause={api.pauseTimer}
-                  onResume={api.resumeTimer}
-                  onReset={api.resetTimer}
-                  appearance="inset"
-                />
-                <p className="mt-2 text-tiny text-ink-3 leading-relaxed">
-                  {foldsRemaining
-                    ? "3–4 קיפולים ב-2 השעות הראשונות — המרווחים יכולים לגדול ככל שהבצק מתחזק."
-                    : "הטיימר יכול להזכיר לכם לבדוק את הבצק כל ~30 דקות."}
-                </p>
-              </div>
+            {showStageTimer && (
+              <p className="mt-4 pt-4 border-t border-ink/[0.08] text-tiny text-ink-3 leading-relaxed">
+                {foldsRemaining
+                  ? "3–4 קיפולים ב-2 השעות הראשונות — המרווחים יכולים לגדול ככל שהבצק מתחזק."
+                  : "הטיימר יכול להזכיר לכם לבדוק את הבצק כל ~30 דקות."}
+              </p>
             )}
           </section>
-        )}
-
-        {levainTimerSecs !== null && (
-          <div className="self-start">
-            <OptionalTimer
-              durationSeconds={levainTimerSecs}
-              startedAt={activeBake.timerStartedAt}
-              elapsedSeconds={activeBake.timerElapsedSeconds}
-              onStart={api.startTimer}
-              onPause={api.pauseTimer}
-              onResume={api.resumeTimer}
-              onReset={api.resetTimer}
-              appearance="inset"
-            />
-          </div>
         )}
 
         {checks && checks.length > 0 && (
@@ -382,21 +361,6 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
 
         {knowledge && (
           <StageKnowledgeTrigger onOpen={openKnowledge} />
-        )}
-
-        {showStandaloneTimer && durationSeconds !== undefined && (
-          <div className="self-start">
-            <OptionalTimer
-              durationSeconds={durationSeconds}
-              startedAt={activeBake.timerStartedAt}
-              elapsedSeconds={activeBake.timerElapsedSeconds}
-              onStart={api.startTimer}
-              onPause={api.pauseTimer}
-              onResume={api.resumeTimer}
-              onReset={api.resetTimer}
-              appearance="inset"
-            />
-          </div>
         )}
 
         {rescue && (
