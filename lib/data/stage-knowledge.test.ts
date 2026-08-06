@@ -7,6 +7,8 @@ import {
   getStageKnowledge,
   type StageKnowledgeContent,
 } from "./stage-knowledge";
+import { strings } from "@/lib/strings";
+import { STRETCH_AND_FOLD_VIDEO } from "./stages";
 import type { RecipeFormValues } from "@/lib/validate-recipe";
 
 type AutolyseContext = Pick<
@@ -31,10 +33,11 @@ function makeContext(overrides: Partial<AutolyseContext> = {}): AutolyseContext 
 }
 
 describe("stage knowledge data", () => {
-  it("exposes one guide only for the autolyse stage", () => {
+  it("exposes a guide only for the stages that have one", () => {
     expect(getStageKnowledge(2)).toBe(AUTOLYSE_GUIDE);
+    expect(getStageKnowledge(4)).not.toBeNull();
 
-    for (const stageN of [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+    for (const stageN of [1, 3, 5, 6, 7, 8, 9, 10, 11, 12]) {
       expect(getStageKnowledge(stageN), `stage ${stageN}`).toBeNull();
     }
   });
@@ -170,8 +173,8 @@ const GUIDANCE_CASES: Record<string, AutolyseContext> = {
 describe("stage knowledge registry (F31 T4 — generalized guide type)", () => {
   it("resolves guides through a per-stage registry, not a hard-coded stage number", () => {
     expect(STAGE_KNOWLEDGE[2]).toBe(getStageKnowledge(2));
-    expect(Object.keys(STAGE_KNOWLEDGE)).toEqual(["2"]);
-    for (const stageN of [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+    expect(Object.keys(STAGE_KNOWLEDGE)).toEqual(["2", "4"]);
+    for (const stageN of [1, 3, 5, 6, 7, 8, 9, 10, 11, 12]) {
       expect(getStageKnowledge(stageN), `stage ${stageN}`).toBeNull();
     }
   });
@@ -179,6 +182,7 @@ describe("stage knowledge registry (F31 T4 — generalized guide type)", () => {
   it("accepts a guide with no graph — the type is no longer the autolyse literal", () => {
     const withoutGraph: StageKnowledgeContent = {
       title: "כותרת",
+      triggerLabel: "טריגר",
       intro: "פתיחה",
       mechanism: { heading: "מנגנון", body: "גוף" },
       recipeContext: {
@@ -194,10 +198,12 @@ describe("stage knowledge registry (F31 T4 — generalized guide type)", () => {
   it("keeps every autolyse string byte-identical through the refactor", () => {
     // Frozen from the pre-refactor implementation: a changed stage-2 string
     // fails here on purpose, which is the whole point of a no-behaviour-change PR.
-    expect(
-      createHash("sha256").update(JSON.stringify(getStageKnowledge(2))).digest("hex"),
-    ).toBe("d8ac8ed9c9ef0d750e412c5443b2395f36463ddcb5b7101345b2305c2f74f993");
-    expect(Object.keys(AUTOLYSE_GUIDE)).toEqual([
+    const { triggerLabel: _label, ...copy } = getStageKnowledge(2)!;
+    void _label; // added by T5; the frozen hash guards the copy, not the shape
+    expect(createHash("sha256").update(JSON.stringify(copy)).digest("hex")).toBe(
+      "d8ac8ed9c9ef0d750e412c5443b2395f36463ddcb5b7101345b2305c2f74f993",
+    );
+    expect(Object.keys(copy)).toEqual([
       "title",
       "intro",
       "mechanism",
@@ -228,4 +234,91 @@ describe("stage knowledge registry (F31 T4 — generalized guide type)", () => {
       expect(getStageGuidance(GUIDANCE_CASES[name]!)).toEqual(expected[name]);
     },
   );
+});
+
+describe("bulk deep-dive guide (F31 T5)", () => {
+  const bulk = getStageKnowledge(4)!;
+
+  it("registers a guide for the bulk stage", () => {
+    expect(bulk).toBe(STAGE_KNOWLEDGE[4]);
+    expect(bulk.title).toBeTruthy();
+    expect(bulk.triggerLabel).toBe("הסבר על התסיסה הראשונית");
+  });
+
+  it("carries no graph — quantified axes would invite false precision here", () => {
+    expect(bulk.graph).toBeUndefined();
+    expect(bulk.practicalCheck).toBeUndefined();
+  });
+
+  it("holds the folds section with the stretch & fold demo", () => {
+    expect(bulk.folds?.heading).toBeTruthy();
+    expect(bulk.folds?.body).toBeTruthy();
+    expect(bulk.folds?.youtubeId).toBe(STRETCH_AND_FOLD_VIDEO.youtubeId);
+    expect(bulk.folds?.videoCaption).toBe(STRETCH_AND_FOLD_VIDEO.videoCaption);
+  });
+
+  it("repeats the decision rule the stage already shows, not a second wording", () => {
+    expect(bulk.decisionRule).toBe(strings.bake.bulkDecisionRule);
+  });
+
+  it("offers guidance for every factor that has approved copy", () => {
+    for (const key of [
+      "spelt",
+      "wholeWheat",
+      "rye",
+      "highHydration",
+      "lowHydration",
+      "warmKitchen",
+    ] as const) {
+      expect(bulk.recipeContext.guidance[key], key).toBeTruthy();
+    }
+  });
+
+  it("has no copy yet for a plain-flour bake — the guidance is skipped, not faked", () => {
+    // COPY_TBD — user/Gemini. `generic` is what the engine picks when no flour
+    // dominates, i.e. an ordinary white-flour bake. Until it exists the section
+    // renders its other factors and nothing for this one.
+    expect(bulk.recipeContext.guidance.generic).toBeUndefined();
+  });
+
+  it("leaves the autolyse guide alone", () => {
+    expect(getStageKnowledge(2)).toBe(AUTOLYSE_GUIDE);
+    expect(Object.keys(STAGE_KNOWLEDGE)).toEqual(["2", "4"]);
+  });
+});
+
+describe("guidance prefers measured dough temperature (F31 T5)", () => {
+  const white = flourOf();
+
+  it("uses the measured dough temp over the kitchen when it is present", () => {
+    expect(
+      getStageGuidance({ flour: white, hydration: 72, kitchenTemp: 22, doughTempC: 27 }),
+    ).toContain("warmKitchen");
+  });
+
+  it("a cool measured dough overrides a warm kitchen", () => {
+    expect(
+      getStageGuidance({ flour: white, hydration: 72, kitchenTemp: 29, doughTempC: 22 }),
+    ).not.toContain("warmKitchen");
+  });
+
+  it("falls back to the kitchen temp when nothing was measured", () => {
+    expect(
+      getStageGuidance({ flour: white, hydration: 72, kitchenTemp: 29, doughTempC: null }),
+    ).toContain("warmKitchen");
+    expect(
+      getStageGuidance({ flour: white, hydration: 72, kitchenTemp: 22 }),
+    ).not.toContain("warmKitchen");
+  });
+
+  it("still caps at three factors with a measured temp in play", () => {
+    expect(
+      getStageGuidance({
+        flour: flourOf({ white: 0, wholeWheat: 50, rye: 30, speltWhole: 30 }),
+        hydration: 95,
+        kitchenTemp: 20,
+        doughTempC: 30,
+      }),
+    ).toEqual(["spelt", "highHydration", "warmKitchen"]);
+  });
 });

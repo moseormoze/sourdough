@@ -6,10 +6,12 @@ import { usePressActivation } from "@/lib/hooks/use-press-activation";
 import { strings } from "@/lib/strings";
 
 export interface StageKnowledgeTriggerProps {
+  /** Per-stage label — each guide names its own subject. */
+  label: string;
   onOpen: () => void;
 }
 
-export function StageKnowledgeTrigger({ onOpen }: StageKnowledgeTriggerProps) {
+export function StageKnowledgeTrigger({ label, onOpen }: StageKnowledgeTriggerProps) {
   const { isPressed: pressed, pressProps } = usePressActivation<HTMLButtonElement>(onOpen);
 
   return (
@@ -27,7 +29,7 @@ export function StageKnowledgeTrigger({ onOpen }: StageKnowledgeTriggerProps) {
         )}
       >
         <GraduationCap aria-hidden="true" className="size-5 shrink-0" />
-        {strings.bake.stageKnowledge.trigger}
+        {label}
       </button>
     </div>
   );

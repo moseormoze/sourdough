@@ -382,7 +382,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         )}
 
         {knowledge && (
-          <StageKnowledgeTrigger onOpen={openKnowledge} />
+          <StageKnowledgeTrigger label={knowledge.triggerLabel} onOpen={openKnowledge} />
         )}
 
         {rescue && (
@@ -495,6 +495,7 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         open={knowledgeOpen}
         content={knowledge}
         recipe={activeBake.recipe}
+        doughTempC={activeBake.doughTempC}
         onClose={() => setKnowledgeOpen(false)}
       />
     )}
