@@ -15,6 +15,7 @@ import { FoldDots } from "./fold-dots";
 import { SafetyWarning } from "./safety-warning";
 import { StageCelebration } from "./stage-celebration";
 import { StageMedia } from "./stage-media";
+import { StageVideoSheet } from "./stage-video-sheet";
 import { AutolyseCalibration } from "./autolyse-calibration";
 import { StageKnowledgeTrigger } from "./stage-knowledge-hub";
 import { StageKnowledgeSheet } from "./stage-knowledge-sheet";
@@ -58,6 +59,10 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
   const [rescueOpen, setRescueOpen] = useState(false);
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const [advanceConfirmOpen, setAdvanceConfirmOpen] = useState(false);
+  const [videoSheetOpen, setVideoSheetOpen] = useState(false);
+  // On bulk the asset is readiness reference, not technique: it belongs to the
+  // decision at the end of the stage, not to the instructions at its start.
+  const isBulkStage = stage.type === "bulk";
   const [timerNow, setTimerNow] = useState(() => Date.now());
   const rescue = getRescue(stage.n);
   const knowledge = getStageKnowledge(stage.n);
@@ -246,12 +251,17 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
             onChange={api.setDoughTemp}
           />
         )}
-        <StageMedia
-          imageUrl={stage.imageUrl}
-          imageAlt={stage.imageAlt}
-          youtubeId={stage.youtubeId}
-          videoCaption={stage.videoCaption}
-        />
+        {!isBulkStage && (
+          <StageMedia
+            imageUrl={stage.imageUrl}
+            imageAlt={stage.imageAlt}
+            youtubeId={stage.youtubeId}
+            videoCaption={stage.videoCaption}
+            videoLabel={stage.videoLabel}
+            youtubeOrientation={stage.youtubeOrientation}
+            onOpenVideo={() => setVideoSheetOpen(true)}
+          />
+        )}
 
         {todoData && isAutolysePilot ? (
           <div
@@ -334,6 +344,18 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
               </p>
             )}
           </section>
+        )}
+
+        {isBulkStage && (
+          <StageMedia
+            imageUrl={stage.imageUrl}
+            imageAlt={stage.imageAlt}
+            youtubeId={stage.youtubeId}
+            videoCaption={stage.videoCaption}
+            videoLabel={stage.videoLabel}
+            youtubeOrientation={stage.youtubeOrientation}
+            onOpenVideo={() => setVideoSheetOpen(true)}
+          />
         )}
 
         {checks && checks.length > 0 && (
@@ -474,6 +496,16 @@ export function StageScreen({ stage, activeBake, api }: StageScreenProps) {
         content={knowledge}
         recipe={activeBake.recipe}
         onClose={() => setKnowledgeOpen(false)}
+      />
+    )}
+    {stage.youtubeId && (
+      <StageVideoSheet
+        open={videoSheetOpen}
+        onClose={() => setVideoSheetOpen(false)}
+        youtubeId={stage.youtubeId}
+        orientation={stage.youtubeOrientation ?? "landscape"}
+        caption={stage.videoCaption}
+        title={stage.videoLabel}
       />
     )}
     {rescue && (

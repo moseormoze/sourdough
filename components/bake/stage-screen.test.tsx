@@ -1151,3 +1151,79 @@ describe("StageScreen — one shared timer shell (feature 27, T4a)", () => {
     expect(screen.getByText("19:00")).toBeInTheDocument();
   });
 });
+
+describe("StageScreen — stage 4 readiness video in the decision zone (F31 T3)", () => {
+  const bulkStage = () => getStage(4)!;
+
+  it("offers the asset as a card — never an inline player in the page flow", () => {
+    const { container } = render(
+      <StageScreen stage={bulkStage()} activeBake={makeBake(4)} api={makeApi()} />,
+    );
+    expect(screen.getByRole("button", { name: /ככה נראה בצק מוכן/ })).toBeInTheDocument();
+    expect(container.querySelector("iframe")).toBeNull();
+  });
+
+  it("sits after the folds section and immediately before the checklist", () => {
+    render(<StageScreen stage={bulkStage()} activeBake={makeBake(4)} api={makeApi()} />);
+    const card = screen.getByRole("button", { name: /ככה נראה בצק מוכן/ });
+    const folds = screen.getByText("קיפולים").closest("section")!;
+    const checklist = screen.getByRole("region", { name: "מתי להמשיך לשלב הבא" });
+
+    const after = (a: Element, b: Element) =>
+      (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+    expect(after(folds, card)).toBe(true);
+    expect(after(card, checklist)).toBe(true);
+  });
+
+  it("plays the readiness short in the sheet on tap", () => {
+    render(<StageScreen stage={bulkStage()} activeBake={makeBake(4)} api={makeApi()} />);
+    fireEvent.click(screen.getByRole("button", { name: /ככה נראה בצק מוכן/ }));
+
+    const dialog = screen.getByRole("dialog");
+    const iframe = dialog.querySelector("iframe")!;
+    expect(iframe.getAttribute("src")).toContain("youtube.com/embed/vkJqIwbapf0");
+  });
+
+  it("keeps the stretch & fold demo off the main path", () => {
+    const { container } = render(
+      <StageScreen stage={bulkStage()} activeBake={makeBake(4)} api={makeApi()} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /ככה נראה בצק מוכן/ }));
+    expect(document.body.innerHTML).not.toContain("jrDy90gD710");
+    expect(container.innerHTML).not.toContain("jrDy90gD710");
+  });
+
+  it("does not disturb the fold counter or the timer while the sheet opens and closes", () => {
+    const api = makeApi();
+    const bake = makeBake(4, {
+      subStep: 2,
+      timerStartedAt: 1000,
+      timerDurationSeconds: 30 * 60,
+    });
+    render(<StageScreen stage={bulkStage()} activeBake={bake} api={api} />);
+    const foldsBefore = screen.getByText("קיפולים").closest("section")!.textContent;
+
+    fireEvent.click(screen.getByRole("button", { name: /ככה נראה בצק מוכן/ }));
+    fireEvent.click(screen.getByRole("button", { name: "סגור" }));
+
+    expect(screen.getByText("קיפולים").closest("section")!.textContent).toBe(foldsBefore);
+    expect(api.advanceSubStep).not.toHaveBeenCalled();
+    expect(api.startTimer).not.toHaveBeenCalled();
+    expect(api.pauseTimer).not.toHaveBeenCalled();
+    expect(api.resetTimer).not.toHaveBeenCalled();
+  });
+
+  it("leaves a landscape stage's media inline and above the checklist", () => {
+    const { container } = render(
+      <StageScreen stage={getStage(5)!} activeBake={makeBake(5)} api={makeApi()} />,
+    );
+    const iframe = container.querySelector("iframe")!;
+    expect(iframe.getAttribute("src")).toContain("youtube.com/embed/IWA0RAAsBHg");
+    expect(screen.queryByRole("button", { name: /ככה נראה בצק מוכן/ })).not.toBeInTheDocument();
+
+    const checklist = screen.getByRole("region", { name: "מתי להמשיך לשלב הבא" });
+    expect(
+      (iframe.compareDocumentPosition(checklist) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+    ).toBe(true);
+  });
+});

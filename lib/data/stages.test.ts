@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { STAGES, TOTAL_STAGES, getStage } from "./stages";
+import { STAGES, TOTAL_STAGES, getStage, STRETCH_AND_FOLD_VIDEO } from "./stages";
 
 describe("STAGES data", () => {
   it("ships exactly 12 stages", () => {
@@ -522,5 +522,29 @@ describe("stage 4 — no judgment-dependent phrasing anywhere (feature 31)", () 
 
   it("closes the instructions on the same observable sign as the gate", () => {
     expect(bulk.todo!.steps.at(-1)).toContain("רוטט כמו ג׳לי");
+  });
+});
+
+describe("stage 4 media — readiness asset on the main path (feature 31 T3)", () => {
+  const bulk = getStage(4)!;
+
+  it("carries the readiness short as a portrait asset with a card label", () => {
+    expect(bulk.youtubeId).toBe("vkJqIwbapf0");
+    expect(bulk.youtubeOrientation).toBe("portrait");
+    expect(bulk.videoLabel).toBe("ככה נראה בצק מוכן");
+    expect(bulk.videoCaption).toBeTruthy();
+  });
+
+  it("takes the stretch & fold demo off the main path without losing it", () => {
+    expect(bulk.youtubeId).not.toBe("jrDy90gD710");
+    // kept for the bulk deep-dive guide (T5)
+    expect(STRETCH_AND_FOLD_VIDEO.youtubeId).toBe("jrDy90gD710");
+    expect(STRETCH_AND_FOLD_VIDEO.videoCaption).toContain("stretch & fold");
+  });
+
+  it("leaves every other stage's media untouched", () => {
+    const others = STAGES.filter((s) => s.n !== 4 && s.youtubeId);
+    expect(others.map((s) => s.n)).toEqual([5, 6, 9]);
+    others.forEach((s) => expect(s.youtubeOrientation).toBeUndefined());
   });
 });
