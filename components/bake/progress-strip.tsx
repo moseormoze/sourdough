@@ -25,10 +25,11 @@ export function ProgressStrip({ total, current }: ProgressStripProps) {
             data-segment={n}
             data-state={isPast ? "past" : isCurrent ? "current" : "future"}
             className={cn(
-              "flex-1 h-1.5 rounded-full transition-colors duration-base ease-out",
-              isPast && "bg-ink-3",
-              isCurrent && "bg-accent",
-              !isPast && !isCurrent && "bg-line-2"
+              "h-[5px] rounded-[3px] transition-[flex,background-color,box-shadow] duration-base ease-out",
+              isCurrent ? "flex-[2.2]" : "flex-1",
+              isPast && "bg-ink-3/55",
+              isCurrent && "bg-gradient-to-r from-accent-2 to-accent shadow-[0_0_0_3px_rgba(230,107,61,0.14)]",
+              !isPast && !isCurrent && "bg-ink/10"
             )}
           />
         );

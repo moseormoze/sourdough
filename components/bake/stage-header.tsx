@@ -52,10 +52,24 @@ export function StageHeader({
   })();
 
   const strip = <ProgressStrip total={totalStages} current={stage.n} />;
+  const mutedText = variant === "pilot" ? "text-ink-2" : "text-ink-3";
+  const [counterCurrent, counterTotal] = strings.bake.stageCounter(stage.n, totalStages).split("/");
+
+  const head = (
+    <div aria-hidden="true" className="flex items-center justify-between gap-2.5 select-none">
+      <span className="flex items-center gap-1.5 text-body font-medium text-ink">
+        <span>טיימליין</span>
+        <ChevronDown size={12} className={mutedText} />
+      </span>
+      <span dir="ltr" className={cn("num text-small font-mono", mutedText)}>
+        <b className="text-ink font-semibold">{counterCurrent}</b>/{counterTotal}
+      </span>
+    </div>
+  );
 
   return (
     <header className={cn("relative z-10", variant === "pilot" && "text-ink")}>
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3">
         <Link
           href="/"
           className={cn(
@@ -68,15 +82,6 @@ export function StageHeader({
           <X size={16} aria-hidden />
           <span className="text-small">{strings.bake.stageMenuLabel}</span>
         </Link>
-        <span
-          dir="ltr"
-          className={cn(
-            "num text-tiny font-mono",
-            variant === "pilot" ? "text-ink-2" : "text-ink-3",
-          )}
-        >
-          {strings.bake.stageCounter(stage.n, totalStages)}
-        </span>
       </div>
 
       {onTimelineOpen ? (
@@ -85,27 +90,21 @@ export function StageHeader({
           type="button"
           aria-label="פתח טיימליין"
           className={cn(
-            "w-full min-h-touch flex flex-col justify-center gap-0.5 rounded-lg -mx-1 px-1",
+            "w-full min-h-touch flex flex-col justify-center gap-3 rounded-lg -mx-1 px-1",
             "transition-[transform,background-color] duration-fast ease-out",
             variant === "pilot" && "hover:bg-ink/[0.04]",
             isPressed && "scale-[0.985] bg-ink/[0.06]",
           )}
           {...pressProps}
         >
+          {head}
           {strip}
-          <div
-            className={cn(
-              "flex items-center gap-0.5 text-tiny select-none",
-              variant === "pilot" ? "text-ink-2" : "text-ink-3",
-            )}
-            aria-hidden="true"
-          >
-            <ChevronDown size={12} />
-            <span>טיימליין</span>
-          </div>
         </button>
       ) : (
-        strip
+        <div className="flex flex-col gap-3">
+          {head}
+          {strip}
+        </div>
       )}
 
       <div

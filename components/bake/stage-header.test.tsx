@@ -34,7 +34,8 @@ describe("StageHeader", () => {
   it("renders the counter N/12", () => {
     const stage = getStage(4)!;
     render(<StageHeader stage={stage} totalStages={12} />);
-    expect(screen.getByText("4/12")).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
+    expect(screen.getByText("/12")).toBeInTheDocument();
   });
 
   it("renders the progress bar with correct aria values", () => {
@@ -116,8 +117,8 @@ describe("StageHeader", () => {
       />,
     );
 
-    expect(screen.getByText("2/12")).toHaveClass("text-ink-2");
-    expect(screen.getByText("טיימליין").parentElement).toHaveClass("text-ink-2");
+    expect(screen.getByText("/12")).toHaveClass("text-ink-2");
+    expect(screen.getByText("טיימליין").parentElement).toHaveClass("text-ink");
     expect(screen.getByLabelText("פתח טיימליין")).toHaveAttribute(
       "data-manual-press",
       "true",
