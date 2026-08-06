@@ -14,12 +14,18 @@ function renderWheel(valueMinutes = 45, onChange = vi.fn()) {
 // User decision 2026-08-06: the baker picks the exact minute, on two scrollable
 // columns, with no curated list and no restricted range.
 describe("DurationWheel — two free columns", () => {
-  it("offers every hour from 0 to 23", () => {
+  it("offers hours all the way to 99, with no ceiling at a day", () => {
     const { hours } = renderWheel();
     const options = within(hours).getAllByRole("option");
-    expect(options).toHaveLength(24);
+    expect(options).toHaveLength(100);
     expect(options[0]).toHaveTextContent("00");
-    expect(options[23]).toHaveTextContent("23");
+    expect(options[99]).toHaveTextContent("99");
+  });
+
+  it("accepts a duration longer than a day", () => {
+    const { hours, onChange } = renderWheel(45);
+    fireEvent.click(within(hours).getByRole("option", { name: "36 שעות" }));
+    expect(onChange).toHaveBeenCalledWith(36 * 60 + 45);
   });
 
   it("offers every single minute from 0 to 59, not 5-minute steps", () => {
