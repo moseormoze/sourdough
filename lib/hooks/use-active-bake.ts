@@ -17,7 +17,7 @@ export interface UseActiveBakeApi {
   loading: boolean;
   start: (recipe: Recipe, bakingMethod?: BakingMethod, feedAt?: Date, peakAt?: Date, feedRatio?: FeedRatio, retardHours?: number) => ActiveBake;
   abandon: () => void;
-  advanceTo: (stage: number) => void;
+  commitTo: (stage: number) => void;
   advanceSubStep: () => void;
   setDoughTemp: (tempC: number | null) => void;
   setTimerRemaining: (durationSeconds: number) => void;
@@ -81,9 +81,17 @@ export function useActiveBake(): UseActiveBakeApi {
     setActiveBake(null);
   }, []);
 
-  const advanceTo = useCallback((stage: number) => {
+  /**
+   * Commit the bake forward. Ending a stage ends its wait, so the timer is
+   * cleared here — but ONLY when this actually advances the bake. Asking to
+   * commit to a stage already reached is navigation (the baker peeked back and
+   * tapped the primary action), and it must not destroy a running timer:
+   * that silent loss was the bug T1 fixes.
+   */
+  const commitTo = useCallback((stage: number) => {
     setActiveBake((current) => {
       if (!current) return current;
+      if (stage <= current.currentStage) return current;
       const next: ActiveBake = {
         ...current,
         currentStage: stage,
@@ -210,7 +218,7 @@ export function useActiveBake(): UseActiveBakeApi {
     loading,
     start,
     abandon,
-    advanceTo,
+    commitTo,
     advanceSubStep,
     setDoughTemp,
     setTimerRemaining,

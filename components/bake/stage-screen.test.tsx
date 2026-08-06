@@ -8,7 +8,7 @@ import type { ActiveBake } from "@/lib/types/active-bake";
 
 function makeApi() {
   return {
-    advanceTo: vi.fn(),
+    commitTo: vi.fn(),
     advanceSubStep: vi.fn(),
     startTimer: vi.fn(),
     setTimerRemaining: vi.fn(),
@@ -189,7 +189,7 @@ describe("StageScreen — basic stage", () => {
     const api = makeApi();
     render(<StageScreen stage={stage} activeBake={makeBake(1)} api={api} />);
     fireEvent.click(screen.getByRole("button", { name: /הבא — אוטוליזה/ }));
-    expect(api.advanceTo).toHaveBeenCalledWith(2);
+    expect(api.commitTo).toHaveBeenCalledWith(2);
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/2");
   });
 
@@ -201,13 +201,57 @@ describe("StageScreen — basic stage", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows back button on stage 2+ and it returns to previous stage", () => {
+  // T1 (feature 27): back is a peek, so it navigates without mutating the bake.
+  // It used to call advanceTo(n-1), which reset the timer fields and silently
+  // destroyed a running timer.
+  it("back button navigates without mutating the bake", () => {
     const stage = getStage(3)!;
     const api = makeApi();
     render(<StageScreen stage={stage} activeBake={makeBake(3)} api={api} />);
     fireEvent.click(screen.getByRole("button", { name: /^חזרה$/ }));
-    expect(api.advanceTo).toHaveBeenCalledWith(2);
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/2");
+    // commitTo clears the timer fields; back must never route through it.
+    expect(api.commitTo).not.toHaveBeenCalled();
+  });
+
+  // The bake has one timer, owned by currentStage. A stage being re-read must
+  // not paint that countdown as its own — it would show the wrong remaining
+  // time and its pause button would control a wait it doesn't own.
+  it("a stage being re-read renders no timer of its own", () => {
+    const bake = makeBake(4, {
+      timerStartedAt: Date.now() - 300_000,
+      timerElapsedSeconds: 0,
+      timerDurationSeconds: 1800,
+    });
+    // viewing stage 2 (autolyse) while the bake is on stage 4
+    render(<StageScreen stage={getStage(2)!} activeBake={bake} api={makeApi()} />);
+    expect(screen.queryByTestId("autolyse-timer-card")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "השהה" })).not.toBeInTheDocument();
+  });
+
+  it("the owning stage still renders its timer", () => {
+    const bake = makeBake(2, {
+      timerStartedAt: Date.now() - 300_000,
+      timerElapsedSeconds: 0,
+      timerDurationSeconds: 1800,
+    });
+    render(<StageScreen stage={getStage(2)!} activeBake={bake} api={makeApi()} />);
+    expect(screen.getByTestId("autolyse-timer-card")).toBeInTheDocument();
+  });
+
+  it("back button does not touch a running timer", () => {
+    const stage = getStage(4)!;
+    const api = makeApi();
+    const bake = makeBake(4, {
+      timerStartedAt: Date.now(),
+      timerElapsedSeconds: 0,
+      timerDurationSeconds: 1800,
+    });
+    render(<StageScreen stage={stage} activeBake={bake} api={api} />);
+    fireEvent.click(screen.getByRole("button", { name: /^חזרה$/ }));
+    expect(api.commitTo).not.toHaveBeenCalled();
+    expect(api.resetTimer).not.toHaveBeenCalled();
+    expect(api.pauseTimer).not.toHaveBeenCalled();
   });
 });
 
@@ -394,7 +438,7 @@ describe("StageScreen — stage knowledge pilot", () => {
     );
     fireEvent.click(next);
 
-    expect(api.advanceTo).not.toHaveBeenCalled();
+    expect(api.commitTo).not.toHaveBeenCalled();
     const dialog = screen.getByRole("dialog", { name: "אוטוליזה" });
     expect(dialog).toHaveAttribute("data-variant", "pilot");
     expect(within(dialog).getByTestId("autolyse-advance-status")).toHaveAttribute(
@@ -406,12 +450,12 @@ describe("StageScreen — stage knowledge pilot", () => {
     expect(within(dialog).queryByText(/עכשיו עוברים/)).not.toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: /^הבא$/ })).toHaveClass("bg-[#292A28]");
     fireEvent.click(within(dialog).getByRole("button", { name: /^ביטול$/ }));
-    expect(api.advanceTo).not.toHaveBeenCalled();
+    expect(api.commitTo).not.toHaveBeenCalled();
 
     fireEvent.click(next);
     const reopenedDialog = screen.getByRole("dialog", { name: "אוטוליזה" });
     fireEvent.click(within(reopenedDialog).getByRole("button", { name: /^הבא$/ }));
-    expect(api.advanceTo).toHaveBeenCalledWith(3);
+    expect(api.commitTo).toHaveBeenCalledWith(3);
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/3");
   });
 
@@ -433,7 +477,7 @@ describe("StageScreen — stage knowledge pilot", () => {
     expect(next).toHaveClass("flex-1");
     fireEvent.click(next);
 
-    expect(api.advanceTo).toHaveBeenCalledWith(3);
+    expect(api.commitTo).toHaveBeenCalledWith(3);
     expect(screen.queryByRole("dialog", { name: "אוטוליזה" })).not.toBeInTheDocument();
   });
 
@@ -453,7 +497,7 @@ describe("StageScreen — stage knowledge pilot", () => {
     expect(screen.getAllByRole("dialog")).toHaveLength(1);
     expect(screen.getByRole("heading", { name: "להבין את הבצק" })).toBeInTheDocument();
     expect(activeBake.currentStage).toBe(2);
-    expect(api.advanceTo).not.toHaveBeenCalled();
+    expect(api.commitTo).not.toHaveBeenCalled();
     expect(api.startTimer).not.toHaveBeenCalled();
     expect(api.pauseTimer).not.toHaveBeenCalled();
     expect(api.resumeTimer).not.toHaveBeenCalled();
@@ -626,7 +670,7 @@ describe("StageScreen — bulk (stage 4) sub-step flow", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "סיימתי קיפול" }));
     expect(api.advanceSubStep).toHaveBeenCalledOnce();
-    expect(api.advanceTo).not.toHaveBeenCalled();
+    expect(api.commitTo).not.toHaveBeenCalled();
   });
 
   it("hides the in-page 'סיימתי קיפול' button once all folds are done", () => {
@@ -644,7 +688,7 @@ describe("StageScreen — bulk (stage 4) sub-step flow", () => {
       <StageScreen stage={stage} activeBake={makeBake(4, { subStep: 0 })} api={api} />
     );
     fireEvent.click(screen.getByRole("button", { name: /^הבא$/ }));
-    expect(api.advanceTo).toHaveBeenCalledWith(5);
+    expect(api.commitTo).toHaveBeenCalledWith(5);
     expect(routerMock.push).toHaveBeenCalledWith("/bake/stage/5");
   });
 
@@ -835,7 +879,7 @@ describe("StageScreen — timer stage", () => {
     const nextBtn = screen.getByRole("button", { name: /^הבא$/ });
     expect(nextBtn).not.toBeDisabled();
     fireEvent.click(nextBtn);
-    expect(api.advanceTo).toHaveBeenCalledWith(8);
+    expect(api.commitTo).toHaveBeenCalledWith(8);
   });
 
   it("clicking 'התחל טיימר' calls startTimer", () => {
