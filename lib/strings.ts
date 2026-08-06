@@ -102,23 +102,22 @@ export const strings = {
     stageMenuLabel: "תפריט",
     stageFinishFold: "סיימתי קיפול",
     stageDone: "סיימתי",
-    // Optional timer
-    timerStart: "התחל טיימר",
-    timerPause: "השהה",
-    timerResume: "המשך",
-    timerReset: "אפס",
-    timerFinished: "הסתיים",
     timerStatus,
     foldProgressSuffix,
     foldProgress: (current: number, total: number) =>
       `${current} / ${total} ${foldProgressSuffix}`,
+    // Stage-specific timer copy. Only stage 2 has approved wording today;
+    // T6 adds the remaining stages rather than reusing autolyse hints.
     autolyseTimer: {
-      heading: "טיימר",
       idleHint: "אחרי שכל הקמח רטוב והקערה מכוסה, אפשר להפעיל טיימר למנוחה.",
+      setupHint: "כמה זמן לתת לבצק לנוח? בדרך כלל מומלץ לבחור 30–60 דקות.",
+    },
+    // The shared timer shell — one shape for every stage that carries a wait.
+    bakeTimer: {
+      heading: "טיימר",
       setupTitle: "בחירת זמן",
       editTitle: "עריכת זמן שנותר",
       countdownTitle: "טיימר אוטוליזה",
-      setupHint: "כמה זמן לתת לבצק לנוח? בדרך כלל מומלץ לבחור 30–60 דקות.",
       editHint: "בחרו כמה זמן יישאר בטיימר מרגע השמירה.",
       hoursLabel: "שעות",
       minutesLabel: "דקות",

@@ -47,8 +47,9 @@
     durationSeconds: number;
     startedAt: number | null;        // epoch ms של המקטע הנוכחי
     elapsedSeconds: number;
-    options: readonly TimerOption[]; // עצירות הגלגל — רשימת השלב
-    copy: TimerCopySlots;            // idleHint/setupHint פר־שלב
+    nowMs?: number;                  // שעון הדף המשותף
+    idleHint?: string;               // קופי פר־שלב; מושמט כשאין נוסח מאושר
+    setupHint?: string;
     variant: "stage" | "travelling" | "status";
     stageLabel?: string;             // ל־travelling: איזה שלב מחזיק אותו
     onStart?: (seconds: number) => void;
@@ -57,9 +58,13 @@
     onReset?: () => void;
     onSetRemaining?: (seconds: number) => void;
   }
-
-  interface TimerOption { seconds: number; recommended?: boolean }
   ```
+
+  **תיקון מול הטיוטה (‏T4a, ‏2026-08-06):** שני props שהופיעו כאן ירדו.
+  ‏`options: TimerOption[]` תיאר גלגל של עצירות מוגדרות — ‏T3 התהפך לגלגל חופשי
+  ‏(#106 נסגר, ‏#107/#108 מוזגו), ולכן אין רשימת עצירות. ‏`copy: TimerCopySlots`
+  התפצל לשני props אופציונליים: ‏T6 (הרמזים פר־שלב) חסום על קופי, ולכן שלב שאין
+  לו נוסח מאושר מרנדר **בלי רמז** במקום למחזר את נוסח האוטוליזה.
 
   | variant | משטח | בקרות | איפה |
   |---|---|---|---|
