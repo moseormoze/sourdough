@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState, useId } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/cn";
 
 export interface BottomSheetProps {
@@ -215,7 +216,9 @@ export function BottomSheet({
     }
   }, [snapBack]);
 
-  if (!mounted) return null;
+  // No document on the server — the sheet is interaction-driven, so skipping it
+  // during SSR costs nothing and keeps the portal target safe to read.
+  if (!mounted || typeof document === "undefined") return null;
 
   const heightClass = size === "full"
     ? "h-[88svh]"
@@ -243,7 +246,10 @@ export function BottomSheet({
                 : `transform ${EXIT_MS}ms ease-in`,
       };
 
-  return (
+  // Portalled to <body> so the sheet's stacking never depends on where the
+  // caller mounts it — mounted deep in a screen it would otherwise land in a
+  // stacking context below page-level fixed elements such as the feedback FAB.
+  return createPortal(
     <div className="fixed inset-0 z-sheet">
       {/* Scrim */}
       <div
@@ -334,6 +340,7 @@ export function BottomSheet({
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

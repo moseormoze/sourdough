@@ -9,6 +9,8 @@ describe("RescueSheet", () => {
       <RescueSheet stageN={2} isOpen={true} onClose={() => {}} />
     );
     expect(container.firstChild).toBeNull();
+    // the sheet portals to <body>, so an empty container alone proves nothing
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("renders the intro and all three verdicts for stage 5", () => {

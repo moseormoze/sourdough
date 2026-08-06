@@ -11,6 +11,12 @@ beforeAll(() => {
   vi.stubGlobal("cancelAnimationFrame", () => {});
 });
 
+// The sheet is portalled to <body>, so it is never inside render()'s container.
+const getOverlay = () => screen.getByRole("dialog").parentElement as HTMLElement;
+const getScrim = () => getOverlay().querySelector("[aria-hidden]") as HTMLElement;
+const getHandle = () =>
+  screen.getByRole("dialog").querySelector(".cursor-grab") as HTMLElement;
+
 describe("BottomSheet", () => {
   it("renders nothing when closed", () => {
     const { container } = render(
@@ -19,6 +25,28 @@ describe("BottomSheet", () => {
       </BottomSheet>,
     );
     expect(container.firstChild).toBeNull();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("renders into document.body no matter how deep it is mounted", () => {
+    const { container } = render(
+      <div style={{ position: "relative", zIndex: 0 }}>
+        <div style={{ transform: "translateZ(0)" }}>
+          <BottomSheet open={true} onClose={vi.fn()}>
+            content
+          </BottomSheet>
+        </div>
+      </div>,
+    );
+
+    const dialog = screen.getByRole("dialog");
+    // The overlay must be a direct child of <body> so its z-index is compared
+    // against page-level fixed elements (e.g. the feedback FAB), not against
+    // whatever stacking context the caller happens to sit in.
+    const overlay = dialog.parentElement!;
+    expect(overlay).toHaveClass("z-sheet");
+    expect(overlay.parentElement).toBe(document.body);
+    expect(container).not.toContainElement(dialog);
   });
 
   it("renders dialog when open", () => {
@@ -52,13 +80,12 @@ describe("BottomSheet", () => {
 
   it("calls onClose when scrim is clicked", () => {
     const onClose = vi.fn();
-    const { container } = render(
+    render(
       <BottomSheet open={true} onClose={onClose}>
         <button>btn</button>
       </BottomSheet>,
     );
-    const scrim = container.querySelector("[aria-hidden]") as HTMLElement;
-    fireEvent.click(scrim);
+    fireEvent.click(getScrim());
     expect(onClose).toHaveBeenCalledOnce();
   });
 
@@ -145,7 +172,7 @@ describe("BottomSheet", () => {
   });
 
   it("removes dialog from DOM after close animation", async () => {
-    const { rerender, container } = render(
+    const { rerender } = render(
       <BottomSheet open={true} onClose={vi.fn()}>
         content
       </BottomSheet>,
@@ -158,9 +185,10 @@ describe("BottomSheet", () => {
       </BottomSheet>,
     );
 
-    await waitFor(() => expect(container.firstChild).toBeNull(), {
-      timeout: 500,
-    });
+    await waitFor(
+      () => expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+      { timeout: 500 },
+    );
   });
 
   it("focuses the close (×) button when opened", () => {
@@ -189,12 +217,12 @@ describe("BottomSheet", () => {
 
   it("dismisses on drag past threshold", () => {
     const onClose = vi.fn();
-    const { container } = render(
+    render(
       <BottomSheet open={true} onClose={onClose}>
         content
       </BottomSheet>,
     );
-    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const handle = getHandle();
     fireEvent.pointerDown(handle, { clientY: 0, pointerId: 1 });
     fireEvent.pointerMove(handle, { clientY: 90, pointerId: 1 });
     fireEvent.pointerUp(handle, { clientY: 90, pointerId: 1 });
@@ -202,12 +230,12 @@ describe("BottomSheet", () => {
   });
 
   it("does not move before the 5px drag threshold", () => {
-    const { container } = render(
+    render(
       <BottomSheet open={true} onClose={vi.fn()}>
         content
       </BottomSheet>,
     );
-    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const handle = getHandle();
     const dialog = screen.getByRole("dialog");
     fireEvent.pointerDown(handle, { clientY: 0, pointerId: 1 });
     fireEvent.pointerMove(handle, { clientY: 4, pointerId: 1 });
@@ -215,12 +243,12 @@ describe("BottomSheet", () => {
   });
 
   it("moves 1:1 below the dismiss threshold", () => {
-    const { container } = render(
+    render(
       <BottomSheet open={true} onClose={vi.fn()}>
         content
       </BottomSheet>,
     );
-    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const handle = getHandle();
     const dialog = screen.getByRole("dialog");
     fireEvent.pointerDown(handle, { clientY: 0, pointerId: 1 });
     fireEvent.pointerMove(handle, { clientY: 50, pointerId: 1 });
@@ -228,12 +256,12 @@ describe("BottomSheet", () => {
   });
 
   it("applies resistance after 80px and caps the visual offset at 140px", () => {
-    const { container } = render(
+    render(
       <BottomSheet open={true} onClose={vi.fn()}>
         content
       </BottomSheet>,
     );
-    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const handle = getHandle();
     const dialog = screen.getByRole("dialog");
     fireEvent.pointerDown(handle, { clientY: 0, pointerId: 1 });
     fireEvent.pointerMove(handle, { clientY: 100, pointerId: 1 });
@@ -244,12 +272,12 @@ describe("BottomSheet", () => {
 
   it("dismisses a short drag when its velocity exceeds 0.5px/ms", () => {
     const onClose = vi.fn();
-    const { container } = render(
+    render(
       <BottomSheet open={true} onClose={onClose}>
         content
       </BottomSheet>,
     );
-    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const handle = getHandle();
     let call = 0;
     const now = vi
       .spyOn(Date, "now")
@@ -263,12 +291,12 @@ describe("BottomSheet", () => {
 
   it("snaps back without dismissing on pointer cancel", () => {
     const onClose = vi.fn();
-    const { container } = render(
+    render(
       <BottomSheet open={true} onClose={onClose}>
         content
       </BottomSheet>,
     );
-    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const handle = getHandle();
     const dialog = screen.getByRole("dialog");
     fireEvent.pointerDown(handle, { clientY: 0, pointerId: 1 });
     fireEvent.pointerMove(handle, { clientY: 90, pointerId: 1 });
@@ -279,23 +307,23 @@ describe("BottomSheet", () => {
   });
 
   it("gives the drag handle a 44px touch target", () => {
-    const { container } = render(
+    render(
       <BottomSheet open={true} onClose={vi.fn()}>
         content
       </BottomSheet>,
     );
-    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const handle = getHandle();
     expect(handle).toHaveClass("min-h-touch");
   });
 
   it("does not dismiss on drag below threshold", () => {
     const onClose = vi.fn();
-    const { container } = render(
+    render(
       <BottomSheet open={true} onClose={onClose}>
         content
       </BottomSheet>,
     );
-    const handle = container.querySelector(".cursor-grab") as HTMLElement;
+    const handle = getHandle();
     // Mock Date.now so elapsed = 2000ms → velocity = 30/2000 = 0.015 < 0.5
     let call = 0;
     const base = 1_000_000;
