@@ -1,16 +1,16 @@
 import type { ComponentProps } from "react";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AutolyseTimer } from "./autolyse-timer";
+import { BakeTimer } from "./bake-timer";
 
 const noop = () => {};
 const DEFAULT_DURATION = 45 * 60;
 
 function renderTimer(
-  overrides: Partial<ComponentProps<typeof AutolyseTimer>> = {}
+  overrides: Partial<ComponentProps<typeof BakeTimer>> = {}
 ) {
   return render(
-    <AutolyseTimer
+    <BakeTimer
       durationSeconds={DEFAULT_DURATION}
       startedAt={null}
       elapsedSeconds={0}
@@ -24,7 +24,7 @@ function renderTimer(
   );
 }
 
-describe("AutolyseTimer", () => {
+describe("BakeTimer", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-02T10:00:00Z"));
@@ -41,13 +41,13 @@ describe("AutolyseTimer", () => {
     ["finished", { startedAt: null, elapsedSeconds: DEFAULT_DURATION }],
   ] as const)("exposes the %s state for the page hierarchy", (state, props) => {
     renderTimer(props);
-    expect(screen.getByTestId("autolyse-timer")).toHaveAttribute("data-state", state);
+    expect(screen.getByTestId("bake-timer")).toHaveAttribute("data-state", state);
   });
 
   it("recomputes a finished timer from a start timestamp when the page reopens", () => {
     renderTimer({ startedAt: Date.now() - DEFAULT_DURATION * 1000 });
 
-    expect(screen.getByTestId("autolyse-timer")).toHaveAttribute(
+    expect(screen.getByTestId("bake-timer")).toHaveAttribute(
       "data-state",
       "finished",
     );
@@ -107,7 +107,7 @@ describe("AutolyseTimer", () => {
     expect(onStart).toHaveBeenCalledWith((2 * 60 + 37) * 60);
 
     rerender(
-      <AutolyseTimer
+      <BakeTimer
         durationSeconds={140 * 60}
         startedAt={Date.now()}
         elapsedSeconds={0}
@@ -126,31 +126,21 @@ describe("AutolyseTimer", () => {
     renderTimer({ startedAt: Date.now(), onPause });
 
     expect(screen.getByText("45:00")).toBeInTheDocument();
-    expect(screen.getByTestId("autolyse-timer-card")).toHaveAttribute(
+    expect(screen.getByTestId("bake-timer-card")).toHaveAttribute(
       "data-variant",
       "compact",
     );
-    expect(screen.getByTestId("autolyse-timer-card")).toHaveAttribute(
+    expect(screen.getByTestId("bake-timer-card")).toHaveAttribute(
       "data-surface",
       "charcoal",
     );
     expect(
-      within(screen.getByTestId("autolyse-timer-card")).getByRole("heading", {
+      within(screen.getByTestId("bake-timer-card")).getByRole("heading", {
         name: "טיימר",
       }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("progressbar", { name: "זמן שנותר" })).not.toBeInTheDocument();
-    expect(screen.getByTestId("autolyse-timer-signal")).toBeInTheDocument();
-    expect(screen.getByTestId("autolyse-timer-smoke")).toHaveAttribute(
-      "opacity",
-      "0.18",
-    );
-    expect(screen.getByTestId("autolyse-timer-line")).not.toHaveAttribute(
-      "stroke-dasharray",
-    );
-    expect(screen.getByTestId("autolyse-timer-line")).not.toHaveAttribute(
-      "stroke-dashoffset",
-    );
+    expect(screen.getByTestId("timer-progress")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "פתח טיימר מורחב" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "השהה" }));
     expect(onPause).toHaveBeenCalledOnce();
@@ -215,6 +205,50 @@ describe("AutolyseTimer", () => {
     expect(onResume).toHaveBeenCalledOnce();
   });
 
+  describe("TimerProgress (T5)", () => {
+    it.each([
+      ["a fresh run", { startedAt: Date.now(), elapsedSeconds: 0 }, "100%"],
+      ["a third spent", { startedAt: null, elapsedSeconds: 15 * 60 }, "66.67%"],
+      ["a finished wait", { startedAt: null, elapsedSeconds: DEFAULT_DURATION }, "0%"],
+    ] as const)("derives the fill width from the time left — %s", (_label, props, width) => {
+      renderTimer(props);
+      expect(screen.getByTestId("timer-progress-fill")).toHaveStyle({ width });
+    });
+
+    it("freezes the fill while paused instead of draining with the wall clock", () => {
+      renderTimer({ startedAt: null, elapsedSeconds: 15 * 60 });
+      expect(screen.getByTestId("timer-progress-fill")).toHaveStyle({ width: "66.67%" });
+      act(() => vi.advanceTimersByTime(10 * 60 * 1000));
+      expect(screen.getByTestId("timer-progress-fill")).toHaveStyle({ width: "66.67%" });
+    });
+
+    it("carries the orange gradient and never springs the width", () => {
+      renderTimer({ startedAt: Date.now() });
+      const fill = screen.getByTestId("timer-progress-fill");
+
+      expect(fill).toHaveClass("from-accent");
+      expect(fill).toHaveClass("to-accent-2");
+      // ui-playbook §4: progress bars do not spring.
+      expect(fill.className).not.toContain("ease-spring");
+      expect(fill).toHaveClass("motion-reduce:transition-none");
+    });
+
+    it("stays silent for assistive tech — the time is already announced once", () => {
+      renderTimer({ startedAt: Date.now() });
+
+      expect(screen.getByTestId("timer-progress")).toHaveAttribute("aria-hidden", "true");
+      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    });
+
+    it("replaces the decorative signal rather than joining it", () => {
+      renderTimer({ startedAt: Date.now() });
+
+      expect(screen.queryByTestId("autolyse-timer-signal")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("autolyse-timer-smoke")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("autolyse-timer-line")).not.toBeInTheDocument();
+    });
+  });
+
   it("announces timer state changes without announcing every second", () => {
     const { rerender } = renderTimer({ elapsedSeconds: 60 });
     const status = screen.getByRole("status");
@@ -224,7 +258,7 @@ describe("AutolyseTimer", () => {
     expect(status).toHaveTextContent("הטיימר מושהה");
 
     rerender(
-      <AutolyseTimer
+      <BakeTimer
         durationSeconds={DEFAULT_DURATION}
         startedAt={Date.now()}
         elapsedSeconds={60}

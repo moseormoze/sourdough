@@ -47,9 +47,9 @@ describe("strings — reusable bake status", () => {
       paused: "הטיימר מושהה",
       finished: "הטיימר הסתיים",
     });
-    expect(strings.bake.autolyseTimer.running).toBe(strings.bake.timerStatus.running);
-    expect(strings.bake.autolyseTimer.paused).toBe(strings.bake.timerStatus.paused);
-    expect(strings.bake.autolyseTimer.finished).toBe(strings.bake.timerStatus.finished);
+    expect(strings.bake.bakeTimer.running).toBe(strings.bake.timerStatus.running);
+    expect(strings.bake.bakeTimer.paused).toBe(strings.bake.timerStatus.paused);
+    expect(strings.bake.bakeTimer.finished).toBe(strings.bake.timerStatus.finished);
     expect(strings.bake.foldProgress(2, 4)).toBe("2 / 4 קיפולים בוצעו");
   });
 });
