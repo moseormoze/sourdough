@@ -56,6 +56,11 @@ StickyActions (ללא שינוי)
   `{ open, onClose, youtubeId, orientation, caption, watchUrl }`. הנגן מקבל
   `aspect-[9/16]` לשורט ו-`aspect-video` לרגיל. מתחת לנגן **תמיד** שורת
   "פתחו ב-YouTube" — היא גם ה-fallback כשהנגן ריק.
+  **נקבע ב-T2 מ-QA מרונדר:** ה-Sheet חייב להיות מרונדר מ-`StageScreen`, כמו
+  `RescueSheet`, ולא מתוך `StageMedia`. כשהוא מורכב בעומק זרימת התוכן הוא נופל
+  להקשר ערימה (stacking context) שמתחת ל-FAB של המשוב, וה-FAB מצויר מעל הנגן
+  למרות ‏`z-sheet`. לכן `StageMedia` חושף `onOpenVideo` ואינו מחזיק state של
+  Sheet. ‏T3 מרכיב את ה-Sheet ברמת המסך.
 - **Modified: `StageMedia`** — מקבל `youtubeOrientation?: "landscape" | "portrait"`.
   ב-`portrait` הוא **אינו** מטמיע inline אלא מרנדר `StageVideoCard`. הסיבה נעולה
   מהפיילוט: מדיה אנכית בזרימת העמוד "תופסת כמעט מסך שלם" — זו הבעיה שפיילוט

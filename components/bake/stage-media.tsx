@@ -1,28 +1,40 @@
+"use client";
+
 import Image from "next/image";
+import { strings } from "@/lib/strings";
+import { buildYouTubeEmbedSrc } from "@/lib/youtube";
+import { StageVideoCard } from "./stage-video-card";
+import type { StageVideoOrientation } from "./stage-video-sheet";
 
 export interface StageMediaProps {
   imageUrl?: string;
   imageAlt?: string;
   youtubeId?: string;
   videoCaption?: string;
+  /** Card label for a portrait asset; ignored in landscape. */
+  videoLabel?: string;
+  youtubeOrientation?: StageVideoOrientation;
+  /**
+   * Portrait only. The sheet is owned by the screen, not by this component:
+   * mounted from here it lands under the feedback FAB's stacking context and
+   * the FAB paints on top of the player (verified in the browser at 375px).
+   */
+  onOpenVideo?: () => void;
 }
 
-function buildYouTubeEmbedSrc(id: string): string {
-  const params = new URLSearchParams({
-    autoplay: "1",
-    mute: "1",
-    loop: "1",
-    playlist: id,
-    controls: "1",
-    modestbranding: "1",
-    rel: "0",
-    playsinline: "1",
-  });
-  return `https://www.youtube.com/embed/${id}?${params.toString()}`;
-}
-
-export function StageMedia({ imageUrl, imageAlt, youtubeId, videoCaption }: StageMediaProps) {
+export function StageMedia({
+  imageUrl,
+  imageAlt,
+  youtubeId,
+  videoCaption,
+  videoLabel,
+  youtubeOrientation = "landscape",
+  onOpenVideo,
+}: StageMediaProps) {
   if (!imageUrl && !youtubeId) return null;
+
+  const portrait = youtubeId !== undefined && youtubeOrientation === "portrait";
+
   return (
     <section className="flex flex-col gap-3">
       {imageUrl && (
@@ -37,12 +49,12 @@ export function StageMedia({ imageUrl, imageAlt, youtubeId, videoCaption }: Stag
           />
         </div>
       )}
-      {youtubeId && (
+      {youtubeId && !portrait && (
         <div className="overflow-hidden rounded-2xl bg-ink/[0.04]">
           <div className="relative aspect-video w-full">
             <iframe
               src={buildYouTubeEmbedSrc(youtubeId)}
-              title={videoCaption ?? "סרטון הדגמה"}
+              title={videoCaption ?? strings.bake.stageVideo.playerTitle}
               allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
               className="absolute inset-0 h-full w-full"
@@ -52,6 +64,13 @@ export function StageMedia({ imageUrl, imageAlt, youtubeId, videoCaption }: Stag
             <p className="px-4 py-2 text-tiny text-ink-3 leading-relaxed">{videoCaption}</p>
           )}
         </div>
+      )}
+      {portrait && (
+        <StageVideoCard
+          label={videoLabel ?? strings.bake.stageVideo.playerTitle}
+          caption={videoCaption}
+          onOpen={() => onOpenVideo?.()}
+        />
       )}
     </section>
   );

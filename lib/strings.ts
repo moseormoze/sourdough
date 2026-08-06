@@ -156,6 +156,12 @@ export const strings = {
     bulkDecisionRule:
       "מתלבטים? סיימו מוקדם. תת-תסיסה קלה מתקנת את עצמה בהתפחה הקרה — תסיסת-יתר לא.",
     bulkCompareTrigger: "לא בטוחים? השוו: חסר · מוכן · יתר",
+    // Vertical media: a card in the flow, the player inside a sheet (feature 31, T2)
+    stageVideo: {
+      watchOnYouTube: "פתחו ב-YouTube",
+      offline: "אין חיבור לאינטרנט כרגע. אפשר לפתוח את הסרטון ביוטיוב.",
+      playerTitle: "סרטון הדגמה",
+    },
     // Rescue paths (feature 20)
     rescueTrigger: "משהו לא מסתדר?",
     rescueSheetTitle: "אבחון מהיר",
