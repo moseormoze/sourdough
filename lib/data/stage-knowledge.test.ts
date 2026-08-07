@@ -261,11 +261,12 @@ describe("bulk deep-dive guide (F31 T5)", () => {
     expect(bulk.decisionRule).toBe(strings.bake.bulkDecisionRule);
   });
 
-  it("offers guidance for every factor that has approved copy", () => {
+  it("offers guidance for every factor the engine can pick", () => {
     for (const key of [
       "spelt",
       "wholeWheat",
       "rye",
+      "generic",
       "highHydration",
       "lowHydration",
       "warmKitchen",
@@ -274,11 +275,17 @@ describe("bulk deep-dive guide (F31 T5)", () => {
     }
   });
 
-  it("has no copy yet for a plain-flour bake — the guidance is skipped, not faked", () => {
-    // COPY_TBD — user/Gemini. `generic` is what the engine picks when no flour
-    // dominates, i.e. an ordinary white-flour bake. Until it exists the section
-    // renders its other factors and nothing for this one.
-    expect(bulk.recipeContext.guidance.generic).toBeUndefined();
+  it("covers the plain-flour bake — the case the engine picks most often", () => {
+    expect(bulk.recipeContext.guidance.generic).toBe(
+      "בבצק מחיטה לבנה סימני התסיסה מתנהגים לפי הספר. הדרך הטובה ביותר היא להשוות את מצב הבצק לעצמו בתחילת השלב, ולא לחפש מראה אבסולוטי אחד.",
+    );
+  });
+
+  it("phrases the warm guidance for either temperature source", () => {
+    const warm = bulk.recipeContext.guidance.warmKitchen!;
+    // it fires from a measured dough temp too, so it must not claim the room is warm
+    expect(warm).not.toContain("בסביבה");
+    expect(warm).toContain("בטמפרטורה של 26° ומעלה");
   });
 
   it("leaves the autolyse guide alone", () => {

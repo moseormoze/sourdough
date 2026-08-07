@@ -532,7 +532,7 @@ describe("stage 4 media — readiness asset on the main path (feature 31 T3)", (
     expect(bulk.youtubeId).toBe("vkJqIwbapf0");
     expect(bulk.youtubeOrientation).toBe("portrait");
     expect(bulk.videoLabel).toBe("ככה נראה בצק מוכן");
-    expect(bulk.videoCaption).toBeTruthy();
+    expect(bulk.videoCaption).toBe("זיהוי סימני התסיסה · Milk and Pop");
   });
 
   it("takes the stretch & fold demo off the main path without losing it", () => {
