@@ -261,17 +261,34 @@ describe("StageKnowledgeSheet — bulk guide (F31 T5)", () => {
     expect(screen.getByText(bulk.recipeContext.guidance.warmKitchen!)).toBeInTheDocument();
   });
 
-  it("skips a factor that has no approved copy instead of rendering a blank", () => {
-    // a plain white bake resolves to `generic`, which is still COPY_TBD
+  it("guides a plain white bake — the case the engine picks most often", () => {
     const plain = makeRecipe({
       flour: { white: 100, wholeWheat: 0, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
       hydration: 72,
       kitchenTemp: 22,
     });
     openBulk(plain, null);
-    const factors = screen.queryAllByTestId("autolyse-guidance-factor");
-    expect(factors).toHaveLength(0);
-    // the section itself still renders the recipe facts
+    const factors = screen.getAllByTestId("autolyse-guidance-factor");
+    expect(factors).toHaveLength(1);
+    expect(factors[0]).toHaveTextContent(bulk.recipeContext.guidance.generic!);
+  });
+
+  it("skips a factor with no copy rather than rendering a blank paragraph", () => {
+    const { generic: _drop, ...rest } = bulk.recipeContext.guidance;
+    void _drop;
+    render(
+      <StageKnowledgeSheet
+        open
+        content={{ ...bulk, recipeContext: { ...bulk.recipeContext, guidance: rest } }}
+        recipe={makeRecipe({
+          flour: { white: 100, wholeWheat: 0, rye: 0, speltWhite: 0, speltWhole: 0, other: 0 },
+          hydration: 72,
+          kitchenTemp: 22,
+        })}
+        onClose={() => {}}
+      />,
+    );
+    expect(screen.queryAllByTestId("autolyse-guidance-factor")).toHaveLength(0);
     expect(screen.getByRole("heading", { name: bulk.recipeContext.heading })).toBeInTheDocument();
   });
 });

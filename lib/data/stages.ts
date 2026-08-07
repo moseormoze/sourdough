@@ -178,7 +178,7 @@ export const STAGES: readonly Stage[] = [
     youtubeId: "vkJqIwbapf0",
     youtubeOrientation: "portrait",
     videoLabel: "ככה נראה בצק מוכן",
-    videoCaption: "Milk and Pop",
+    videoCaption: "זיהוי סימני התסיסה · Milk and Pop",
     durationLabel: "כ-4 שעות · 3–4 קיפולים",
     tempSensitiveBaseSecs: 4 * 3600,
     durationLabelSuffix: " · 3–4 קיפולים",
